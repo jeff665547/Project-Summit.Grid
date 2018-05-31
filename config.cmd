@@ -1,0 +1,1 @@
+cmake .. -DCMAKE_INSTALL_PREFIX="../stage" -G "MinGW Makefiles" -DINSTALL_DEPS=ON -DHUNTER_ROOT="C:/.hunter" -DCMAKE_BUILD_TYPE="Debug"
