@@ -12,7 +12,7 @@ HunterGate(
     SHA1 9cfab9c84766db83fa413047936391871517a458
     FILEPATH ${CMAKE_CURRENT_LIST_DIR}/cmake/packages.cmake
 )
-project(WaferAlignmentQC LANGUAGES C CXX)
+project(ProjectTemplate LANGUAGES C CXX)
 
 hunter_add_package(Screw)
 find_package( Screw CONFIG REQUIRED )

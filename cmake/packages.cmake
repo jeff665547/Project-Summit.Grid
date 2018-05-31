@@ -27,3 +27,8 @@ else()
         CMAKE_ARGS BUILD_SHARED_LIBS=ON
     )
 endif()
+
+# hunter_config(NucleonaM GIT_SUBMODULE "lib/Nucleona"
+#     CMAKE_ARGS 
+#         BUILD_TESTS=OFF 
+# )

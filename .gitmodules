@@ -1,0 +1,3 @@
+[submodule "cmake/screw"]
+	path = cmake/screw
+	url = http://gitlab.centrilliontech.com.tw:10080/centrillion/screw
