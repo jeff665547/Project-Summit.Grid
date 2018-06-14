@@ -1,23 +1,10 @@
-# gtest
-if(BUILD_TESTS)
-    hunter_add_package(GTest)
-    find_package(GTest CONFIG REQUIRED)
-endif()
+# screw
+hunter_add_package(Screw)
+find_package(Screw CONFIG REQUIRED)
 
-# json
-hunter_add_package(nlohmann_json)
-find_package(nlohmann_json CONFIG REQUIRED)
-
-# # opencv
-# hunter_add_package(OpenCV)
-# screw_get_msvc_name(OpenCV_RUNTIME)
-# find_package(OpenCV CONFIG REQUIRED)
-# message(STATUS "OpenCV_DIR: ${OpenCV_DIR}")
-# message(STATUS "OpenCV_CONFIG: ${OpenCV_CONFIG}")
-# message(STATUS "OpenCV_LIBS: ${OpenCV_LIBS}")
-# screw_get_bits(BITS)
-# list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/bin)
-# list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/lib)
+# nucleona 
+hunter_add_package(NucleonaM)
+find_package(Nucleona CONFIG REQUIRED)
 
 # # boost 
 # hunter_add_package(Boost COMPONENTS 
@@ -33,12 +20,32 @@ find_package(nlohmann_json CONFIG REQUIRED)
 #     # more boost module goes here
 #     REQUIRED
 # )
+# gtest
+# if(BUILD_TESTS)
+#     hunter_add_package(GTest)
+#     find_package(GTest CONFIG REQUIRED)
+# endif()
 
-# # log4cxx
-# hunter_add_package(log4cplus)
-# find_package(log4cplus CONFIG REQUIRED)
+# json
+# hunter_add_package(nlohmann_json)
+# find_package(nlohmann_json CONFIG REQUIRED)
+
+
+# affy
+hunter_add_package(Affy)
+find_package(Affy CONFIG REQUIRED)
+
+# # opencv
+# hunter_add_package(OpenCV)
+# screw_get_msvc_name(OpenCV_RUNTIME)
+# find_package(OpenCV CONFIG REQUIRED)
+# message(STATUS "OpenCV_DIR: ${OpenCV_DIR}")
+# message(STATUS "OpenCV_CONFIG: ${OpenCV_CONFIG}")
+# message(STATUS "OpenCV_LIBS: ${OpenCV_LIBS}")
+# screw_get_bits(BITS)
+# list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/bin)
+# list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/lib)
 # 
-# # nucleona 
-# hunter_add_package(NucleonaM)
-# find_package(Nucleona CONFIG REQUIRED)
-
+# # openblas
+# hunter_add_package(OpenBLAS)
+# find_package(OpenBLAS CONFIG REQUIRED)
