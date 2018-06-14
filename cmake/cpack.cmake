@@ -27,7 +27,7 @@ if( ENABLE_CPACK )
         set( CPACK_NSIS_CONTACT "cpack.nsis.contact")
         set (CPACK_NSIS_COMPRESSOR "/SOLID lzma")
     endif()
-    include(CPACK)
+    include(CPack)
     # cpack_add_component_group( Development
     #     DISPLAY_NAME "Summit software development kit"
     #     EXPENDED)
