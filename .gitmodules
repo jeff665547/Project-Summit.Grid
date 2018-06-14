@@ -1,9 +1,3 @@
-[submodule "lib/Affy"]
-	path = lib/Affy
-	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/Affy.git
-[submodule "lib/Nucleona"]
-	path = lib/Nucleona
-	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/Nucleona.git
 [submodule "cmake/screw"]
 	path = cmake/screw
-	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/screw.git
+	url = http://gitlab.centrilliontech.com.tw:10080/centrillion/screw
