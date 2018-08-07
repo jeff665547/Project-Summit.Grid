@@ -9,7 +9,7 @@ set(
 )
 HunterGate(
     URL "ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/hunter.git"
-    SHA1 9cfab9c84766db83fa413047936391871517a458
+    SHA1 f4b65c22d782adddc3de9544660dc9a036335d34
     FILEPATH ${CMAKE_CURRENT_LIST_DIR}/cmake/packages.cmake
 )
 project(ProjectTemplate LANGUAGES C CXX)
