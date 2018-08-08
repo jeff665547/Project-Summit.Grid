@@ -1,3 +1,12 @@
 [submodule "cmake/screw"]
 	path = cmake/screw
 	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/screw
+[submodule "lib/ChipImgProc"]
+	path = lib/ChipImgProc
+	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/ChipImgProc.git
+[submodule "lib/Summit.Spec"]
+	path = lib/Summit.Spec
+	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/Summit.Spec.git
+[submodule "lib/Nucleona"]
+	path = lib/Nucleona
+	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/Nucleona.git
