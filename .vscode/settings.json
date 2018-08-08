@@ -4,5 +4,14 @@
         "iosfwd": "cpp"
     },
     "C_Cpp.dimInactiveRegions": false,
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "cmake.preferredGenerators": [
+        "Unix Makefiles",
+        "MinGW Makefiles"
+    ],
+    "cmake.configureSettings": {
+        "INSTALL_DEPS": "ON",
+        "SCREW_DEBUG": "OFF"
+    },
+    "cmake.installPrefix": "${workspaceRoot}/stage"
 }

@@ -1,12 +1,12 @@
 # gtest
-if(BUILD_TESTS)
-    hunter_add_package(GTest)
-    find_package(GTest CONFIG REQUIRED)
-endif()
+# if(BUILD_TESTS)
+#     hunter_add_package(GTest)
+#     find_package(GTest CONFIG REQUIRED)
+# endif()
 
 # json
-hunter_add_package(nlohmann_json)
-find_package(nlohmann_json CONFIG REQUIRED)
+# hunter_add_package(nlohmann_json)
+# find_package(nlohmann_json CONFIG REQUIRED)
 
 # # opencv
 # hunter_add_package(OpenCV)
@@ -42,3 +42,4 @@ find_package(nlohmann_json CONFIG REQUIRED)
 # hunter_add_package(NucleonaM)
 # find_package(Nucleona CONFIG REQUIRED)
 
+include(${SCREW_DIR}/hunter_root.cmake)

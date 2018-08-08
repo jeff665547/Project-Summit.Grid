@@ -1,5 +1,5 @@
 set( _GLIBCXX_USE_CXX11_ABI 0 )
-set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD 17 )
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAG} -Wno-deprecated-declarations")
@@ -8,3 +8,5 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 else()
     # set(cxx_debug_flag)
 endif()
+
+screw_set_debugger()
