@@ -1,0 +1,30 @@
+<IPC>/
+  <RFID>/
+    <CID>_<TIMESTAMP>/
+       <r>-<c>-<ch>.tiff
+       chip_log.json
+       chip_log.SFFX
+       grid/ # toolchain
+        channels/
+          <channel...>/
+            heatmap.csv
+            gridline.csv
+            viewable_<tag>/
+              <r>-<c>.png
+              stitch.png
+            viewable_<tag>/
+              <r>-<c>.png
+              stitch.png
+
+normal_mode:
+<output>-<ch>.<ofm>
+<output>/<task_id>/channels/<ch>/viewable_<tag>/<r>-<c>.png (chipscan task)
+<output>/<task_id>/channels/<ch>/viewable_<tag>/stitch.png  (chipscan task)
+<output>/<task_id>/viewable_<tag>.png                       (single image task)
+<output>/<task_id>/channels/<ch>/gridline.csv
+
+inpace_mode: { output == task_path } 
+<output>/grid/channels/<ch>/heatmap.<ofm>
+<output>/grid/channels/<ch>/viewable_<tag>/<r>-<c>.png  (chipscan task)
+<output>/grid/channels/<ch>/viewable_<tag>/stitch.png   (chipscan task)
+<output>/grid/channels/<ch>/gridline.csv
