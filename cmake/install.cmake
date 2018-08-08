@@ -17,10 +17,10 @@ install(TARGETS ${exe_targets} ${lib_targets} ${test_targets}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Library
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Library
 )
-install(
-    DIRECTORY include
-    DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT Headers
-)
+# install(
+#     DIRECTORY include
+#     DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT Headers
+# )
 install(
     FILES       "${project_config}" "${version_config}"
     DESTINATION "${config_install_dir}"
@@ -30,6 +30,19 @@ install(
     EXPORT      "${targets_export_name}"
     NAMESPACE   "${namespace}"
     DESTINATION "${config_install_dir}"
+)
+install(
+    FILES 
+        lib/Summit.Spec/chip.json
+        lib/Summit.Spec/cell_fov.json
+    DESTINATION etc/private
+    COMPONENT Runtime
+)
+install(
+    DIRECTORY
+        lib/Summit.Spec/resource 
+    DESTINATION .
+    COMPONENT Runtime
 )
 if(INSTALL_DEPS)
     configure_file(cmake/bundle.cmake.in ${CMAKE_BINARY_DIR}/bundle.cmake @ONLY)

@@ -12,6 +12,8 @@ find_package(nlohmann_json CONFIG REQUIRED)
 hunter_add_package(NucleonaM)
 find_package(Nucleona CONFIG REQUIRED)
 
+find_package(HDF5 CONFIG REQUIRED)
+
 # # boost 
 # hunter_add_package(Boost COMPONENTS 
 #     thread 
@@ -30,5 +32,10 @@ find_package(Nucleona CONFIG REQUIRED)
 # ChipImgProc 
 hunter_add_package(ChipImgProc)
 find_package(ChipImgProc CONFIG REQUIRED)
+
+# OpenCV
+screw_get_bits(BITS)
+list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/bin)
+list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/lib)
 
 include(${SCREW_DIR}/hunter_root.cmake)

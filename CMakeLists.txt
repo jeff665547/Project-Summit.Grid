@@ -12,7 +12,7 @@ HunterGate(
     SHA1 f4b65c22d782adddc3de9544660dc9a036335d34
     FILEPATH ${CMAKE_CURRENT_LIST_DIR}/cmake/packages.cmake
 )
-project(Summit LANGUAGES C CXX)
+project(SummitGrid LANGUAGES C CXX)
 
 hunter_add_package(Screw)
 find_package( Screw CONFIG REQUIRED )
