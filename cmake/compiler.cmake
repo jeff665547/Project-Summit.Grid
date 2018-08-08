@@ -9,4 +9,14 @@ else()
     # set(cxx_debug_flag)
 endif()
 
-screw_set_debugger()
+# screw_set_debugger()
+
+get_filename_component(
+    __compiler_bin_dir
+    ${CMAKE_CXX_COMPILER}
+    DIRECTORY
+)
+set(SCREW_DEBUGGER ${__compiler_bin_dir}/gdb.exe)
+unset(__compiler_bin_dir)
+
+screw_show_var(SCREW_DEBUGGER)
