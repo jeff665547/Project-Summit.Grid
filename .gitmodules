@@ -10,3 +10,6 @@
 [submodule "lib/Nucleona"]
 	path = lib/Nucleona
 	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/Nucleona.git
+[submodule "lib/CFU"]
+	path = lib/CFU
+	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/CFU.git
