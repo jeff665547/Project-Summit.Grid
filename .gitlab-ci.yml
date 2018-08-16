@@ -1,4 +1,6 @@
 Win_CI:
+    variables:
+      GIT_SUBMODULE_STRATEGY: recursive
     stage: build
     script: 
         - git submodule init
@@ -15,6 +17,8 @@ Win_CI:
         - WIN
 
 CentOS_CI:
+    variables:
+      GIT_SUBMODULE_STRATEGY: recursive
     stage: build
     script: 
         - source /opt/rh/devtoolset-7/enable
