@@ -45,7 +45,7 @@ struct Single {
         }
         std::cout << "read chip info: " << chip_type << std::endl;
         auto& cell_fov  = config::cell_fov().get_fov_type(chip_type);
-        auto& chip_spec = config::chip().get_spec(chip_type);
+        auto& chip_spec = config::chip().get_spec(cell_fov["spec"].get<std::string>());
 
         if(um2px_r < 0 ) {
             um2px_r = Utils::guess_um2px_r(
@@ -55,6 +55,7 @@ struct Single {
         std::cout << "um to pixel rate: " << um2px_r << std::endl;
 
         chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
+        algo.set_margin_method("auto_min_cv");
         algo.set_logger(std::cout);
         if( 1 == debug ) {
             algo.set_rot_cali_viewer([](const auto& img){

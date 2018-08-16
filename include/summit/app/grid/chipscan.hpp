@@ -114,6 +114,7 @@ struct ChipScan {
         std::cout << "um_to_px_coef=" << um2px_r << std::endl;
 
         chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
+        algo.set_margin_method("auto_min_cv");
         algo.set_logger(std::cout);
         auto mk_layouts = Utils::generate_sgl_pat_reg_mat_marker_layout(
             um2px_r, chip_spec, cell_fov
