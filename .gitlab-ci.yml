@@ -1,6 +1,7 @@
 Win_CI:
-    variables:
-        GIT_SUBMODULE_STRATEGY: recursive
+    before_script:
+        - git submodule sync --recursive
+        - git submodule update --init --recursive --remote
     stage: build
     script: 
         - rmdir stage /s /q
@@ -16,8 +17,9 @@ Win_CI:
         - WIN
 
 CentOS_CI:
-    variables:
-        GIT_SUBMODULE_STRATEGY: recursive
+    before_script:
+        - git submodule sync --recursive
+        - git submodule update --init --recursive --remote
     stage: build
     script: 
         - source /opt/rh/devtoolset-7/enable
