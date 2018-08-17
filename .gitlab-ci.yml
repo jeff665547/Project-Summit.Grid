@@ -1,11 +1,8 @@
 Win_CI:
-    before_script:
-        - git submodule sync --recursive
-        - git submodule update --init --recursive --remote
+    variables:
+        GIT_SUBMODULE_STRATEGY: recursive
     stage: build
     script: 
-        - git submodule init
-        - git submodule update
         - rmdir stage /s /q
         - rmdir build /s /q
         - mkdir build
@@ -19,16 +16,13 @@ Win_CI:
         - WIN
 
 CentOS_CI:
-    before_script:
-        - git submodule sync --recursive
-        - git submodule update --init --recursive --remote
+    variables:
+        GIT_SUBMODULE_STRATEGY: recursive
     stage: build
     script: 
         - source /opt/rh/devtoolset-7/enable
         - source /opt/rh/python27/enable
         - source /opt/rh/rh-python35/enable
-        - git submodule init
-        - git submodule update
         - rm -rf stage
         - rm -rf build
         - mkdir -p build
