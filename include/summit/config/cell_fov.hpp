@@ -14,7 +14,7 @@ struct CellFOV : public nlohmann::json {
             }
         }
         std::stringstream ss;
-        ss << "chip fov type: " << name << "not found";
+        ss << "chip fov type: " << name << " not found";
         debug_throw( std::runtime_error(ss.str()) );
 
     }

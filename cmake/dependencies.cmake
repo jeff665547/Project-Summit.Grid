@@ -12,22 +12,9 @@ find_package(nlohmann_json CONFIG REQUIRED)
 hunter_add_package(NucleonaM)
 find_package(Nucleona CONFIG REQUIRED)
 
-find_package(HDF5 CONFIG REQUIRED)
-
-# # boost 
-# hunter_add_package(Boost COMPONENTS 
-#     thread 
-#     system 
-#     filesystem
-#     # more boost module goes here
-# )
-# find_package(Boost CONFIG COMPONENTS 
-#     thread 
-#     system 
-#     filesystem 
-#     # more boost module goes here
-#     REQUIRED
-# )
+# CFU
+hunter_add_package(CFU)
+find_package(CFU CONFIG REQUIRED)
 
 # ChipImgProc 
 hunter_add_package(ChipImgProc)

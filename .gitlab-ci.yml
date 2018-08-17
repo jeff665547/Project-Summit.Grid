@@ -1,0 +1,42 @@
+Win_CI:
+    before_script:
+        - git submodule sync --recursive
+        - git submodule update --init --recursive --remote
+    stage: build
+    script: 
+        - git submodule init
+        - git submodule update
+        - rmdir stage /s /q
+        - rmdir build /s /q
+        - mkdir build
+        - cd build
+        - cmake -G "MinGW Makefiles" ../ -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DBUILD_TESTS=ON -DINSTALL_DEPS=ON
+        - cmake --build . --target install
+    only:
+        - master
+        - CEN_output
+    tags:
+        - WIN
+
+CentOS_CI:
+    before_script:
+        - git submodule sync --recursive
+        - git submodule update --init --recursive --remote
+    stage: build
+    script: 
+        - source /opt/rh/devtoolset-7/enable
+        - source /opt/rh/python27/enable
+        - source /opt/rh/rh-python35/enable
+        - git submodule init
+        - git submodule update
+        - rm -rf stage
+        - rm -rf build
+        - mkdir -p build
+        - cd build
+        - cmake ../ -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DBUILD_TESTS=ON -DINSTALL_DEPS=ON
+        - cmake --build . --target install
+    only:
+        - master
+        - CEN_output
+    tags:
+        - CENTOS
