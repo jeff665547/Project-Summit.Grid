@@ -72,6 +72,22 @@ struct DataPaths {
     ) const {
         return check_path(general_prefix(output, task_id, channel) / "gridline.csv");
     }
+    boost::filesystem::path array_cen( 
+        const std::string& output,
+        const std::string& task_id
+    ) const {
+        boost::filesystem::path output_p(output);
+        switch(mode_) {
+            case normal:
+                return output_p / task_id 
+                    / "array.cen";
+            case inplace:
+                return output_p / "grid" 
+                    / "array.cen";
+            default:
+                throw std::runtime_error("unsupport mode");
+        }
+    }
 private:
     boost::filesystem::path check_path( const boost::filesystem::path& p ) const {
         auto _dir = p.parent_path();

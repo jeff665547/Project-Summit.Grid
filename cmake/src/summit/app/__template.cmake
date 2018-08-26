@@ -16,5 +16,6 @@ target_link_libraries(${__screw_target}
     summit-config-cell_fov
     summit-config-chip
     ChipImgProc::ChipImgProc-stitch
+    summit-format
 )
 screw_show_var(__screw_target)

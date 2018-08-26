@@ -16,7 +16,8 @@
 #include <summit/app/grid/output/heatmap_writer.hpp>
 #include <summit/app/grid/task.hpp>
 #include <ChipImgProc/stitch/gridline_based.hpp>
-
+#include <summit/format/cfu_array.hpp>
+#include <CFU/format/cen/file.hpp>
 namespace summit::app::grid{
 
 struct ChipScan {
@@ -80,14 +81,11 @@ struct ChipScan {
         const boost::filesystem::path&      src_path,
         const std::string&                  channel_name,
         float                               um2px_r,
+        const std::string&                  chip_type,
+        const nlohmann::json&               cell_fov,
+        const nlohmann::json&               chip_spec,
         int                                 debug
     ) {
-        auto chip_type = chip_log["chip"]["name"].get<std::string>();
-        std::cout << "load chip type: " << chip_type << std::endl;
-        auto& cell_fov  = summit::config::cell_fov()
-            .get_fov_type(chip_type);
-        auto& chip_spec = summit::config::chip()
-            .get_spec(cell_fov["spec"].get<std::string>());
         std::cout << cell_fov.dump(2) << std::endl;
 
         auto& fov       = cell_fov["fov"];
@@ -160,7 +158,7 @@ struct ChipScan {
     }
     void operator()( 
         const boost::filesystem::path&   src_path       ,
-        const std::string&               chip_type      ,
+        const std::string&               arg_chip_type      ,
         const std::vector<std::string>&  channel_names  ,
         const std::vector<std::string>&  spectrum_names ,
         float                            um2px_r        ,
@@ -183,18 +181,29 @@ struct ChipScan {
         chip_log << chip_log_fin;
         std::cout << chip_log.dump(2) << std::endl;
         auto channels_itr = chip_log.find("channels");
+        // auto array = summit::format::init_array(summit::config::);
         if( chip_log.find("spectrum") != chip_log.end() ) {
-            if( chip_type.empty() ) {
+            if( arg_chip_type.empty() ) {
                 throw EmptyChipType();
             }
             tirc_chipscan(
                 chip_log,  
                 src_path, 
-                chip_type, 
+                arg_chip_type, 
                 spectrum_names.at(0)
             );
         } else if ( channels_itr != chip_log.end() ) {
             std::cout << "CentrillionTech chip log detected" << std::endl;
+            auto log_chip_type = chip_log["chip"]["name"].get<std::string>();
+            std::cout << "load chip type: " << log_chip_type << std::endl;
+            auto& cell_fov  = summit::config::cell_fov()
+                .get_fov_type(log_chip_type);
+            auto& chip_spec = summit::config::chip()
+                .get_spec(cell_fov["spec"].get<std::string>());
+            auto array = summit::format::init_array(chip_spec);
+            cfu::format::cen::File cenfile(output_paths.array_cen(
+                output, task_id
+            ).string(), H5F_ACC_TRUNC);
             auto fov_cols = chip_log["chip"]["fov"]["cols"].get<int>();
             auto fov_rows = chip_log["chip"]["fov"]["rows"].get<int>();
             auto& channels = *channels_itr;
@@ -203,8 +212,10 @@ struct ChipScan {
                 if( ch["filter"].get<int>() != 0 ) {
                     auto multi_tiled_mat = cen_chipscan(
                         chip_log, src_path,
-                        ch_name,
-                        um2px_r, debug
+                        ch_name, um2px_r, 
+                        log_chip_type,
+                        cell_fov, chip_spec,
+                        debug
                     );
 
                     // sperate image output
@@ -234,11 +245,15 @@ struct ChipScan {
                     // gridline
                     std::ofstream gl_file(output_paths.gridline(output, task_id, ch_name).string());
                     Utils::write_gl(gl_file, grid_image);
+
+                    // cfu array
+                    summit::format::push_to_cfu_array(array, multi_tiled_mat, ch_name);
                 }
                 else {
                     std::cout << "channel name: " << ch_name << "is white LED, pass the scan" << std::endl;
                 }
             }
+            cenfile.fill_data(array);
         } else {
             std::cout << "unknown chip_log format, skip" << std::endl;
             throw UnknownChipLog();

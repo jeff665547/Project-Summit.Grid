@@ -8,3 +8,4 @@ target_link_libraries(${__screw_target} PUBLIC
     Boost::filesystem
     Nucleona::Nucleona
 )
+screw_show_var(__screw_target)
