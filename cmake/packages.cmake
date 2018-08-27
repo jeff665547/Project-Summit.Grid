@@ -18,6 +18,12 @@ hunter_config(
     CMAKE_ARGS 
         BUILD_SHARED_LIBS=ON
 )
+hunter_config(
+    Jpeg 
+    VERSION ${HUNTER_Jpeg_VERSION}
+    CMAKE_ARGS
+        BUILD_SHARED_LIBS=ON
+)
 if( MSVC )
     hunter_config(
         GTest
