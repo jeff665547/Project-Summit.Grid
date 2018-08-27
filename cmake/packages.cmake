@@ -12,6 +12,12 @@ hunter_config(CFU GIT_SUBMODULE "lib/CFU"
     CMAKE_ARGS
         BUILD_TESTS=OFF
 )
+hunter_config(
+    ZLIB 
+    VERSION ${HUNTER_ZLIB_VERSION}
+    CMAKE_ARGS 
+        BUILD_SHARED_LIBS=ON
+)
 if( MSVC )
     hunter_config(
         GTest

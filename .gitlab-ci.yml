@@ -11,7 +11,7 @@ Win_CI:
         - cmake --build . --target install
     only:
         - master
-        - CEN_output
+        - test_zlib_pic_issue
     tags:
         - WIN
 
@@ -31,6 +31,6 @@ CentOS_CI:
         - cmake --build . --target install
     only:
         - master
-        - CEN_output
+        - test_zlib_pic_issue
     tags:
         - CENTOS
