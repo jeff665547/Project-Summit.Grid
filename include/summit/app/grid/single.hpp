@@ -75,7 +75,7 @@ struct Single {
         auto [qc, tiled_mat, stat_mats, theta] = algo(src, src_path.string());
         if(!qc) throw ImageQCFail();
         std::vector<chipimgproc::TiledMat<GridLineID>>  mats;
-        std::vector<chipimgproc::stat::Mats<FLOAT>>     stats;
+        std::vector<chipimgproc::stat::Mats<Float>>     stats;
         std::vector<cv::Point>                          cell_st_pts;
         mats        .emplace_back(std::move(tiled_mat));
         stats       .emplace_back(std::move(stat_mats));
