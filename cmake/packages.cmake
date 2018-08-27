@@ -1,3 +1,11 @@
+if( MINGW )
+    set(ZLIB_BUILD_SHARED_LIBS ON)
+    set(OpenCV_ENABLE_PRECOMPILED_HEADERS OFF)
+else()
+    set(ZLIB_BUILD_SHARED_LIBS OFF)
+    set(OpenCV_ENABLE_PRECOMPILED_HEADERS ON)
+endif()
+
 hunter_config(Screw GIT_SUBMODULE "cmake/screw")
 hunter_config(ChipImgProc GIT_SUBMODULE "lib/ChipImgProc"
     CMAKE_ARGS
@@ -16,7 +24,7 @@ hunter_config(
     ZLIB 
     VERSION ${HUNTER_ZLIB_VERSION}
     CMAKE_ARGS 
-        BUILD_SHARED_LIBS=ON
+        BUILD_SHARED_LIBS=${ZLIB_BUILD_SHARED_LIBS}
 )
 hunter_config(
     Jpeg 
@@ -24,34 +32,25 @@ hunter_config(
     CMAKE_ARGS
         BUILD_SHARED_LIBS=ON
 )
-if( MSVC )
-    hunter_config(
-        GTest
-        VERSION ${HUNTER_GTest_VERSION}
-        CMAKE_ARGS 
-            CMAKE_CXX_FLAGS=/D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
-    )
-else()
-    hunter_config(
-        GTest
-        VERSION ${HUNTER_GTest_VERSION}
-    )
-endif()
-if( MINGW )
-    hunter_config(
-        OpenCV
-        VERSION "3.4.0-p0"
-        CMAKE_ARGS 
-            BUILD_SHARED_LIBS=ON
-            ENABLE_PRECOMPILED_HEADERS=OFF
-    )
-else()
-    hunter_config(
-        OpenCV
-        VERSION "3.4.0-p0"
-        CMAKE_ARGS BUILD_SHARED_LIBS=ON
-    )
-endif()
+hunter_config(
+    PNG
+    VERSION ${HUNTER_PNG_VERSION}
+    CMAKE_ARGS
+        BUILD_SHARED_LIBS=ON
+)
+hunter_config(
+    TIFF
+    VERSION ${HUNTER_TIFF_VERSION}
+    CMAKE_ARGS
+        BUILD_SHARED_LIBS=ON
+)
+hunter_config(
+    OpenCV
+    VERSION "3.4.0-p0"
+    CMAKE_ARGS 
+        BUILD_SHARED_LIBS=ON
+        ENABLE_PRECOMPILED_HEADERS=${OpenCV_ENABLE_PRECOMPILED_HEADERS}
+)
 hunter_config(
     Boost
     VERSION "1.64.0"
