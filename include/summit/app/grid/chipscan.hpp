@@ -121,7 +121,7 @@ struct ChipScan {
         auto st_points = Utils::generate_stitch_points(cell_fov);
 
         std::vector<chipimgproc::TiledMat<GridLineID>>  mats;
-        std::vector<chipimgproc::stat::Mats<FLOAT>>     stats;
+        std::vector<chipimgproc::stat::Mats<Float>>     stats;
         std::vector<cv::Point>                          cell_st_pts;
         std::vector<cv::Point>                          fov_ids;
         int i = 0;
