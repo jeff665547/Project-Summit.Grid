@@ -18,6 +18,7 @@
 #include <ChipImgProc/stitch/gridline_based.hpp>
 #include <summit/format/cfu_array.hpp>
 #include <CFU/format/cen/file.hpp>
+#include <summit/app/grid/output/format_decoder.hpp>
 namespace summit::app::grid{
 
 struct ChipScan {
@@ -156,14 +157,36 @@ struct ChipScan {
         return res;
         
     }
+    auto create_array( 
+        const output::FormatDecoder& fmt_decoder,
+        const nlohmann::json& chip_spec
+    ) {
+        std::unique_ptr<cfu::format::chip_sample::Array> array(nullptr);
+        if( fmt_decoder.enable_array() ) {
+            array.reset(new cfu::format::chip_sample::Array(
+                summit::format::init_array(chip_spec)
+            ));
+        }
+        return array;
+    }
+    auto create_cenfile(
+        const output::FormatDecoder& fmt_decoder,
+        const std::string& cen_path 
+    ) {
+        std::unique_ptr<cfu::format::cen::File> file(nullptr);
+        if( fmt_decoder.enable_cen() ) {
+            file.reset(new cfu::format::cen::File(cen_path, H5F_ACC_TRUNC));
+        } 
+        return file;
+    }
     void operator()( 
         const boost::filesystem::path&   src_path       ,
-        const std::string&               arg_chip_type      ,
+        const std::string&               arg_chip_type  ,
         const std::vector<std::string>&  channel_names  ,
         const std::vector<std::string>&  spectrum_names ,
         float                            um2px_r        ,
         const std::string&               output         ,
-        const std::vector<std::string>&  output_formats ,
+        const output::FormatDecoder&     fmt_decoder    ,
         const std::string&               task_id        ,
         const std::string&               filter         ,
         int                              debug          ,
@@ -200,10 +223,16 @@ struct ChipScan {
                 .get_fov_type(log_chip_type);
             auto& chip_spec = summit::config::chip()
                 .get_spec(cell_fov["spec"].get<std::string>());
-            auto array = summit::format::init_array(chip_spec);
-            cfu::format::cen::File cenfile(output_paths.array_cen(
-                output, task_id
-            ).string(), H5F_ACC_TRUNC);
+            // auto array = summit::format::init_array(chip_spec);
+            // cfu::format::cen::File cenfile(output_paths.array_cen(
+            //     output, task_id
+            // ).string(), H5F_ACC_TRUNC);
+            auto array = create_array(fmt_decoder, chip_spec);
+            auto cenfile = create_cenfile( 
+                fmt_decoder, 
+                output_paths.array_cen(output, task_id)
+                    .string()
+            );
             auto fov_cols = chip_log["chip"]["fov"]["cols"].get<int>();
             auto fov_rows = chip_log["chip"]["fov"]["rows"].get<int>();
             auto& channels = *channels_itr;
@@ -247,13 +276,19 @@ struct ChipScan {
                     Utils::write_gl(gl_file, grid_image);
 
                     // cfu array
-                    summit::format::push_to_cfu_array(array, multi_tiled_mat, ch_name);
+                    if( fmt_decoder.enable_array() ) {
+                        summit::format::push_to_cfu_array(
+                            *array, multi_tiled_mat, ch_name
+                        );
+                    }
                 }
                 else {
                     std::cout << "channel name: " << ch_name << "is white LED, pass the scan" << std::endl;
                 }
             }
-            cenfile.fill_data(array);
+            if( fmt_decoder.enable_cen() ) {
+                cenfile->fill_data(*array);
+            }
         } else {
             std::cout << "unknown chip_log format, skip" << std::endl;
             throw UnknownChipLog();

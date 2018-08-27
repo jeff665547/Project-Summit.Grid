@@ -11,6 +11,7 @@
 #include <summit/app/grid/single.hpp>
 #include <summit/app/grid/chipscan.hpp>
 #include <summit/app/grid/reg_mat_mk_index.hpp>
+#include <summit/app/grid/output/format_decoder.hpp>
 
 namespace summit::app::grid{
 
@@ -130,7 +131,8 @@ class Main
     }
     void task_proc(
         const Task& tk,
-        const output::DataPaths& output_paths,
+        const output::DataPaths&        output_paths,
+        const output::FormatDecoder&    fmt_decoder,
         output::HeatmapWriter<Float, GridLineID>& heatmap_writer
     ) {
         switch(tk.type) {
@@ -150,7 +152,7 @@ class Main
                     args_.channel_names,
                     args_.spectrum_names,
                     args_.um2px_r, args_.output,
-                    args_.output_formats, tk.id(),
+                    fmt_decoder, tk.id(),
                     args_.filter, args_.debug,
                     output_paths, heatmap_writer
                 );
@@ -163,12 +165,18 @@ class Main
         output::DataPaths output_paths(
             args_.output, args_.input_path
         );
+        output::FormatDecoder format_decoder(
+            args_.output_formats
+        );
         output::HeatmapWriter<Float, GridLineID> heatmap_writer(
-            output_paths, args_.output_formats
+            output_paths, format_decoder.enabled_heatmap_fmts()
         );
         for ( auto&& tk : get_tasks() ) {
             try{
-                task_proc(tk, output_paths, heatmap_writer);
+                task_proc(
+                    tk, output_paths, 
+                    format_decoder, heatmap_writer
+                );
             } catch ( const std::exception& e ) {
                 std::cerr << "error when process task: " << tk.path << std::endl;
                 std::cerr << e.what() << std::endl;
