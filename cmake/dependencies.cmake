@@ -22,7 +22,9 @@ find_package(ChipImgProc CONFIG REQUIRED)
 
 # OpenCV
 screw_get_bits(BITS)
-list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/bin)
-list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/lib)
-
+if(WIN32)
+    list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/bin)
+    list(APPEND BUNDLE_RT_DIRS ${OpenCV_DIR}/x${BITS}/${OpenCV_RUNTIME}/lib)
+else()
+endif()
 include(${SCREW_DIR}/hunter_root.cmake)

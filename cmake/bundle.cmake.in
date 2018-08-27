@@ -4,12 +4,12 @@ file(READ "@CMAKE_BINARY_DIR@/_3rdParty/Hunter/install-root-dir" deps_root_dir)
 message(STATUS "deps_root_dir ${deps_root_dir}")
 file(GLOB_RECURSE lib_paths "${CMAKE_INSTALL_PREFIX}/*@CMAKE_SHARED_LIBRARY_SUFFIX@")
 message(STATUS "lib_paths ${lib_paths}")
-file(GLOB_RECURSE app_paths "${CMAKE_INSTALL_PREFIX}/*@CMAKE_EXECUTABLE_SUFFIX@")
+file(GLOB_RECURSE app_paths "${CMAKE_INSTALL_PREFIX}/@CMAKE_INSTALL_BINDIR@/*@CMAKE_EXECUTABLE_SUFFIX@")
 message(STATUS "app_paths ${app_paths}")
 foreach(app ${app_paths})
     fixup_bundle(
         "${app}"
         ""
-        "${deps_root_dir}/bin;${deps_root_dir}/lib;@BUNDLE_RT_DIRS@"
+        "${deps_root_dir}/bin;${deps_root_dir}/lib;${deps_root_dir}/lib64;@BUNDLE_RT_DIRS@"
     )
 endforeach()
