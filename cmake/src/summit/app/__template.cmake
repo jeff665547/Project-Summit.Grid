@@ -18,4 +18,7 @@ target_link_libraries(${__screw_target}
     ChipImgProc::ChipImgProc-stitch
     summit-format
 )
+if(MINGW)
+    target_compile_options(${__screw_target} PUBLIC -Wa,-mbig-obj)
+endif()
 screw_show_var(__screw_target)
