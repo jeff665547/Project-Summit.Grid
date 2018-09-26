@@ -79,14 +79,17 @@ struct DataPaths {
         boost::filesystem::path output_p(output);
         switch(mode_) {
             case normal:
-                return output_p / task_id 
+                output_p = output_p / task_id 
                     / "array.cen";
+                break;
             case inplace:
-                return output_p / "grid" 
+                output_p = output_p / "grid" 
                     / "array.cen";
+                break;
             default:
                 throw std::runtime_error("unsupport mode");
         }
+        return check_path(output_p);
     }
 private:
     boost::filesystem::path check_path( const boost::filesystem::path& p ) const {
