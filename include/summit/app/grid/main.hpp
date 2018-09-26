@@ -57,10 +57,10 @@ public:
                                                        ->default_value("2,3"),                 "The spectrum going to process. (TIRC version favor)"
             )
             ("output_formats,r" ,       po::value<std::string>()->required()
-                                                       ->default_value("csv,html"),            "Identify the output file format"
+                                                       ->default_value("cen"),                 "Identify the output file format"
             )
             ("filter,l"         ,       po::value<std::string>()->required()
-                                                       ->default_value("marker_only"),         "The output feature filter"
+                                                       ->default_value("all"),                 "The output feature filter"
             )
             ("output,o"         ,       po::value<std::string>()->required(),                  "The output path."
             )
