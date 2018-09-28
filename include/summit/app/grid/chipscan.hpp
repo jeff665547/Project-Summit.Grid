@@ -281,6 +281,11 @@ struct ChipScan {
                             *array, multi_tiled_mat, ch_name
                         );
                     }
+
+                    // complete file
+                    auto complete_file_path = output_paths.complete_file(output, task_id);
+                    std::ofstream fout(complete_file_path.string(), std::fstream::trunc | std::fstream::out);
+                    fout.close();
                 }
                 else {
                     std::cout << "channel name: " << ch_name << "is white LED, pass the scan" << std::endl;

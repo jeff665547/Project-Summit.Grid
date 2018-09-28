@@ -91,6 +91,25 @@ struct DataPaths {
         }
         return check_path(output_p);
     }
+    boost::filesystem::path complete_file(
+        const std::string& output,
+        const std::string& task_id
+    ) const {
+        boost::filesystem::path output_p(output);
+        switch(mode_) {
+            case normal:
+                output_p = output_p / task_id 
+                    / "COMPLETE";
+                break;
+            case inplace:
+                output_p = output_p / "grid" 
+                    / "COMPLETE";
+                break;
+            default:
+                throw std::runtime_error("unsupport mode");
+        }
+        return check_path(output_p);
+    }
 private:
     boost::filesystem::path check_path( const boost::filesystem::path& p ) const {
         auto _dir = p.parent_path();
