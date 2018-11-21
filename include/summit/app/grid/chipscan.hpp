@@ -288,7 +288,7 @@ struct ChipScan {
                     fout.close();
                 }
                 else {
-                    std::cout << "channel name: " << ch_name << "is white LED, pass the scan" << std::endl;
+                    std::cout << "channel name: " << ch_name << " is white LED, pass the scan" << std::endl;
                 }
             }
             if( fmt_decoder.enable_cen() ) {
