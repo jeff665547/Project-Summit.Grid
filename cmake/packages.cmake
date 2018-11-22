@@ -16,6 +16,12 @@ hunter_config(NucleonaM GIT_SUBMODULE "lib/Nucleona"
         BUILD_TESTS=OFF 
         ENABLE_HDF5=ON
 )
+hunter_config(Nucleona
+    VERSION ${HUNTER_Nucleona_VERSION}
+    CMAKE_ARGS 
+        BUILD_TESTS=OFF 
+        ENABLE_HDF5=ON
+)
 hunter_config(CFU GIT_SUBMODULE "lib/CFU"
     CMAKE_ARGS
         BUILD_TESTS=OFF

@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.0.0)
-include(cmake/HunterGate.cmake)
+cmake_minimum_required(VERSION 3.10.0)
 set(
     HUNTER_CACHE_SERVERS
-    "https://github.com/elucideye/hunter-cache;https://github.com/ingenue/hunter-cache"
+    "https://github.com/CHChang810716/hunter-binary-cache"
     CACHE
     STRING
     "Hunter cache servers"
 )
+include(cmake/HunterGate.cmake)
 HunterGate(
     URL "ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/hunter.git"
-    SHA1 3c21595a7c1ace45a63e5d576c6c6933c7a75aa0
+    SHA1 d42a2243424e6eeaed2ef19b493df7738edb986b
     FILEPATH ${CMAKE_CURRENT_LIST_DIR}/cmake/packages.cmake
 )
 project(SummitGrid LANGUAGES C CXX)

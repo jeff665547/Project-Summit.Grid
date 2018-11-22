@@ -9,6 +9,7 @@
 #include <Nucleona/range.hpp>
 #include <optional>
 #include <iostream>
+#include <ChipImgProc/marker/txt_to_img.hpp>
 namespace summit::app::grid{
 struct Utils{
     template<class T>
@@ -55,7 +56,10 @@ struct Utils{
 
     static auto get_single_marker_pattern( 
         float um2px_r,
-        const nlohmann::json& shooting_marker
+        const nlohmann::json& shooting_marker,
+        float cell_w_um, 
+        float cell_h_um, 
+        float space_um
     ) 
     {
         std::vector<cv::Mat_<std::uint8_t>> candi_pats_cl;
@@ -74,12 +78,21 @@ struct Utils{
         } 
 
         // collect candi_pats_px;
-        for( auto&& mk : mk_pats ) {
-            if( std::abs(mk["um2px_r"].get<float>() - um2px_r) < 0.001 ) {
-                auto path = summit::install_path() / mk["path"].get<std::string>();
-                cv::Mat pat_img = cv::imread(path.make_preferred().string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
-                candi_pats_px.push_back(pat_img);
-            }
+        // for( auto&& mk : mk_pats ) {
+        //     if( std::abs(mk["um2px_r"].get<float>() - um2px_r) < 0.001 ) {
+        //         auto path = summit::install_path() / mk["path"].get<std::string>();
+        //         cv::Mat pat_img = cv::imread(path.make_preferred().string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
+        //         candi_pats_px.push_back(pat_img);
+        //     }
+        // }
+        chipimgproc::marker::TxtToImg txt_to_img;
+        for( auto&& mk : candi_pats_cl ) {
+            candi_pats_px.push_back( txt_to_img(
+                mk, 
+                cell_h_um * um2px_r, 
+                cell_w_um * um2px_r,
+                space_um * um2px_r
+            ));
         }
 
         return nucleona::make_tuple(std::move(candi_pats_cl), std::move(candi_pats_px));
@@ -193,7 +206,12 @@ struct Utils{
         auto h_dpx = position["h_d"].get<int>() * um2px_r;
 
 
-        auto [pats_cl, pats_px]= get_single_marker_pattern(um2px_r, shooting_marker); 
+        auto [pats_cl, pats_px]= get_single_marker_pattern(
+            um2px_r, shooting_marker, 
+            chip_spec["cell_w_um"].get<float>(),
+            chip_spec["cell_h_um"].get<float>(),
+            chip_spec["space_um"].get<float>()
+        ); 
 
         std::vector<EndP> points;
         for( int i = 0; i < fov_cols; i ++ ) {

@@ -44,6 +44,12 @@ install(
     DESTINATION .
     COMPONENT Runtime
 )
+install(
+    FILES 
+        src/script/summit-grid-run.bat
+    DESTINATION script
+    COMPONENT Runtime
+)
 if(INSTALL_DEPS)
     configure_file(cmake/bundle.cmake.in ${CMAKE_BINARY_DIR}/bundle.cmake @ONLY)
     install(
