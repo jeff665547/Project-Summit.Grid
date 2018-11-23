@@ -32,6 +32,7 @@ struct Single {
             Float, GridLineID
         >&                              heatmap_writer
     ) {
+        // TODO: need channel name
         std::cout << "single image process" << std::endl;
         std::cout << "read image: " << src_path << std::endl;
         cv::Mat src = cv::imread(src_path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
@@ -69,7 +70,7 @@ struct Single {
             });
         }
         algo.set_marker_layout(Utils::generate_sgl_pat_reg_mat_marker_layout(
-            um2px_r, chip_spec, cell_fov, fov_ec_id
+            um2px_r, chip_spec, cell_fov, "", fov_ec_id
         )[cv::Point(0,0)]);
 
         auto [qc, tiled_mat, stat_mats, theta] = algo(src, src_path.string());

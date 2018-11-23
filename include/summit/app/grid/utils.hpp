@@ -53,13 +53,35 @@ struct Utils{
         }
         return max_score_um2px_r;
     }
+    static std::vector<std::string> filter_path(
+        const nlohmann::json&       mk_pats_cl,
+        const std::string&          channel_name
+    ) {
+        std::basic_string<bool> filter(mk_pats_cl.size(), false);
+        if(channel_name != "") {
+            for(std::size_t i = 0; i < mk_pats_cl.size(); i ++ ) {
+                auto&& obj = mk_pats_cl[i];
+                filter[i] = (
+                    obj["channel"].get<std::string>() != channel_name
+                );
+            }
+        }
+        std::vector<std::string> res;
+        for(std::size_t i = 0; i < mk_pats_cl.size(); i ++ ) {
+            if( !filter[i] ) {
+                res.push_back(mk_pats_cl[i]["path"].get<std::string>());
+            }
+        }
+        return res;
+    }
 
     static auto get_single_marker_pattern( 
         float um2px_r,
         const nlohmann::json& shooting_marker,
         float cell_w_um, 
         float cell_h_um, 
-        float space_um
+        float space_um,
+        const std::string& channel_name
     ) 
     {
         std::vector<cv::Mat_<std::uint8_t>> candi_pats_cl;
@@ -68,23 +90,17 @@ struct Utils{
         auto& mk_pats           = shooting_marker["mk_pats"];
         auto& mk_pats_cl        = shooting_marker["mk_pats_cl"];
 
+        auto mk_pats_cl_path = filter_path(mk_pats_cl, channel_name);
+
         // collect candi_pats_cl;
-        for( auto&& mk : mk_pats_cl ) {
-            auto path = summit::install_path() / mk.get<std::string>();
+        for( auto&& mk : mk_pats_cl_path ) {
+            auto path = summit::install_path() / mk;
             std::ifstream fin(path.string());
             candi_pats_cl.push_back(
                 chipimgproc::marker::Loader::from_txt(fin, std::cout)
             );
         } 
 
-        // collect candi_pats_px;
-        // for( auto&& mk : mk_pats ) {
-        //     if( std::abs(mk["um2px_r"].get<float>() - um2px_r) < 0.001 ) {
-        //         auto path = summit::install_path() / mk["path"].get<std::string>();
-        //         cv::Mat pat_img = cv::imread(path.make_preferred().string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
-        //         candi_pats_px.push_back(pat_img);
-        //     }
-        // }
         chipimgproc::marker::TxtToImg txt_to_img;
         for( auto&& mk : candi_pats_cl ) {
             candi_pats_px.push_back( txt_to_img(
@@ -176,6 +192,7 @@ struct Utils{
         float um2px_r,
         const nlohmann::json& chip_spec,
         const nlohmann::json& cell_fov,
+        const std::string&    channel_name,
         const std::optional<int>& fov_ec_id = std::nullopt
 
     ) {
@@ -210,7 +227,8 @@ struct Utils{
             um2px_r, shooting_marker, 
             chip_spec["cell_w_um"].get<float>(),
             chip_spec["cell_h_um"].get<float>(),
-            chip_spec["space_um"].get<float>()
+            chip_spec["space_um"].get<float>(),
+            channel_name
         ); 
 
         std::vector<EndP> points;

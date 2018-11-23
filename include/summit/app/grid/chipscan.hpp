@@ -116,7 +116,7 @@ struct ChipScan {
         algo.set_margin_method("auto_min_cv");
         algo.set_logger(std::cout);
         auto mk_layouts = Utils::generate_sgl_pat_reg_mat_marker_layout(
-            um2px_r, chip_spec, cell_fov
+            um2px_r, chip_spec, cell_fov, channel_name
         );
         auto st_points = Utils::generate_stitch_points(cell_fov);
 
