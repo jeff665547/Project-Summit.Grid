@@ -85,33 +85,45 @@ struct Utils{
     ) 
     {
         std::vector<cv::Mat_<std::uint8_t>> candi_pats_cl;
+        std::vector<cv::Mat_<std::uint8_t>> candi_pats_cl_mask;
         std::vector<cv::Mat_<std::uint8_t>> candi_pats_px;
+        std::vector<cv::Mat_<std::uint8_t>> candi_pats_px_mask;
 
         auto& mk_pats           = shooting_marker["mk_pats"];
         auto& mk_pats_cl        = shooting_marker["mk_pats_cl"];
 
         auto mk_pats_cl_path = filter_path(mk_pats_cl, channel_name);
-
         // collect candi_pats_cl;
         for( auto&& mk : mk_pats_cl_path ) {
             auto path = summit::install_path() / mk;
             std::ifstream fin(path.string());
-            candi_pats_cl.push_back(
-                chipimgproc::marker::Loader::from_txt(fin, std::cout)
+            auto [mk_cl, mask_cl] = chipimgproc::marker::Loader::from_txt(
+                fin, std::cout
             );
+            candi_pats_cl.push_back(mk_cl);
+            candi_pats_cl_mask.push_back(mask_cl);
         } 
 
         chipimgproc::marker::TxtToImg txt_to_img;
-        for( auto&& mk : candi_pats_cl ) {
-            candi_pats_px.push_back( txt_to_img(
-                mk, 
+        for( std::size_t i = 0; i < candi_pats_cl.size(); i ++ ) {
+            auto& mk = candi_pats_cl.at(i);
+            auto& mask = candi_pats_cl_mask.at(i);
+            auto [mk_img, mask_img] = txt_to_img(
+                mk, mask,
                 cell_h_um * um2px_r, 
                 cell_w_um * um2px_r,
                 space_um * um2px_r
-            ));
+            );
+            candi_pats_px.push_back(mk_img);
+            candi_pats_px_mask.push_back(mask_img);
+
         }
 
-        return nucleona::make_tuple(std::move(candi_pats_cl), std::move(candi_pats_px));
+        return nucleona::make_tuple(
+            std::move(candi_pats_cl), 
+            std::move(candi_pats_px),
+            std::move(candi_pats_px_mask)
+        );
     }
     struct EndP {
         enum Type {
@@ -223,7 +235,7 @@ struct Utils{
         auto h_dpx = position["h_d"].get<int>() * um2px_r;
 
 
-        auto [pats_cl, pats_px]= get_single_marker_pattern(
+        auto [pats_cl, pats_px, pats_px_mask]= get_single_marker_pattern(
             um2px_r, shooting_marker, 
             chip_spec["cell_w_um"].get<float>(),
             chip_spec["cell_h_um"].get<float>(),
@@ -283,7 +295,7 @@ struct Utils{
                 w_d, h_d,
                 w_dpx, h_dpx
             );
-            marker_layout.set_single_mk_pat(pats_cl, pats_px);
+            marker_layout.set_single_mk_pat(pats_cl, pats_px, pats_px_mask);
             res[fov_id] = marker_layout;
         };
         if(fov_ec_id) {
