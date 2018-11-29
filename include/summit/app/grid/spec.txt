@@ -24,6 +24,7 @@ normal_mode:
 <output>/<task_id>/viewable_<tag>.png                       (single image task)
 <output>/<task_id>/channels/<ch>/gridline.csv
 <output>/<task_id>/array.cen
+<output>/<task_id>/COMPLETE
 
 inpace_mode: { output == task_path } 
 <output>/grid/channels/<ch>/heatmap.<ofm>
@@ -31,3 +32,4 @@ inpace_mode: { output == task_path }
 <output>/grid/channels/<ch>/viewable_<tag>/stitch.png   (chipscan task)
 <output>/grid/channels/<ch>/gridline.csv
 <output>/grid/array.cen
+<output>/grid/COMPLETE
