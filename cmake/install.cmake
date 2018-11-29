@@ -45,9 +45,9 @@ install(
     COMPONENT Runtime
 )
 install(
-    FILES 
-        src/script/summit-grid-run.bat
-    DESTINATION script
+    DIRECTORY
+        src/script
+    DESTINATION . 
     COMPONENT Runtime
 )
 if(INSTALL_DEPS)
