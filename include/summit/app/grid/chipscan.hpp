@@ -247,7 +247,7 @@ struct ChipScan {
                         ch_name, um2px_r, 
                         log_chip_type,
                         cell_fov, chip_spec,
-                        no_bgp, debug
+                        debug, no_bgp
                     );
 
                     // sperate image output
