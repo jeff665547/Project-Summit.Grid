@@ -7,6 +7,7 @@
 int main(int argc, char** argv) {
     std::string line;
     std::ifstream fin(argv[1]);
+    std::ofstream fout(argv[3]);
     summit::app::LightMean light_mean;
     std::basic_string<double> means;
     std::size_t i = 0;
@@ -21,14 +22,22 @@ int main(int argc, char** argv) {
         auto curr_line_task_id = fields[0];
         if(curr_task_id != curr_line_task_id) {
             if(!curr_task_id.empty()) {
-                std::cout 
+                fout
                     << curr_task_id << '\t'
                     << light_mean(means, std::atoi(argv[2])) 
+                    << '\n'
                 ;
             }
             means.clear();
             curr_task_id = curr_line_task_id;
         }
         means.push_back(mean);
+    }
+    if(!means.empty()) {
+        fout
+            << curr_task_id << '\t'
+            << light_mean(means, std::atoi(argv[2])) 
+            << '\n'
+        ;
     }
 }

@@ -89,7 +89,6 @@ struct Utils{
         std::vector<cv::Mat_<std::uint8_t>> candi_pats_px;
         std::vector<cv::Mat_<std::uint8_t>> candi_pats_px_mask;
 
-        auto& mk_pats           = shooting_marker["mk_pats"];
         auto& mk_pats_cl        = shooting_marker["mk_pats_cl"];
 
         auto mk_pats_cl_path = filter_path(mk_pats_cl, channel_name);

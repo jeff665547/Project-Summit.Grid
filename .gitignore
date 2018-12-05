@@ -63,3 +63,4 @@ stage/
 data/
 workdir/
 Summit.Grid_v*/
+version.h
