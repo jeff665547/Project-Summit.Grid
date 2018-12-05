@@ -27,6 +27,7 @@ struct Parameters
     std::string output;
     int debug;
     float um2px_r;
+    bool  no_bgp;
 };
 
 class OptionParser : public Parameters, public nucleona::app::cli::OptionParser
@@ -70,6 +71,7 @@ public:
             ("um2px_r,u"        ,       po::value<float>()->required()
                                                         ->default_value(-1.0),                 "Specify the um to pixel rate."
             )
+            ("no_bgp,b"         ,       "No background process.")
         ;
         po::store(po::parse_command_line(argc, argv, desc), vm);
         if(argc == 1 or vm.count("help"))
@@ -88,6 +90,7 @@ public:
         Base::get_parameter( "output"            , output            );
         Base::get_parameter( "debug"             , debug             );
         Base::get_parameter( "um2px_r"           , um2px_r           );
+        Base::get_parameter( "no_bgp"            , no_bgp            );
         auto input_path_  = boost::filesystem::absolute(input_path);
         auto output_      = boost::filesystem::absolute(output);
         input_path = input_path_.make_preferred().string();
@@ -143,6 +146,7 @@ class Main
                     args_.output,
                     args_.output_formats, tk.id(),
                     args_.filter, args_.debug,
+                    args_.no_bgp,
                     output_paths, heatmap_writer
                 );
                 break;
@@ -154,6 +158,7 @@ class Main
                     args_.um2px_r, args_.output,
                     fmt_decoder, tk.id(),
                     args_.filter, args_.debug,
+                    args_.no_bgp,
                     output_paths, heatmap_writer
                 );
                 break;

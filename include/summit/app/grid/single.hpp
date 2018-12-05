@@ -27,6 +27,7 @@ struct Single {
         const std::string&              task_id         ,
         const std::string&              filter          ,
         int                             debug           ,
+        bool                            no_bgp          ,
         const output::DataPaths&        output_paths    ,
         output::HeatmapWriter<
             Float, GridLineID

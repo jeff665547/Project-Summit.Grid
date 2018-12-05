@@ -85,7 +85,8 @@ struct ChipScan {
         const std::string&                  chip_type,
         const nlohmann::json&               cell_fov,
         const nlohmann::json&               chip_spec,
-        int                                 debug
+        int                                 debug,
+        bool                                no_bgp
     ) {
         std::cout << cell_fov.dump(2) << std::endl;
 
@@ -115,6 +116,7 @@ struct ChipScan {
         chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
         algo.set_margin_method("auto_min_cv");
         algo.set_logger(std::cout);
+        algo.disable_background_fix(no_bgp);
         auto mk_layouts = Utils::generate_sgl_pat_reg_mat_marker_layout(
             um2px_r, chip_spec, cell_fov, channel_name
         );
@@ -190,6 +192,7 @@ struct ChipScan {
         const std::string&               task_id        ,
         const std::string&               filter         ,
         int                              debug          ,
+        bool                             no_bgp         ,
         const output::DataPaths&         output_paths   ,
         output::HeatmapWriter<
             Float, GridLineID
@@ -244,7 +247,7 @@ struct ChipScan {
                         ch_name, um2px_r, 
                         log_chip_type,
                         cell_fov, chip_spec,
-                        debug
+                        no_bgp, debug
                     );
 
                     // sperate image output
