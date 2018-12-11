@@ -80,8 +80,7 @@ struct ChipScan {
     chipimgproc::MultiTiledMat<Float, GridLineID> cen_chipscan(
         const nlohmann::json&               chip_log,
         const boost::filesystem::path&      src_path,
-        const std::string&                  channel_name,
-        const std::string&                  marker_type,
+        const nlohmann::json&               channel,
         float                               um2px_r,
         const std::string&                  chip_type,
         const nlohmann::json&               cell_fov,
@@ -90,6 +89,7 @@ struct ChipScan {
         bool                                no_bgp
     ) {
         std::cout << cell_fov.dump(2) << std::endl;
+        auto& channel_name = channel["name"];
 
         auto& fov       = cell_fov["fov"];
         auto fov_rows   = fov["rows"];
@@ -119,7 +119,7 @@ struct ChipScan {
         algo.set_logger(std::cout);
         algo.disable_background_fix(no_bgp);
         auto mk_layouts = Utils::generate_sgl_pat_reg_mat_marker_layout(
-            um2px_r, chip_spec, cell_fov, marker_type
+            um2px_r, chip_spec, cell_fov, channel
         );
         auto st_points = Utils::generate_stitch_points(cell_fov);
 
@@ -242,12 +242,10 @@ struct ChipScan {
             auto& channels = *channels_itr;
             for( auto& ch : channels ) {
                 std::string ch_name = ch["name"];
-                std::string marker_type = ch["marker_type"];
                 if( ch["filter"].get<int>() != 0 ) {
                     auto multi_tiled_mat = cen_chipscan(
-                        chip_log, src_path, ch_name,
-                        marker_type, um2px_r, 
-                        log_chip_type,
+                        chip_log, src_path, ch,
+                        um2px_r, log_chip_type,
                         cell_fov, chip_spec,
                         debug, no_bgp
                     );
