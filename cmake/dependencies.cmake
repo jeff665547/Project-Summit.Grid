@@ -9,7 +9,7 @@ hunter_add_package(nlohmann_json)
 find_package(nlohmann_json CONFIG REQUIRED)
 
 # nucleona 
-hunter_add_package(NucleonaM)
+hunter_add_package(Nucleona)
 find_package(Nucleona CONFIG REQUIRED)
 
 # CFU
@@ -28,3 +28,9 @@ if(WIN32)
 else()
 endif()
 include(${SCREW_DIR}/hunter_root.cmake)
+
+# SummitCrypto
+hunter_add_package(SummitCrypto)
+find_package(SummitCrypto CONFIG REQUIRED)
+
+

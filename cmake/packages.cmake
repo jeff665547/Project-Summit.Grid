@@ -6,16 +6,6 @@ else()
     set(OpenCV_ENABLE_PRECOMPILED_HEADERS ON)
 endif()
 
-hunter_config(Screw GIT_SUBMODULE "cmake/screw")
-hunter_config(ChipImgProc GIT_SUBMODULE "lib/ChipImgProc"
-    CMAKE_ARGS
-        BUILD_TESTS=OFF
-)
-hunter_config(NucleonaM GIT_SUBMODULE "lib/Nucleona"
-    CMAKE_ARGS 
-        BUILD_TESTS=OFF 
-        ENABLE_HDF5=ON
-)
 hunter_config(Nucleona
     VERSION ${HUNTER_Nucleona_VERSION}
     CMAKE_ARGS 
@@ -58,6 +48,14 @@ hunter_config(
         ENABLE_PRECOMPILED_HEADERS=${OpenCV_ENABLE_PRECOMPILED_HEADERS}
 )
 hunter_config(
+    OpenCV-Extra
+    VERSION "3.4.0"
+)
+hunter_config(
     Boost
     VERSION "1.64.0"
+)
+hunter_config(SummitCrypto GIT_SUBMODULE "lib/Summit.Crypto"
+    CMAKE_ARGS
+        BUILD_TESTS=OFF
 )
