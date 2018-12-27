@@ -77,7 +77,7 @@ private:
     }
     static bool is_image ( const boost::filesystem::path& path ) {
         std::string ext = path.filename().extension().string();
-        return ext == ".tif" || ext == ".tiff";
+        return ext == ".tif" || ext == ".tiff" || ext == ".srl";
     }
 };
 

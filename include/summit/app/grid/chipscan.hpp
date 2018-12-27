@@ -27,7 +27,8 @@ struct ChipScan {
     auto read_imgs(
         const boost::filesystem::path&  src_path,
         int rows, int cols,
-        const std::string& posfix
+        const std::string& posfix,
+        bool img_enc
     ) {
         std::map<
             cv::Point, // fov id 
@@ -42,14 +43,13 @@ struct ChipScan {
                 std::stringstream ss;
                 ss  << std::to_string(r) << '-' 
                     << std::to_string(c) << '-'
-                    << posfix << ".tiff"
+                    << posfix
                 ;
                 auto img_path = src_path / ss.str();
                 if(!boost::filesystem::exists(img_path)) throw ChannelNotFound();
                 std::cout << "read image: " << img_path << std::endl;
-                cv::Mat_<std::uint16_t> img = cv::imread(
-                    img_path.string(), 
-                    cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH
+                cv::Mat_<std::uint16_t> img = Utils::imread(
+                    img_path.string(), img_enc
                 );
                 chipimgproc::info(std::cout, img);
                 res[cv::Point(c, r)] = nucleona::make_tuple(
@@ -91,11 +91,16 @@ struct ChipScan {
         std::cout << cell_fov.dump(2) << std::endl;
         auto& channel_name = channel["name"];
 
-        auto& fov       = cell_fov["fov"];
-        auto fov_rows   = fov["rows"];
-        auto fov_cols   = fov["cols"];
+        auto& fov           = cell_fov["fov"];
+        auto fov_rows       = fov["rows"];
+        auto fov_cols       = fov["cols"];
+        auto is_img_enc_itr = chip_log.find("img_encrypted");
+        bool is_img_enc = false;
+        if(is_img_enc_itr != chip_log.end()) {
+            is_img_enc = is_img_enc_itr->get<bool>();
+        }
         auto imgs = read_imgs(
-            src_path, fov_rows, fov_cols, channel_name
+            src_path, fov_rows, fov_cols, channel_name, is_img_enc
         );
         auto um2px_r_itr = chip_log.find("um_to_px_coef");
         if(um2px_r_itr == chip_log.end()) {

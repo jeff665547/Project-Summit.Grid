@@ -10,6 +10,8 @@
 #include <optional>
 #include <iostream>
 #include <ChipImgProc/marker/txt_to_img.hpp>
+#include <summit/crypto/scan_image.hpp>
+#include <ChipImgProc/utils.h>
 namespace summit::app::grid{
 struct Utils{
     template<class T>
@@ -372,6 +374,28 @@ struct Utils{
             gl_file << ',' << l;
         }
         gl_file << std::endl;
+    }
+    static auto imread(const std::string& fname_no_ext, bool img_enc) {
+        if(img_enc) {
+            std::ifstream fin(fname_no_ext + ".srl");
+            summit::crypto::EncryptedScanImage en_img;
+            en_img.load(fin);
+            return summit::crypto::scan_image_de(en_img, "qsefthukkuhtfesq");
+        } else {
+            return chipimgproc::imread(fname_no_ext + ".tiff");
+        }
+    }
+    static auto imread(const std::string& fname) {
+        boost::filesystem::path fpath(fname);
+        std::string ext = fpath.filename().extension().string();
+        if(ext == ".srl") {
+            std::ifstream fin(fname);
+            summit::crypto::EncryptedScanImage en_img;
+            en_img.load(fin);
+            return summit::crypto::scan_image_de(en_img, "qsefthukkuhtfesq");
+        } else {
+            return chipimgproc::imread(fname);
+        }
     }
 };
 

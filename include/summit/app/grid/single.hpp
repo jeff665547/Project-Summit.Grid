@@ -36,7 +36,7 @@ struct Single {
         // TODO: need channel name
         std::cout << "single image process" << std::endl;
         std::cout << "read image: " << src_path << std::endl;
-        cv::Mat src = cv::imread(src_path.string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
+        cv::Mat src = Utils::imread(src_path.string());
         std::cout << "src info: " << std::endl;
         chipimgproc::info(std::cout, src);
         if( src.type() != CV_16UC1 ) {
