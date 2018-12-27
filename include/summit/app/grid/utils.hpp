@@ -55,14 +55,36 @@ struct Utils{
     }
     static std::vector<std::string> filter_path(
         const nlohmann::json&       mk_pats_cl,
-        const std::string&          channel_name
+        const nlohmann::json&       channel
     ) {
+        std::map<std::string, std::string> mk_type_to_ch_name {
+            {"AM1", "CY3"},
+            {"AM3", "CY5"}
+        }; // For down compatibility
         std::basic_string<bool> filter(mk_pats_cl.size(), false);
-        if(channel_name != "") {
+        auto mk_itr = channel.find("marker_type");
+        if(
+            mk_itr == channel.end()
+        ) {
+            auto ch_name = channel["name"].get<std::string>(); 
             for(std::size_t i = 0; i < mk_pats_cl.size(); i ++ ) {
                 auto&& obj = mk_pats_cl[i];
                 filter[i] = (
-                    obj["channel"].get<std::string>() != channel_name
+                    mk_type_to_ch_name[
+                        obj["marker_type"].get<std::string>()
+                    ] != ch_name 
+                );
+            }
+        } // For down compatibility
+        else if(
+            auto marker_type = *mk_itr; 
+            marker_type != "" || marker_type != "none"
+        ) {
+            for(std::size_t i = 0; i < mk_pats_cl.size(); i ++ ) {
+                auto&& obj = mk_pats_cl[i];
+                filter[i] = (
+                    obj["marker_type"].get<std::string>() 
+                    != marker_type
                 );
             }
         }
@@ -81,7 +103,7 @@ struct Utils{
         float cell_w_um, 
         float cell_h_um, 
         float space_um,
-        const std::string& channel_name
+        const nlohmann::json& channel
     ) 
     {
         std::vector<cv::Mat_<std::uint8_t>> candi_pats_cl;
@@ -91,7 +113,9 @@ struct Utils{
 
         auto& mk_pats_cl        = shooting_marker["mk_pats_cl"];
 
-        auto mk_pats_cl_path = filter_path(mk_pats_cl, channel_name);
+        auto mk_pats_cl_path = filter_path(
+            mk_pats_cl, channel
+        );
         // collect candi_pats_cl;
         for( auto&& mk : mk_pats_cl_path ) {
             auto path = summit::install_path() / mk;
@@ -115,7 +139,6 @@ struct Utils{
             );
             candi_pats_px.push_back(mk_img);
             candi_pats_px_mask.push_back(mask_img);
-
         }
 
         return nucleona::make_tuple(
@@ -203,7 +226,7 @@ struct Utils{
         float um2px_r,
         const nlohmann::json& chip_spec,
         const nlohmann::json& cell_fov,
-        const std::string&    channel_name,
+        const nlohmann::json& channel,
         const std::optional<int>& fov_ec_id = std::nullopt
 
     ) {
@@ -239,7 +262,7 @@ struct Utils{
             chip_spec["cell_w_um"].get<float>(),
             chip_spec["cell_h_um"].get<float>(),
             chip_spec["space_um"].get<float>(),
-            channel_name
+            channel
         ); 
 
         std::vector<EndP> points;
