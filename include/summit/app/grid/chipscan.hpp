@@ -46,7 +46,6 @@ struct ChipScan {
                     << posfix
                 ;
                 auto img_path = src_path / ss.str();
-                if(!boost::filesystem::exists(img_path)) throw ChannelNotFound();
                 std::cout << "read image: " << img_path << std::endl;
                 cv::Mat_<std::uint16_t> img = Utils::imread(
                     img_path.string(), img_enc
