@@ -6,4 +6,4 @@
 	url = ../../centrillion/CFU.git
 [submodule "lib/Summit.Crypto"]
 	path = lib/Summit.Crypto
-	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/Summit.Crypto.git
+	url = ../../centrillion/Summit.Crypto.git
