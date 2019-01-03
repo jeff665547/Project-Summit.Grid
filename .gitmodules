@@ -1,15 +1,6 @@
-[submodule "cmake/screw"]
-	path = cmake/screw
-	url = ../../centrillion/screw.git
-[submodule "lib/ChipImgProc"]
-	path = lib/ChipImgProc
-	url = ../../centrillion/ChipImgProc.git
 [submodule "lib/Summit.Spec"]
 	path = lib/Summit.Spec
 	url = ../../centrillion/Summit.Spec.git
-[submodule "lib/Nucleona"]
-	path = lib/Nucleona
-	url = ../../centrillion/Nucleona.git
 [submodule "lib/CFU"]
 	path = lib/CFU
 	url = ../../centrillion/CFU.git
