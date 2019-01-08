@@ -33,3 +33,4 @@ inpace_mode: { output == task_path }
 <output>/grid/channels/<ch>/gridline.csv
 <output>/grid/array.cen
 <output>/grid/COMPLETE
+<secure_output>/<raw_imgs...>.tiff
