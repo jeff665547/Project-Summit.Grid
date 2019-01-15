@@ -7,7 +7,12 @@ struct DataPaths {
     enum Mode {
         inplace, normal
     };
-    DataPaths(const std::string& output, const boost::filesystem::path& input) {
+    DataPaths(
+        const std::string& output, 
+        const boost::filesystem::path& input,
+        const boost::filesystem::path& shared_dir,
+        const boost::filesystem::path& secure_dir
+    ) {
         boost::filesystem::path abs_output(output);
         boost::filesystem::path abs_input(input);
         abs_output = boost::filesystem::absolute(abs_output);
@@ -19,6 +24,22 @@ struct DataPaths {
             std::cout << "use normal mode" << std::endl;
             mode_ = normal;
         }
+        if( mode_ == inplace && shared_dir != "" && secure_dir != "" ) {
+            enable_secure_output_ = true;
+            boost::filesystem::path abs_shared_dir;
+            boost::filesystem::path abs_secure_dir;
+            abs_shared_dir = boost::filesystem::absolute(shared_dir);
+            abs_secure_dir = boost::filesystem::absolute(secure_dir);
+            secure_output_ = abs_secure_dir / boost::filesystem::relative(abs_output, abs_shared_dir);
+        } 
+    }
+    bool secure_output_enabled() const {
+        return enable_secure_output_;
+    }
+    boost::filesystem::path raw_img_dir() const {
+        if(!enable_secure_output_) throw std::runtime_error("secure output not enable");
+        check_path(secure_output_ / "tmp");
+        return secure_output_ ;
     }
     boost::filesystem::path heatmap(
         const std::string& output, 
@@ -153,6 +174,8 @@ private:
         }
     }
     Mode mode_;
+    bool enable_secure_output_;
+    boost::filesystem::path secure_output_;
 };
 
 }

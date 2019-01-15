@@ -28,7 +28,8 @@ struct ChipScan {
         const boost::filesystem::path&  src_path,
         int rows, int cols,
         const std::string& posfix,
-        bool img_enc
+        bool img_enc,
+        const output::DataPaths& data_paths
     ) {
         std::map<
             cv::Point, // fov id 
@@ -48,7 +49,7 @@ struct ChipScan {
                 auto img_path = src_path / ss.str();
                 std::cout << "read image: " << img_path << std::endl;
                 cv::Mat_<std::uint16_t> img = Utils::imread(
-                    img_path.string(), img_enc
+                    img_path.string(), img_enc, data_paths
                 );
                 chipimgproc::info(std::cout, img);
                 res[cv::Point(c, r)] = nucleona::make_tuple(
@@ -85,7 +86,8 @@ struct ChipScan {
         const nlohmann::json&               cell_fov,
         const nlohmann::json&               chip_spec,
         int                                 debug,
-        bool                                no_bgp
+        bool                                no_bgp,
+        const output::DataPaths&            data_paths 
     ) {
         std::cout << cell_fov.dump(2) << std::endl;
         auto& channel_name = channel["name"];
@@ -99,7 +101,7 @@ struct ChipScan {
             is_img_enc = is_img_enc_itr->get<bool>();
         }
         auto imgs = read_imgs(
-            src_path, fov_rows, fov_cols, channel_name, is_img_enc
+            src_path, fov_rows, fov_cols, channel_name, is_img_enc, data_paths
         );
         auto um2px_r_itr = chip_log.find("um_to_px_coef");
         if(um2px_r_itr == chip_log.end()) {
@@ -251,7 +253,7 @@ struct ChipScan {
                         chip_log, src_path, ch,
                         um2px_r, log_chip_type,
                         cell_fov, chip_spec,
-                        debug, no_bgp
+                        debug, no_bgp, output_paths
                     );
 
                     // sperate image output

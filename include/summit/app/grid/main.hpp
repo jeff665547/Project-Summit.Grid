@@ -28,6 +28,8 @@ struct Parameters
     int debug;
     float um2px_r;
     bool  no_bgp;
+    std::string shared_dir;
+    std::string secure_dir;
 };
 
 class OptionParser : public Parameters, public nucleona::app::cli::OptionParser
@@ -72,6 +74,8 @@ public:
                                                         ->default_value(-1.0),                 "Specify the um to pixel rate."
             )
             ("no_bgp,b"         ,       "No background process.")
+            ("shared_dir,a"     ,       po::value<std::string>()->default_value(""),           "The share directory from reader IPC to image server")
+            ("secure_dir,e"     ,       po::value<std::string>()->default_value(""),           "The private directory on image server")
         ;
         po::store(po::parse_command_line(argc, argv, desc), vm);
         if(argc == 1 or vm.count("help"))
@@ -91,6 +95,8 @@ public:
         Base::get_parameter( "debug"             , debug             );
         Base::get_parameter( "um2px_r"           , um2px_r           );
         Base::get_parameter( "no_bgp"            , no_bgp            );
+        Base::get_parameter( "shared_dir"        , shared_dir        );
+        Base::get_parameter( "secure_dir"        , secure_dir        );
         auto input_path_  = boost::filesystem::absolute(input_path);
         auto output_      = boost::filesystem::absolute(output);
         input_path = input_path_.make_preferred().string();
@@ -168,7 +174,8 @@ class Main
     }
     int operator()() {
         output::DataPaths output_paths(
-            args_.output, args_.input_path
+            args_.output, args_.input_path,
+            args_.shared_dir, args_.secure_dir
         );
         output::FormatDecoder format_decoder(
             args_.output_formats
