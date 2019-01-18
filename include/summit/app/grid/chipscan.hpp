@@ -87,7 +87,7 @@ struct ChipScan {
         const nlohmann::json&               chip_spec,
         int                                 debug,
         bool                                no_bgp,
-        const output::DataPaths&            data_paths 
+        const output::DataPaths&            data_paths
     ) {
         std::cout << cell_fov.dump(2) << std::endl;
         auto& channel_name = channel["name"];
@@ -127,6 +127,13 @@ struct ChipScan {
         auto mk_layouts = Utils::generate_sgl_pat_reg_mat_marker_layout(
             um2px_r, chip_spec, cell_fov, channel
         );
+        algo.set_marker_layout(mk_layouts.begin()->second); // get first layout
+        algo.set_chip_cell_info(
+            chip_spec["cell_h_um"].get<float>(),
+            chip_spec["cell_w_um"].get<float>(),
+            chip_spec["space_um"].get<float>()
+        );
+        algo.enable_um2px_r_auto_scale(um2px_r);
         auto st_points = Utils::generate_stitch_points(cell_fov);
 
         std::vector<chipimgproc::TiledMat<GridLineID>>  mats;
@@ -149,7 +156,6 @@ struct ChipScan {
                     cv::imwrite("marker_seg" + std::to_string(i) + ".tiff", img);
                 });
             }
-            algo.set_marker_layout(mkly);
             auto& [img_path, img] = imgs[fov_id];
             auto [qc, tiled_mat, stat_mats, theta]
                 = algo(img, img_path)
@@ -233,10 +239,6 @@ struct ChipScan {
                 .get_fov_type(log_chip_type);
             auto& chip_spec = summit::config::chip()
                 .get_spec(cell_fov["spec"].get<std::string>());
-            // auto array = summit::format::init_array(chip_spec);
-            // cfu::format::cen::File cenfile(output_paths.array_cen(
-            //     output, task_id
-            // ).string(), H5F_ACC_TRUNC);
             auto array = create_array(fmt_decoder, chip_spec);
             auto cenfile = create_cenfile( 
                 fmt_decoder, 
@@ -273,6 +275,13 @@ struct ChipScan {
                         task_id, ch_name, output, 
                         filter, multi_tiled_mat
                     );
+                    // auto mean_float = multi_tiled_mat.dump();
+                    // cv::Mat mean_int;
+                    // mean_float.convertTo(mean_int, CV_16U, 1);
+                    // auto mean_path = output_paths.heatmap(output, task_id, ch_name, ".tiff");
+                    // // cv::imwrite(mean_path.string(), chipimgproc::viewable(mean_int));
+                    // cv::imwrite(mean_path.string(), mean_int);
+
 
                     // stitch image 
                     auto grid_image = image_stitcher_( multi_tiled_mat );

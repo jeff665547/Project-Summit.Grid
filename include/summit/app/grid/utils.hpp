@@ -147,6 +147,7 @@ struct Utils{
         return nucleona::make_tuple(
             std::move(candi_pats_cl), 
             std::move(candi_pats_px),
+            std::move(candi_pats_cl_mask),
             std::move(candi_pats_px_mask)
         );
     }
@@ -260,7 +261,7 @@ struct Utils{
         auto h_dpx = position["h_d"].get<int>() * um2px_r;
 
 
-        auto [pats_cl, pats_px, pats_px_mask]= get_single_marker_pattern(
+        auto [pats_cl, pats_px, pats_cl_mask, pats_px_mask]= get_single_marker_pattern(
             um2px_r, shooting_marker, 
             chip_spec["cell_w_um"].get<float>(),
             chip_spec["cell_h_um"].get<float>(),
@@ -320,7 +321,8 @@ struct Utils{
                 w_d, h_d,
                 w_dpx, h_dpx
             );
-            marker_layout.set_single_mk_pat(pats_cl, pats_px, pats_px_mask);
+            marker_layout.set_single_mk_pat(pats_cl, pats_px, 
+                pats_cl_mask, pats_px_mask);
             res[fov_id] = marker_layout;
         };
         if(fov_ec_id) {
