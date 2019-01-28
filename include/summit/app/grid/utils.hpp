@@ -386,9 +386,12 @@ struct Utils{
             en_img.load(fin);
             auto res = summit::crypto::scan_image_de(en_img, "qsefthukkuhtfesq");
             if( data_paths.secure_output_enabled()) {
+                auto tmp = res.clone();
+
+                auto small_image = chipimgproc::norm_u8(static_cast<cv::Mat_<std::uint16_t>&>(tmp), 0.001, 0.001);
                 cv::imwrite(
-                    (data_paths.raw_img_dir() / (fname_path_no_ext.stem().string() + ".tiff")).string(), 
-                    res
+                    (data_paths.raw_img_dir() / (fname_path_no_ext.stem().string() + ".jpg")).string(), 
+                    small_image
                 );
             }
             return res;
