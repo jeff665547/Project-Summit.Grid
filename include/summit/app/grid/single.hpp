@@ -73,6 +73,12 @@ struct Single {
         algo.set_marker_layout(Utils::generate_sgl_pat_reg_mat_marker_layout(
             um2px_r, chip_spec, cell_fov, "", fov_ec_id
         )[cv::Point(0,0)]);
+        algo.set_chip_cell_info(
+            chip_spec["cell_h_um"].get<float>(),
+            chip_spec["cell_w_um"].get<float>(),
+            chip_spec["space_um"].get<float>()
+        );
+        algo.enable_um2px_r_auto_scale(um2px_r);
 
         auto [qc, tiled_mat, stat_mats, theta] = algo(src, src_path.string());
         if(!qc) throw ImageQCFail();
