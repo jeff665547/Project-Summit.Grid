@@ -381,7 +381,7 @@ struct Utils{
     static auto imread(const std::string& fname_no_ext, bool img_enc, const output::DataPaths& data_paths) {
         if(img_enc) {
             boost::filesystem::path fname_path_no_ext(fname_no_ext);
-            std::ifstream fin(fname_no_ext + ".srl");
+            std::ifstream fin(fname_no_ext + ".srl", std::ios::binary);
             summit::crypto::EncryptedScanImage en_img;
             en_img.load(fin);
             auto res = summit::crypto::scan_image_de(en_img, "qsefthukkuhtfesq");
@@ -403,7 +403,7 @@ struct Utils{
         boost::filesystem::path fpath(fname);
         std::string ext = fpath.filename().extension().string();
         if(ext == ".srl") {
-            std::ifstream fin(fname);
+            std::ifstream fin(fname, std::ios::binary);
             summit::crypto::EncryptedScanImage en_img;
             en_img.load(fin);
             return summit::crypto::scan_image_de(en_img, "qsefthukkuhtfesq");
