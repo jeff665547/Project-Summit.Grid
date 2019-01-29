@@ -19,6 +19,9 @@
 #include <summit/format/cfu_array.hpp>
 #include <CFU/format/cen/file.hpp>
 #include <summit/app/grid/output/format_decoder.hpp>
+#include <summit/format/rfid.hpp>
+#include <summit/exception/analysis_skip.hpp>
+
 namespace summit::app::grid{
 
 struct ChipScan {
@@ -103,6 +106,12 @@ struct ChipScan {
         auto imgs = read_imgs(
             src_path, fov_rows, fov_cols, channel_name, is_img_enc, data_paths
         );
+        // check RFID if the third code is XXX then do nothing.
+        auto rfid = Utils::extract_rfid_from_path(src_path);
+        if(rfid.region_code == "XXX") {
+            throw summit::exception::AnalysisSkip("The RFID region code is required to be ignored, " + rfid.region_code);
+        }
+
         auto um2px_r_itr = chip_log.find("um_to_px_coef");
         if(um2px_r_itr == chip_log.end()) {
             std::cout << "um_to_px_coef not found in chip log" << std::endl;

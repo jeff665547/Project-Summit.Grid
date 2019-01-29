@@ -13,8 +13,19 @@
 #include <summit/crypto/scan_image.hpp>
 #include <ChipImgProc/utils.h>
 #include <summit/app/grid/output/data_paths.hpp>
+#include <summit/format/rfid.hpp>
+
 namespace summit::app::grid{
 struct Utils{
+    static auto extract_rfid_from_path(
+        const boost::filesystem::path& path
+    ) {
+        auto itr = path.rbegin();
+        itr ++;
+        auto rfid_str = itr->string();
+        auto rfid = summit::format::RFID::parse(rfid_str);
+        return rfid;
+    }
     template<class T>
     static auto guess_um2px_r( 
         const cv::Mat_<T>& src, 
