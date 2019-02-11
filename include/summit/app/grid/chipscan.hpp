@@ -80,6 +80,16 @@ struct ChipScan {
         // );
 
     }
+    bool is_image_encrypted(
+        const nlohmann::json&               chip_log
+    ) {
+        auto is_img_enc_itr = chip_log.find("img_encrypted");
+        bool is_img_enc = false;
+        if(is_img_enc_itr != chip_log.end()) {
+            is_img_enc = is_img_enc_itr->get<bool>();
+        }
+        return is_img_enc;
+    }
     chipimgproc::MultiTiledMat<Float, GridLineID> cen_chipscan(
         const nlohmann::json&               chip_log,
         const boost::filesystem::path&      src_path,
@@ -98,11 +108,7 @@ struct ChipScan {
         auto& fov           = cell_fov["fov"];
         auto fov_rows       = fov["rows"];
         auto fov_cols       = fov["cols"];
-        auto is_img_enc_itr = chip_log.find("img_encrypted");
-        bool is_img_enc = false;
-        if(is_img_enc_itr != chip_log.end()) {
-            is_img_enc = is_img_enc_itr->get<bool>();
-        }
+        auto is_img_enc     = is_image_encrypted(chip_log);
         auto imgs = read_imgs(
             src_path, fov_rows, fov_cols, channel_name, is_img_enc, data_paths
         );
@@ -316,6 +322,14 @@ struct ChipScan {
                 }
                 else {
                     std::cout << "channel name: " << ch_name << " is white LED, pass the scan" << std::endl;
+                    auto& fov           = cell_fov["fov"];
+                    auto fov_rows       = fov["rows"];
+                    auto fov_cols       = fov["cols"];
+                    auto is_img_enc     = is_image_encrypted(chip_log);
+                    auto images = read_imgs(
+                        src_path, fov_rows, fov_cols, ch_name, 
+                        is_img_enc, output_paths
+                    );
                 }
             }
             if( fmt_decoder.enable_cen() ) {
