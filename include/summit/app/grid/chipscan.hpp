@@ -21,6 +21,7 @@
 #include <summit/app/grid/output/format_decoder.hpp>
 #include <summit/format/rfid.hpp>
 #include <summit/exception/analysis_skip.hpp>
+#include <Nucleona/proftool/timer.hpp>
 
 namespace summit::app::grid{
 
@@ -102,6 +103,14 @@ struct ChipScan {
         bool                                no_bgp,
         const output::DataPaths&            data_paths
     ) {
+        auto timer = nucleona::proftool::make_timer(
+            [](auto du) {
+                std::cout << "chipscan process time: " << 
+                    std::chrono::duration_cast<
+                        std::chrono::milliseconds
+                    >(du).count() << std::endl;
+            }
+        );
         std::cout << cell_fov.dump(2) << std::endl;
         auto& channel_name = channel["name"];
 
