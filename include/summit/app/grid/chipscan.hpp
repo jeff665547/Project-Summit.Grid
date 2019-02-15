@@ -22,6 +22,7 @@
 #include <summit/format/rfid.hpp>
 #include <summit/exception/analysis_skip.hpp>
 #include <Nucleona/proftool/timer.hpp>
+#include <summit/app/grid/output/sup_improc_data.hpp>
 
 namespace summit::app::grid{
 
@@ -91,7 +92,7 @@ struct ChipScan {
         }
         return is_img_enc;
     }
-    chipimgproc::MultiTiledMat<Float, GridLineID> cen_chipscan(
+    auto cen_chipscan(
         const nlohmann::json&               chip_log,
         const boost::filesystem::path&      src_path,
         const nlohmann::json&               channel,
@@ -164,6 +165,7 @@ struct ChipScan {
         std::vector<chipimgproc::stat::Mats<Float>>     stats;
         std::vector<cv::Point>                          cell_st_pts;
         std::vector<cv::Point>                          fov_ids;
+        output::SupImprocData                           sup_improc_data;
         int i = 0;
         for(auto& [fov_id, mkly] : mk_layouts) {
             if( 1 == debug ) {
@@ -187,13 +189,16 @@ struct ChipScan {
             mats.emplace_back(std::move(tiled_mat));
             stats.emplace_back(std::move(stat_mats));
             cell_st_pts.emplace_back(std::move(st_points[fov_id]));
+            sup_improc_data.backgrounds[fov_id] = Utils::mean(bg_value);
             fov_ids.push_back(fov_id);
             i++;
         }
         chipimgproc::MultiTiledMat<Float, GridLineID> res(
             mats, stats, cell_st_pts, fov_ids
         );
-        return res;
+        return nucleona::make_tuple(
+            std::move(res), std::move(sup_improc_data)
+        );
         
     }
     auto create_array( 
@@ -275,7 +280,7 @@ struct ChipScan {
             for( auto& ch : channels ) {
                 std::string ch_name = ch["name"];
                 if( ch["filter"].get<int>() != 0 ) {
-                    auto multi_tiled_mat = cen_chipscan(
+                    auto [multi_tiled_mat, sup_improc_data] = cen_chipscan(
                         chip_log, src_path, ch,
                         um2px_r, log_chip_type,
                         cell_fov, chip_spec,
@@ -316,6 +321,14 @@ struct ChipScan {
                     // gridline
                     std::ofstream gl_file(output_paths.gridline(output, task_id, ch_name).string());
                     Utils::write_gl(gl_file, grid_image);
+
+                    // background
+                    std::ofstream bgv_file(
+                        output_paths.background(
+                            output, task_id, ch_name
+                        ).string()
+                    );
+                    Utils::write_background(bgv_file, sup_improc_data);
 
                     // cfu array
                     if( fmt_decoder.enable_array() ) {

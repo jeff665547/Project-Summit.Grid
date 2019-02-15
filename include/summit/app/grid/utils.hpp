@@ -14,9 +14,23 @@
 #include <ChipImgProc/utils.h>
 #include <summit/app/grid/output/data_paths.hpp>
 #include <summit/format/rfid.hpp>
+#include <summit/app/grid/output/sup_improc_data.hpp>
 
 namespace summit::app::grid{
 struct Utils{
+    static auto mean(const std::vector<float>& data) {
+        float sum = 0;
+        int n = 0;
+        for(auto& v : data) {
+            if(std::isnan(v)) {
+                std::cout << "warn: a nan value detected, ignored" << std::endl; 
+            } else {
+                sum += v;
+                n ++;
+            }
+        }
+        return sum/n;
+    }
     static auto extract_rfid_from_path(
         const boost::filesystem::path& path
     ) {
@@ -237,7 +251,11 @@ struct Utils{
         }
         return res;
     }
-    static auto generate_sgl_pat_reg_mat_marker_layout(
+    static std::map<
+        cv::Point, // fov id 
+        chipimgproc::marker::Layout, // marker layout
+        chipimgproc::PointLess
+    > generate_sgl_pat_reg_mat_marker_layout(
         float um2px_r,
         const nlohmann::json& chip_spec,
         const nlohmann::json& cell_fov,
@@ -388,6 +406,23 @@ struct Utils{
             gl_file << ',' << l;
         }
         gl_file << std::endl;
+    }
+    static auto write_background(
+        std::ostream& bg_file, const output::SupImprocData& data
+    ) {
+        float sum = 0;
+        bg_file << "mean";
+        for(auto& [fov_id, bgv] : data.backgrounds) {
+            bg_file << ",(" << fov_id.x << ';' << fov_id.y << ')';
+            sum += bgv;
+        }
+        bg_file << '\n';
+        bg_file << sum / data.backgrounds.size();
+        for(auto& [fov_id, bgv] : data.backgrounds) {
+            bg_file << ',' << bgv;
+        }
+        bg_file << '\n';
+        bg_file << std::flush;
     }
     static auto imread(const std::string& fname_no_ext, bool img_enc, const output::DataPaths& data_paths) {
         if(img_enc) {

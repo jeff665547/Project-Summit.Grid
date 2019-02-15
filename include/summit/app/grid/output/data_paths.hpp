@@ -131,6 +131,13 @@ struct DataPaths {
         }
         return check_path(output_p);
     }
+    boost::filesystem::path background(
+        const std::string& output,
+        const std::string& task_id,
+        const std::string& channel
+    ) const {
+        return check_path(general_prefix(output, task_id, channel) / "background.csv");
+    }
 private:
     boost::filesystem::path check_path( const boost::filesystem::path& p ) const {
         auto _dir = p.parent_path();
