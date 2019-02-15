@@ -181,7 +181,7 @@ struct ChipScan {
                 });
             }
             auto& [img_path, img] = imgs[fov_id];
-            auto [qc, tiled_mat, stat_mats, theta]
+            auto [qc, tiled_mat, stat_mats, theta, bg_value]
                 = algo(img, img_path)
             ;
             mats.emplace_back(std::move(tiled_mat));

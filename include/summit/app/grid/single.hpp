@@ -80,7 +80,7 @@ struct Single {
         );
         algo.enable_um2px_r_auto_scale(um2px_r);
 
-        auto [qc, tiled_mat, stat_mats, theta] = algo(src, src_path.string());
+        auto [qc, tiled_mat, stat_mats, theta, bg_value] = algo(src, src_path.string());
         if(!qc) throw ImageQCFail();
         std::vector<chipimgproc::TiledMat<GridLineID>>  mats;
         std::vector<chipimgproc::stat::Mats<Float>>     stats;
