@@ -22,4 +22,5 @@ target_link_libraries(${__screw_target}
 if(MINGW)
     target_compile_options(${__screw_target} PUBLIC -Wa,-mbig-obj)
 endif()
+target_compile_definitions(${__screw_target} PRIVATE NUCLEONA_RANGE_USE_V3)
 screw_show_var(__screw_target)
