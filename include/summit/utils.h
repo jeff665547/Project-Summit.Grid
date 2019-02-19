@@ -2,6 +2,7 @@
 #include <boost/filesystem.hpp>
 #include <nlohmann/json.hpp>
 #include <vector>
+#include <ChipImgProc/utils.h>
 namespace summit{
 
 boost::filesystem::path install_path();
@@ -17,5 +18,6 @@ std::vector<T> to_vector( const nlohmann::json& j ) {
     }
     return res;
 }
+cv::Mat better_viewable16(const cv::Mat& mat);
 
 }

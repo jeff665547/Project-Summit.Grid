@@ -23,6 +23,7 @@
 #include <summit/exception/analysis_skip.hpp>
 #include <Nucleona/proftool/timer.hpp>
 #include <summit/app/grid/output/sup_improc_data.hpp>
+#include <summit/utils.h>
 
 namespace summit::app::grid{
 
@@ -295,7 +296,10 @@ struct ChipScan {
                              );
                             auto& raw_img = multi_tiled_mat.get_fov_img(c, r).mat();
                             std::cout << "FOV output: " << fov_path << std::endl;
-                            cv::imwrite(fov_path.string(), chipimgproc::viewable(raw_img, 0.02, 0.02));
+                            cv::imwrite(
+                                fov_path.string(), 
+                                summit::better_viewable16(raw_img)
+                            );
                         }
                     }
 
