@@ -27,7 +27,7 @@ normal_mode:
 <output>/<task_id>/array.cen
 <output>/<task_id>/COMPLETE
 
-inpace_mode: { output == task_path } 
+inpace_mode: { output == task_path || output == secure_output_ } 
 <output>/grid/channels/<ch>/heatmap.<ofm>
 <output>/grid/channels/<ch>/viewable_<tag>/<r>-<c>.png  (chipscan task)
 <output>/grid/channels/<ch>/viewable_<tag>/stitch.png   (chipscan task)

@@ -17,21 +17,22 @@ struct DataPaths {
         boost::filesystem::path abs_input(input);
         abs_output = boost::filesystem::absolute(abs_output);
         abs_input = boost::filesystem::absolute(abs_input);
-        if( abs_input.make_preferred() == abs_output.make_preferred() ) {
+        if( shared_dir != "" && secure_dir != "" ) {
+            enable_secure_output_ = true;
+            boost::filesystem::path abs_shared_dir;
+            boost::filesystem::path abs_secure_dir;
+            abs_shared_dir = boost::filesystem::absolute(shared_dir);
+            abs_secure_dir = boost::filesystem::absolute(secure_dir);
+            secure_output_ = abs_secure_dir / boost::filesystem::relative(abs_input, abs_shared_dir);
+        } 
+        if( abs_output.make_preferred() == abs_input.make_preferred() 
+            || abs_output == secure_output_.make_preferred()) {
             std::cout << "use inplace mode" << std::endl;
             mode_ = inplace;
         } else {
             std::cout << "use normal mode" << std::endl;
             mode_ = normal;
         }
-        if( mode_ == inplace && shared_dir != "" && secure_dir != "" ) {
-            enable_secure_output_ = true;
-            boost::filesystem::path abs_shared_dir;
-            boost::filesystem::path abs_secure_dir;
-            abs_shared_dir = boost::filesystem::absolute(shared_dir);
-            abs_secure_dir = boost::filesystem::absolute(secure_dir);
-            secure_output_ = abs_secure_dir / boost::filesystem::relative(abs_output, abs_shared_dir);
-        } 
     }
     bool secure_output_enabled() const {
         return enable_secure_output_;
