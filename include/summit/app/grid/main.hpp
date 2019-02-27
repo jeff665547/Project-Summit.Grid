@@ -12,6 +12,7 @@
 #include <summit/app/grid/chipscan.hpp>
 #include <summit/app/grid/reg_mat_mk_index.hpp>
 #include <summit/app/grid/output/format_decoder.hpp>
+#include <Nucleona/proftool/timer.hpp>
 
 namespace summit::app::grid{
 
@@ -181,6 +182,10 @@ class Main
         }
     }
     int operator()() {
+        auto timer = nucleona::proftool::make_timer([](auto&& du){
+            std::cout << std::chrono::duration_cast<std::chrono::seconds>(du).count() 
+                << " sec." << std::endl;
+        });
         output::DataPaths output_paths(
             args_.output, args_.input_path,
             args_.shared_dir, args_.secure_dir
