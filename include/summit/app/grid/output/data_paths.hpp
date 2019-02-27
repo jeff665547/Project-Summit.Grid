@@ -114,23 +114,34 @@ struct DataPaths {
         return check_path(output_p);
     }
     boost::filesystem::path complete_file(
-        const std::string& output,
+        const std::string& path,
         const std::string& task_id
     ) const {
-        boost::filesystem::path output_p(output);
+        boost::filesystem::path path_p(path);
         switch(mode_) {
             case normal:
-                output_p = output_p / task_id 
+                path_p = path_p / task_id 
                     / "COMPLETE";
                 break;
             case inplace:
-                output_p = output_p / "grid" 
+                path_p = path_p / "grid" 
                     / "COMPLETE";
                 break;
             default:
                 throw std::runtime_error("unsupport mode");
         }
-        return check_path(output_p);
+        return check_path(path_p);
+    }
+    void create_complete_file(
+        const std::string& input,
+        const std::string& output,
+        const std::string& task_id
+    ) const {
+        for(auto&& p : {input, output}){
+            auto complete_file_path = complete_file(p, task_id);
+            std::ofstream fout(complete_file_path.string(), std::fstream::trunc | std::fstream::out);
+            fout.close();
+        }
     }
     boost::filesystem::path background(
         const std::string& output,
