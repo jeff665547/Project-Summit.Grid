@@ -25,6 +25,7 @@
 #include <summit/app/grid/output/sup_improc_data.hpp>
 #include <summit/utils.h>
 #include <Nucleona/parallel/thread_pool.hpp>
+#include "output/single_img_proc_res.hpp"
 
 namespace summit::app::grid{
 
@@ -158,10 +159,13 @@ struct ChipScan {
         std::vector<cv::Point>                          cell_st_pts;
         std::vector<cv::Point>                          fov_ids;
         output::SupImprocData                           sup_improc_data;
-        int i = 0;
-        std::vector<nucleona::parallel::ThreadPool::Future<void>> fov_procs;
+        std::vector<
+            nucleona::parallel::ThreadPool::Future<
+                output::SingleImgProcRes
+            >
+        > fov_procs;
         for(auto& [fov_id, mkly] : mk_layouts) {
-            tp.job_post([fov_id, mkly, &chip_spec, um2px_r, &no_bgp](){
+            fov_procs.emplace_back(tp.job_post([fov_id, mkly, &chip_spec, um2px_r, &no_bgp, debug, &imgs](){
                 chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
                 algo.set_margin_method("auto_min_cv");
                 algo.set_logger(std::cout);
@@ -174,30 +178,39 @@ struct ChipScan {
                 );
                 algo.enable_um2px_r_auto_scale(um2px_r);
                 if( 1 == debug ) {
-                    algo.set_rot_cali_viewer([i](const auto& img){
-                        cv::imwrite("rot_cali_res" + std::to_string(i) + ".tiff", img);
+                    std::string fov_id_str = std::to_string(fov_id.x) + "-" + std::to_string(fov_id.y);
+                    algo.set_rot_cali_viewer([&fov_id_str](const auto& img){
+                        cv::imwrite("rot_cali_res" + fov_id_str + ".tiff", img);
                     });
-                    algo.set_grid_res_viewer([i](const auto& img){
-                        cv::imwrite("grid_res" + std::to_string(i) + ".tiff", img);
+                    algo.set_grid_res_viewer([&fov_id_str](const auto& img){
+                        cv::imwrite("grid_res" + fov_id_str + ".tiff", img);
                     });
-                    algo.set_margin_res_viewer([i](const auto& img){
-                        cv::imwrite("margin_res" + std::to_string(i) + ".tiff", img);
+                    algo.set_margin_res_viewer([&fov_id_str](const auto& img){
+                        cv::imwrite("margin_res" + fov_id_str + ".tiff", img);
                     });
-                    algo.set_marker_seg_viewer([i](const auto& img){
-                        cv::imwrite("marker_seg" + std::to_string(i) + ".tiff", img);
+                    algo.set_marker_seg_viewer([&fov_id_str](const auto& img){
+                        cv::imwrite("marker_seg" + fov_id_str + ".tiff", img);
                     });
                 }
-            });
-            auto& [img_path, img] = imgs[fov_id];
-            auto [qc, tiled_mat, stat_mats, theta, bg_value]
-                = algo(img, img_path)
-            ;
-            mats.emplace_back(std::move(tiled_mat));
-            stats.emplace_back(std::move(stat_mats));
+                auto& [img_path, img] = imgs[fov_id];
+                auto [qc, tiled_mat, stat_mats, theta, bg_value]
+                    = algo(img, img_path)
+                ;
+                return output::SingleImgProcRes {
+                    tiled_mat, stat_mats, bg_value
+                };
+            }));
             cell_st_pts.emplace_back(std::move(st_points[fov_id]));
-            sup_improc_data.backgrounds[fov_id] = Utils::mean(bg_value);
             fov_ids.push_back(fov_id);
-            i++;
+        }
+        for(auto&& [fov_id, fut] : ranges::view::zip(fov_ids, fov_procs)) {
+            auto single_img_proc_res = fut.sync();
+            mats.emplace_back(std::move(single_img_proc_res.tiled_mat));
+            stats.emplace_back(std::move(single_img_proc_res.stat_mats));
+            sup_improc_data.backgrounds[fov_id] = Utils::mean(
+                single_img_proc_res.bg_means
+            );
+
         }
         chipimgproc::MultiTiledMat<Float, GridLineID> res(
             mats, stats, cell_st_pts, fov_ids
@@ -244,7 +257,8 @@ struct ChipScan {
         const output::DataPaths&         output_paths   ,
         output::HeatmapWriter<
             Float, GridLineID
-        >&                               heatmap_writer
+        >&                               heatmap_writer ,
+        nucleona::parallel::ThreadPool&  tp
     ) {
         std::cout << "chipscan images procss" << std::endl;
         std::cout << "src path: " << src_path << std::endl;
@@ -290,7 +304,8 @@ struct ChipScan {
                         chip_log, src_path, ch,
                         um2px_r, log_chip_type,
                         cell_fov, chip_spec,
-                        debug, no_bgp, output_paths
+                        debug, no_bgp, output_paths,
+                        tp
                     );
 
                     // sperate image output

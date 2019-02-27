@@ -30,6 +30,7 @@ struct Parameters
     bool  no_bgp;
     std::string shared_dir;
     std::string secure_dir;
+    int thread_num;
 };
 
 class OptionParser : public Parameters, public nucleona::app::cli::OptionParser
@@ -76,6 +77,7 @@ public:
             ("no_bgp,b"         ,       "No background process.")
             ("shared_dir,a"     ,       po::value<std::string>()->default_value(""),           "The share directory from reader IPC to image server")
             ("secure_dir,e"     ,       po::value<std::string>()->default_value(""),           "The private directory on image server")
+            ("thread_num,n"     ,       po::value<int>()->default_value(4),                    "The thread number used in the image process")
         ;
         po::store(po::parse_command_line(argc, argv, desc), vm);
         if(argc == 1 or vm.count("help"))
@@ -97,6 +99,7 @@ public:
         Base::get_parameter( "no_bgp"            , no_bgp            );
         Base::get_parameter( "shared_dir"        , shared_dir        );
         Base::get_parameter( "secure_dir"        , secure_dir        );
+        Base::get_parameter( "thread_num"        , thread_num        );
         auto input_path_  = boost::filesystem::absolute(input_path);
         auto output_      = boost::filesystem::absolute(output);
         input_path = input_path_.make_preferred().string();
@@ -142,7 +145,11 @@ class Main
         const Task& tk,
         const output::DataPaths&        output_paths,
         const output::FormatDecoder&    fmt_decoder,
-        output::HeatmapWriter<Float, GridLineID>& heatmap_writer
+        output::HeatmapWriter<
+            Float, 
+            GridLineID
+        >&                              heatmap_writer,
+        nucleona::parallel::ThreadPool& tp
     ) {
         switch(tk.type) {
             case Task::single:
@@ -165,7 +172,8 @@ class Main
                     fmt_decoder, tk.id(),
                     args_.filter, args_.debug,
                     args_.no_bgp,
-                    output_paths, heatmap_writer
+                    output_paths, heatmap_writer,
+                    tp
                 );
                 break;
             default:
@@ -183,11 +191,13 @@ class Main
         output::HeatmapWriter<Float, GridLineID> heatmap_writer(
             output_paths, format_decoder.enabled_heatmap_fmts()
         );
+        auto tp(nucleona::parallel::make_thread_pool(args_.thread_num));
         for ( auto&& tk : get_tasks() ) {
             try{
                 task_proc(
                     tk, output_paths, 
-                    format_decoder, heatmap_writer
+                    format_decoder, heatmap_writer,
+                    tp
                 );
             } catch ( const std::exception& e ) {
                 std::cerr << "error when process task: " << tk.path << std::endl;
