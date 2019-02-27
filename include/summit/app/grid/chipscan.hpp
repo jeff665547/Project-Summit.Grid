@@ -24,6 +24,7 @@
 #include <Nucleona/proftool/timer.hpp>
 #include <summit/app/grid/output/sup_improc_data.hpp>
 #include <summit/utils.h>
+#include <Nucleona/parallel/thread_pool.hpp>
 
 namespace summit::app::grid{
 
@@ -103,7 +104,8 @@ struct ChipScan {
         const nlohmann::json&               chip_spec,
         int                                 debug,
         bool                                no_bgp,
-        const output::DataPaths&            data_paths
+        const output::DataPaths&            data_paths,
+        nucleona::parallel::ThreadPool&     tp
     ) {
         auto timer = nucleona::proftool::make_timer(
             [](auto du) {
@@ -146,20 +148,9 @@ struct ChipScan {
         }
         std::cout << "um_to_px_coef=" << um2px_r << std::endl;
 
-        chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
-        algo.set_margin_method("auto_min_cv");
-        algo.set_logger(std::cout);
-        algo.disable_background_fix(no_bgp);
         auto mk_layouts = Utils::generate_sgl_pat_reg_mat_marker_layout(
             um2px_r, chip_spec, cell_fov, channel
         );
-        algo.set_marker_layout(mk_layouts.begin()->second); // get first layout
-        algo.set_chip_cell_info(
-            chip_spec["cell_h_um"].get<float>(),
-            chip_spec["cell_w_um"].get<float>(),
-            chip_spec["space_um"].get<float>()
-        );
-        algo.enable_um2px_r_auto_scale(um2px_r);
         auto st_points = Utils::generate_stitch_points(cell_fov);
 
         std::vector<chipimgproc::TiledMat<GridLineID>>  mats;
@@ -168,21 +159,35 @@ struct ChipScan {
         std::vector<cv::Point>                          fov_ids;
         output::SupImprocData                           sup_improc_data;
         int i = 0;
+        std::vector<nucleona::parallel::ThreadPool::Future<void>> fov_procs;
         for(auto& [fov_id, mkly] : mk_layouts) {
-            if( 1 == debug ) {
-                algo.set_rot_cali_viewer([i](const auto& img){
-                    cv::imwrite("rot_cali_res" + std::to_string(i) + ".tiff", img);
-                });
-                algo.set_grid_res_viewer([i](const auto& img){
-                    cv::imwrite("grid_res" + std::to_string(i) + ".tiff", img);
-                });
-                algo.set_margin_res_viewer([i](const auto& img){
-                    cv::imwrite("margin_res" + std::to_string(i) + ".tiff", img);
-                });
-                algo.set_marker_seg_viewer([i](const auto& img){
-                    cv::imwrite("marker_seg" + std::to_string(i) + ".tiff", img);
-                });
-            }
+            tp.job_post([fov_id, mkly, &chip_spec, um2px_r, &no_bgp](){
+                chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
+                algo.set_margin_method("auto_min_cv");
+                algo.set_logger(std::cout);
+                algo.disable_background_fix(no_bgp);
+                algo.set_marker_layout(mkly); // get first layout
+                algo.set_chip_cell_info(
+                    chip_spec["cell_h_um"].get<float>(),
+                    chip_spec["cell_w_um"].get<float>(),
+                    chip_spec["space_um"].get<float>()
+                );
+                algo.enable_um2px_r_auto_scale(um2px_r);
+                if( 1 == debug ) {
+                    algo.set_rot_cali_viewer([i](const auto& img){
+                        cv::imwrite("rot_cali_res" + std::to_string(i) + ".tiff", img);
+                    });
+                    algo.set_grid_res_viewer([i](const auto& img){
+                        cv::imwrite("grid_res" + std::to_string(i) + ".tiff", img);
+                    });
+                    algo.set_margin_res_viewer([i](const auto& img){
+                        cv::imwrite("margin_res" + std::to_string(i) + ".tiff", img);
+                    });
+                    algo.set_marker_seg_viewer([i](const auto& img){
+                        cv::imwrite("marker_seg" + std::to_string(i) + ".tiff", img);
+                    });
+                }
+            });
             auto& [img_path, img] = imgs[fov_id];
             auto [qc, tiled_mat, stat_mats, theta, bg_value]
                 = algo(img, img_path)
