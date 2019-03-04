@@ -197,18 +197,32 @@ class Main
             output_paths, format_decoder.enabled_heatmap_fmts()
         );
         auto tp(nucleona::parallel::make_thread_pool(args_.thread_num));
+        std::vector<
+            nucleona::parallel::ThreadPool::Future<
+                void
+            >
+        > task_procs;
         for ( auto&& tk : get_tasks() ) {
-            try{
-                task_proc(
-                    tk, output_paths, 
-                    format_decoder, heatmap_writer,
-                    tp
-                );
-            } catch ( const std::exception& e ) {
-                std::cerr << "error when process task: " << tk.path << std::endl;
-                std::cerr << e.what() << std::endl;
-                std::cout << tk.path << "skip" << std::endl;
-            }
+            task_procs.emplace_back(tp.submit([
+                this, tk, &output_paths, 
+                &format_decoder, &heatmap_writer,
+                &tp
+            ](){
+                try{
+                    task_proc(
+                        tk, output_paths, 
+                        format_decoder, heatmap_writer,
+                        tp
+                    );
+                } catch ( const std::exception& e ) {
+                    std::cerr << "error when process task: " << tk.path << std::endl;
+                    std::cerr << e.what() << std::endl;
+                    std::cout << tk.path << "skip" << std::endl;
+                }
+            }));
+        }
+        for(auto&& task_p : task_procs) {
+            task_p.sync();
         }
         return 0;
     }

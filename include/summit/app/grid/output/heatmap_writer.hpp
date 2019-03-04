@@ -159,6 +159,7 @@ public:
             auto itr = fid_map_.find(heatmap_opath.string());
             if( itr == fid_map_.end() ) {
                 auto* pfile = new std::ofstream(heatmap_opath.string());
+                std::lock_guard<std::mutex> lock(map_mux_);
                 fid_map_[heatmap_opath.string()].reset(pfile);
                 writer_map_[heatmap_opath.string()] = create_output_writer(
                     ofm, *pfile
@@ -179,16 +180,17 @@ public:
         close();
     }
 private:
+    std::mutex                              map_mux_            ;
     std::map<
         std::string, 
         std::unique_ptr<std::ofstream>
-    >                                       fid_map_;
+    >                                       fid_map_            ;
     std::map<
         std::string, 
         std::unique_ptr<CellInfoWriterType>
-    >                                       writer_map_;
-    const output::DataPaths&                data_paths;
-    std::vector<std::string>                output_formats_;
+    >                                       writer_map_         ;
+    const output::DataPaths&                data_paths          ;
+    std::vector<std::string>                output_formats_     ;
 };
 
 
