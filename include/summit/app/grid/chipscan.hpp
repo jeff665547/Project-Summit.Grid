@@ -373,9 +373,12 @@ struct ChipScan {
                         }
 
                         // complete file
-                        auto complete_file_path = output_paths.complete_file(output, task_id);
-                        std::ofstream fout(complete_file_path.string(), std::fstream::trunc | std::fstream::out);
-                        fout.close();
+                        output_paths.create_complete_file(
+                            src_path.string(), output, task_id
+                        );
+                        // auto complete_file_path = output_paths.complete_file(output, task_id);
+                        // std::ofstream fout(complete_file_path.string(), std::fstream::trunc | std::fstream::out);
+                        // fout.close();
                     }
                     else {
                         std::cout << "channel name: " << ch_name << " is white LED, pass the scan" << std::endl;
