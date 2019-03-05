@@ -78,7 +78,7 @@ public:
             ("no_bgp,b"         ,       "No background process.")
             ("shared_dir,a"     ,       po::value<std::string>()->default_value(""),           "The share directory from reader IPC to image server")
             ("secure_dir,e"     ,       po::value<std::string>()->default_value(""),           "The private directory on image server")
-            ("thread_num,n"     ,       po::value<int>()->default_value(4),                    "The thread number used in the image process")
+            ("thread_num,n"     ,       po::value<int>()->default_value(1),                    "The thread number used in the image process")
         ;
         po::store(po::parse_command_line(argc, argv, desc), vm);
         if(argc == 1 or vm.count("help"))
