@@ -24,8 +24,8 @@
 #include <Nucleona/proftool/timer.hpp>
 #include <summit/app/grid/output/sup_improc_data.hpp>
 #include <summit/utils.h>
-#include <Nucleona/parallel/thread_pool.hpp>
 #include "output/single_img_proc_res.hpp"
+#include <Nucleona/parallel/asio_pool.hpp>
 
 namespace summit::app::grid{
 
@@ -95,6 +95,7 @@ struct ChipScan {
         }
         return is_img_enc;
     }
+    template<class Executor>
     auto cen_chipscan(
         const nlohmann::json&               chip_log,
         const boost::filesystem::path&      src_path,
@@ -106,7 +107,7 @@ struct ChipScan {
         int                                 debug,
         bool                                no_bgp,
         const output::DataPaths&            data_paths,
-        nucleona::parallel::ThreadPool&     tp
+        Executor&                           tp
     ) {
         auto timer = nucleona::proftool::make_timer(
             [](auto du) {
@@ -160,15 +161,18 @@ struct ChipScan {
         std::vector<cv::Point>                          fov_ids;
         output::SupImprocData                           sup_improc_data;
         std::vector<
-            nucleona::parallel::ThreadPool::Future<
+            nucleona::parallel::asio_pool::Future<
                 output::SingleImgProcRes
             >
         > fov_procs;
         for(auto& [fov_id, mkly] : mk_layouts) {
-            fov_procs.emplace_back(tp.job_post([fov_id, mkly, &chip_spec, um2px_r, &no_bgp, debug, &imgs, &channel_name](){
+            fov_procs.emplace_back(tp.submit([
+                fov_id, mkly, &chip_spec, um2px_r, &no_bgp, 
+                debug, &imgs, &channel_name, this, &tp
+            ](){
                 chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
                 algo.set_margin_method("auto_min_cv");
-                algo.set_logger(std::cout);
+                // algo.set_logger(std::cout);
                 algo.disable_background_fix(no_bgp);
                 algo.set_marker_layout(mkly); // get first layout
                 algo.set_chip_cell_info(
@@ -176,7 +180,19 @@ struct ChipScan {
                     chip_spec["cell_w_um"].get<float>(),
                     chip_spec["space_um"].get<float>()
                 );
-                algo.enable_um2px_r_auto_scale(um2px_r);
+                bool own_cali_um2px_r_mux = false;
+                if(cali_um2px_r_ < 0) {
+                    if(cali_um2px_r_mux_.try_lock()) {
+                        own_cali_um2px_r_mux = true;
+                        algo.enable_um2px_r_auto_scale(um2px_r);
+                    } else {
+                        while(cali_um2px_r_ < 0) {
+                            tp.poll();
+                        }
+                        algo.disable_um2px_r_auto_scale(cali_um2px_r_);
+                    }
+                }
+                
                 if( 1 == debug ) {
                     std::string fov_id_str = std::to_string(fov_id.x) + "-" + std::to_string(fov_id.y);
                     std::string channel_name_str = channel_name.get<std::string>();
@@ -201,6 +217,9 @@ struct ChipScan {
                 auto [qc, tiled_mat, stat_mats, theta, bg_value]
                     = algo(img, img_path)
                 ;
+                if(own_cali_um2px_r_mux) {
+                    cali_um2px_r_ = algo.get_um2px_r();
+                }
                 return output::SingleImgProcRes {
                     tiled_mat, stat_mats, bg_value
                 };
@@ -247,6 +266,7 @@ struct ChipScan {
         } 
         return file;
     }
+    template<class Executor>
     void operator()( 
         const boost::filesystem::path&   src_path       ,
         const std::string&               arg_chip_type  ,
@@ -263,7 +283,7 @@ struct ChipScan {
         output::HeatmapWriter<
             Float, GridLineID
         >&                               heatmap_writer ,
-        nucleona::parallel::ThreadPool&  tp
+        Executor&                        tp
     ) {
         std::cout << "chipscan images procss" << std::endl;
         std::cout << "src path: " << src_path << std::endl;
@@ -303,7 +323,7 @@ struct ChipScan {
             auto fov_rows = chip_log["chip"]["fov"]["rows"].get<int>();
             auto& channels = *channels_itr;
             std::vector<
-                nucleona::parallel::ThreadPool::Future<
+                nucleona::parallel::asio_pool::Future<
                     void
                 >
             > ch_procs;
@@ -408,5 +428,8 @@ struct ChipScan {
     }
 private:
     chipimgproc::stitch::GridlineBased image_stitcher_;
+    std::mutex cali_um2px_r_mux_;
+    float cali_um2px_r_ {-1};
+    // std::exception_ptr
 };
 }

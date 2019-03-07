@@ -142,6 +142,7 @@ class Main
         std::cout << "input_path: " << args_.input_path << std::endl;
         return Task::search(args_.input_path);
     }
+    template<class Executor>
     void task_proc(
         const Task& tk,
         const output::DataPaths&        output_paths,
@@ -150,7 +151,7 @@ class Main
             Float, 
             GridLineID
         >&                              heatmap_writer,
-        nucleona::parallel::ThreadPool& tp
+        Executor&                       tp
     ) {
         switch(tk.type) {
             case Task::single:
@@ -196,9 +197,9 @@ class Main
         output::HeatmapWriter<Float, GridLineID> heatmap_writer(
             output_paths, format_decoder.enabled_heatmap_fmts()
         );
-        auto tp(nucleona::parallel::make_thread_pool(args_.thread_num));
+        auto tp(nucleona::parallel::make_asio_pool(args_.thread_num));
         std::vector<
-            nucleona::parallel::ThreadPool::Future<
+            nucleona::parallel::asio_pool::Future<
                 void
             >
         > task_procs;
