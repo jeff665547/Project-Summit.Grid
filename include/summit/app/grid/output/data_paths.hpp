@@ -148,7 +148,18 @@ struct DataPaths {
         const std::string& task_id,
         const std::string& channel
     ) const {
-        return check_path(general_prefix(output, task_id, channel) / "background.csv");
+        boost::filesystem::path odir(output);
+        switch(mode_) {
+            case normal:
+                return check_path(output + "-" + channel + "_background.csv");
+            case inplace:
+                return check_path(
+                    general_prefix(output, task_id, channel) / "background.csv"
+                );
+            default:
+                throw std::runtime_error("unsupport mode");
+        }
+        // return check_path(general_prefix(output, task_id, channel) / "background.csv");
     }
 private:
     boost::filesystem::path check_path( const boost::filesystem::path& p ) const {

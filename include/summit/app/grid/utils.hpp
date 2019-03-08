@@ -408,15 +408,15 @@ struct Utils{
         gl_file << std::endl;
     }
     static auto write_background(
-        std::ostream& bg_file, const output::SupImprocData& data
+        std::ostream& bg_file, 
+        const std::string& task_id,
+        const output::SupImprocData& data
     ) {
         float sum = 0;
-        bg_file << "mean";
         for(auto& [fov_id, bgv] : data.backgrounds) {
-            bg_file << ",(" << fov_id.x << ';' << fov_id.y << ')';
             sum += bgv;
         }
-        bg_file << '\n';
+        bg_file << task_id << ',';
         bg_file << sum / data.backgrounds.size();
         for(auto& [fov_id, bgv] : data.backgrounds) {
             bg_file << ',' << bgv;

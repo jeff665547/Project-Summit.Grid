@@ -151,6 +151,7 @@ class Main
             Float, 
             GridLineID
         >&                              heatmap_writer,
+        output::BackgroundWriter&       background_writer,
         Executor&                       tp
     ) {
         switch(tk.type) {
@@ -175,6 +176,7 @@ class Main
                     args_.filter, args_.debug,
                     args_.no_bgp,
                     output_paths, heatmap_writer,
+                    background_writer,
                     tp
                 );
                 break;
@@ -197,7 +199,8 @@ class Main
         output::HeatmapWriter<Float, GridLineID> heatmap_writer(
             output_paths, format_decoder.enabled_heatmap_fmts()
         );
-        auto tp(nucleona::parallel::make_asio_pool(args_.thread_num));
+        output::BackgroundWriter background_writer(output_paths);
+        auto tp(nucleona::parallel::make_asio_pool(args_.thread_num - 1));
         std::vector<
             nucleona::parallel::asio_pool::Future<
                 void
@@ -206,13 +209,17 @@ class Main
         for ( auto&& tk : get_tasks() ) {
             task_procs.emplace_back(tp.submit([
                 this, tk, &output_paths, 
-                &format_decoder, &heatmap_writer,
+                &format_decoder, 
+                &heatmap_writer,
+                &background_writer,
                 &tp
             ](){
                 try{
                     task_proc(
                         tk, output_paths, 
-                        format_decoder, heatmap_writer,
+                        format_decoder, 
+                        heatmap_writer,
+                        background_writer,
                         tp
                     );
                 } catch ( const std::exception& e ) {

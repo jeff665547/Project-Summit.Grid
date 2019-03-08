@@ -158,16 +158,23 @@ public:
             heatmap_opath = heatmap_opath.make_preferred();
             auto itr = fid_map_.find(heatmap_opath.string());
             if( itr == fid_map_.end() ) {
-                auto* pfile = new std::ofstream(heatmap_opath.string());
                 std::lock_guard<std::mutex> lock(map_mux_);
-                fid_map_[heatmap_opath.string()].reset(pfile);
-                writer_map_[heatmap_opath.string()] = create_output_writer(
-                    ofm, *pfile
-                );
+                if( itr == fid_map_.end() ) {
+                    auto* pfile = new std::ofstream(heatmap_opath.string());
+                    fid_map_[heatmap_opath.string()].reset(pfile);
+                    writer_map_[heatmap_opath.string()] = create_output_writer(
+                        ofm, *pfile
+                    );
+                    writer_mux_[heatmap_opath.string()].reset(new std::mutex());
+                }
             }
             std::cout << "heatmap output: " << heatmap_opath << std::endl;
             auto& writer = writer_map_[heatmap_opath.string()];
+            auto& mux = writer_mux_[heatmap_opath.string()];
+            {
+            std::lock_guard<std::mutex> lock(*mux);
             write_output(*writer, task_id, mat, filter);
+            }
         }
         
     }
@@ -189,6 +196,10 @@ private:
         std::string, 
         std::unique_ptr<CellInfoWriterType>
     >                                       writer_map_         ;
+    std::map<
+        std::string,
+        std::unique_ptr<std::mutex>
+    >                                       writer_mux_         ;
     const output::DataPaths&                data_paths          ;
     std::vector<std::string>                output_formats_     ;
 };

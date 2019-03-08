@@ -26,6 +26,7 @@
 #include <summit/utils.h>
 #include "output/single_img_proc_res.hpp"
 #include <Nucleona/parallel/asio_pool.hpp>
+#include "output/background_writer.hpp"
 
 namespace summit::app::grid{
 
@@ -268,21 +269,22 @@ struct ChipScan {
     }
     template<class Executor>
     void operator()( 
-        const boost::filesystem::path&   src_path       ,
-        const std::string&               arg_chip_type  ,
-        const std::vector<std::string>&  channel_names  ,
-        const std::vector<std::string>&  spectrum_names ,
-        float                            um2px_r        ,
-        const std::string&               output         ,
-        const output::FormatDecoder&     fmt_decoder    ,
-        const std::string&               task_id        ,
-        const std::string&               filter         ,
-        int                              debug          ,
-        bool                             no_bgp         ,
-        const output::DataPaths&         output_paths   ,
+        const boost::filesystem::path&   src_path           ,
+        const std::string&               arg_chip_type      ,
+        const std::vector<std::string>&  channel_names      ,
+        const std::vector<std::string>&  spectrum_names     ,
+        float                            um2px_r            ,
+        const std::string&               output             ,
+        const output::FormatDecoder&     fmt_decoder        ,
+        const std::string&               task_id            ,
+        const std::string&               filter             ,
+        int                              debug              ,
+        bool                             no_bgp             ,
+        const output::DataPaths&         output_paths       ,
         output::HeatmapWriter<
             Float, GridLineID
-        >&                               heatmap_writer ,
+        >&                               heatmap_writer     ,
+        output::BackgroundWriter&        background_writer  ,
         Executor&                        tp
     ) {
         std::cout << "chipscan images procss" << std::endl;
@@ -378,12 +380,13 @@ struct ChipScan {
                         Utils::write_gl(gl_file, grid_image);
 
                         // background
-                        std::ofstream bgv_file(
-                            output_paths.background(
-                                output, task_id, ch_name
-                            ).string()
-                        );
-                        Utils::write_background(bgv_file, sup_improc_data);
+                        background_writer.write(task_id, ch_name, output, sup_improc_data);
+                        // std::ofstream bgv_file(
+                        //     output_paths.background(
+                        //         output, task_id, ch_name
+                        //     ).string()
+                        // );
+                        // Utils::write_background(bgv_file, sup_improc_data);
 
                         // cfu array
                         if( fmt_decoder.enable_array() ) {
