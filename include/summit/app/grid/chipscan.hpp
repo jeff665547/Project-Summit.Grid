@@ -192,6 +192,8 @@ struct ChipScan {
                         }
                         algo.disable_um2px_r_auto_scale(cali_um2px_r_);
                     }
+                } else {
+                    algo.disable_um2px_r_auto_scale(cali_um2px_r_);
                 }
                 
                 if( 1 == debug ) {
