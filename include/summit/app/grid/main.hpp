@@ -32,6 +32,7 @@ struct Parameters
     std::string shared_dir;
     std::string secure_dir;
     int thread_num;
+    bool marker_append;
 };
 
 class OptionParser : public Parameters, public nucleona::app::cli::OptionParser
@@ -79,6 +80,7 @@ public:
             ("shared_dir,a"     ,       po::value<std::string>()->default_value(""),           "The share directory from reader IPC to image server")
             ("secure_dir,e"     ,       po::value<std::string>()->default_value(""),           "The private directory on image server")
             ("thread_num,n"     ,       po::value<int>()->default_value(1),                    "The thread number used in the image process")
+            ("marker_append"    ,       "Show marker append")
         ;
         po::store(po::parse_command_line(argc, argv, desc), vm);
         if(argc == 1 or vm.count("help"))
@@ -101,6 +103,7 @@ public:
         Base::get_parameter( "shared_dir"        , shared_dir        );
         Base::get_parameter( "secure_dir"        , secure_dir        );
         Base::get_parameter( "thread_num"        , thread_num        );
+        Base::get_parameter( "marker_append"     , marker_append     );
         auto input_path_  = boost::filesystem::absolute(input_path);
         auto output_      = boost::filesystem::absolute(output);
         input_path = input_path_.make_preferred().string();
@@ -175,7 +178,9 @@ class Main
                     fmt_decoder, tk.id(),
                     args_.filter, args_.debug,
                     args_.no_bgp,
-                    output_paths, heatmap_writer,
+                    output_paths, 
+                    args_.marker_append,
+                    heatmap_writer,
                     background_writer,
                     tp
                 );
