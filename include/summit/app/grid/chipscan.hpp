@@ -132,9 +132,13 @@ struct ChipScan {
             src_path, fov_rows, fov_cols, channel_name, is_img_enc, data_paths
         );
         // check RFID if the third code is XXX then do nothing.
-        auto rfid = Utils::extract_rfid_from_path(src_path);
-        if(rfid.region_code == "XXX") {
-            throw summit::exception::AnalysisSkip("The RFID region code is required to be ignored, " + rfid.region_code);
+        try {
+            auto rfid = Utils::extract_rfid_from_path(src_path);
+            if(rfid.region_code == "XXX") {
+                throw summit::exception::AnalysisSkip("The RFID region code is required to be ignored, " + rfid.region_code);
+            }
+        } catch (const summit::exception::RFIDParseFail& e) {
+            // just pass this error
         }
 
         auto um2px_r_itr = chip_log.find("um_to_px_coef");

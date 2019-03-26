@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <Nucleona/algo/split.hpp>
+#include <summit/exception/rfid_parse_fail.hpp>
 namespace summit::format {
 
 struct RFID {
@@ -16,7 +17,7 @@ struct RFID {
         auto region_id     = 2;
 
         if( (std::max({tray_type_id, serial_num_id, region_id}) + 1) > svec.size() ) {
-            throw std::runtime_error("rfid parse fail");
+            throw summit::exception::RFIDParseFail();
         } else {
             RFID res;
             res.tray_type   = svec.at(tray_type_id);
