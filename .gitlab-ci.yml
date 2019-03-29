@@ -7,7 +7,7 @@ Win_CI:
         - rmdir build /s /q
         - mkdir build
         - cd build
-        - cmake -G "MinGW Makefiles" ../ -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DBUILD_TESTS=ON -DINSTALL_DEPS=ON -DHUNTER_ROOT="D:\.hunter"
+        - cmake -G "MinGW Makefiles" ../ -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DBUILD_TESTS=ON -DINSTALL_DEPS=ON -DHUNTER_ROOT="C:\.hunter"
         - cmake --build . --target install
     only:
         - master
