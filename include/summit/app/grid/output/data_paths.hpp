@@ -37,6 +37,20 @@ struct DataPaths {
     bool secure_output_enabled() const {
         return enable_secure_output_;
     }
+    boost::filesystem::path marker_append(
+        const std::string& output,
+        const std::string& task_id,
+        int r, int c, const std::string& ch
+    ) const {
+        boost::filesystem::path odir(output);
+        auto res = check_path(odir / "marker_append" / (
+            task_id + "-" + 
+            std::to_string(r) + "-" + std::to_string(c) + "-" + ch +
+            ".tiff"
+        ));
+        std::cout << "marker append path: " << res << std::endl;
+        return res;
+    }
     boost::filesystem::path raw_img_dir() const {
         if(!enable_secure_output_) throw std::runtime_error("secure output not enable");
         check_path(secure_output_ / "tmp");

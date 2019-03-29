@@ -107,7 +107,10 @@ struct ChipScan {
         const nlohmann::json&               chip_spec,
         int                                 debug,
         bool                                no_bgp,
+        bool                                marker_append,
         const output::DataPaths&            data_paths,
+        const std::string&                  output_path,
+        const std::string&                  task_id,
         Executor&                           tp
     ) {
         auto timer = nucleona::proftool::make_timer(
@@ -129,9 +132,13 @@ struct ChipScan {
             src_path, fov_rows, fov_cols, channel_name, is_img_enc, data_paths
         );
         // check RFID if the third code is XXX then do nothing.
-        auto rfid = Utils::extract_rfid_from_path(src_path);
-        if(rfid.region_code == "XXX") {
-            throw summit::exception::AnalysisSkip("The RFID region code is required to be ignored, " + rfid.region_code);
+        try {
+            auto rfid = Utils::extract_rfid_from_path(src_path);
+            if(rfid.region_code == "XXX") {
+                throw summit::exception::AnalysisSkip("The RFID region code is required to be ignored, " + rfid.region_code);
+            }
+        } catch (const summit::exception::RFIDParseFail& e) {
+            // just pass this error
         }
 
         auto um2px_r_itr = chip_log.find("um_to_px_coef");
@@ -169,7 +176,8 @@ struct ChipScan {
         for(auto& [fov_id, mkly] : mk_layouts) {
             fov_procs.emplace_back(tp.submit([
                 fov_id, mkly, &chip_spec, um2px_r, &no_bgp, 
-                debug, &imgs, &channel_name, this, &tp
+                debug, &imgs, &channel_name, this, &tp,
+                &data_paths, &output_path, &task_id, &marker_append
             ](){
                 chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
                 algo.set_margin_method("auto_min_cv");
@@ -192,11 +200,13 @@ struct ChipScan {
                         }
                         algo.disable_um2px_r_auto_scale(cali_um2px_r_);
                     }
+                } else {
+                    algo.disable_um2px_r_auto_scale(cali_um2px_r_);
                 }
                 
+                std::string channel_name_str = channel_name.get<std::string>();
                 if( 1 == debug ) {
                     std::string fov_id_str = std::to_string(fov_id.x) + "-" + std::to_string(fov_id.y);
-                    std::string channel_name_str = channel_name.get<std::string>();
                     algo.set_rot_cali_viewer([fov_id_str, channel_name_str](const auto& img){
                         cv::imwrite("rot_cali_res" + fov_id_str + 
                             "-" + channel_name_str + ".tiff", img);
@@ -213,6 +223,23 @@ struct ChipScan {
                         cv::imwrite("marker_seg" + fov_id_str + 
                             "-" + channel_name_str + ".tiff", img);
                     });
+                }
+                if(marker_append) {
+                    algo.set_marker_seg_append_viewer(
+                        [
+                            fov_id, channel_name_str, &data_paths, 
+                            &output_path, &task_id
+                        ](const auto& img){
+                            cv::Mat tmp = (img * 8.192) + 8192;
+                            auto path = data_paths.marker_append(
+                                output_path, task_id, 
+                                fov_id.y, fov_id.x, 
+                                channel_name_str
+                            );
+                            cv::imwrite(path.string(), tmp);
+                        }
+                    );
+
                 }
                 auto& [img_path, img] = imgs[fov_id];
                 auto [qc, tiled_mat, stat_mats, theta, bg_value]
@@ -281,6 +308,7 @@ struct ChipScan {
         int                              debug              ,
         bool                             no_bgp             ,
         const output::DataPaths&         output_paths       ,
+        bool                             marker_append      ,
         output::HeatmapWriter<
             Float, GridLineID
         >&                               heatmap_writer     ,
@@ -337,8 +365,9 @@ struct ChipScan {
                             chip_log, src_path, ch,
                             um2px_r, log_chip_type,
                             cell_fov, chip_spec,
-                            debug, no_bgp, output_paths,
-                            tp
+                            debug, no_bgp, marker_append, 
+                            output_paths, output,
+                            task_id, tp
                         );
 
                         // sperate image output
