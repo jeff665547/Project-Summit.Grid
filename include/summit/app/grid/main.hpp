@@ -211,31 +211,37 @@ class Main
                 void
             >
         > task_procs;
-        for ( auto&& tk : get_tasks() ) {
-            task_procs.emplace_back(tp.submit([
-                this, tk, &output_paths, 
-                &format_decoder, 
-                &heatmap_writer,
-                &background_writer,
-                &tp
-            ](){
-                try{
-                    task_proc(
-                        tk, output_paths, 
-                        format_decoder, 
-                        heatmap_writer,
-                        background_writer,
-                        tp
-                    );
-                } catch ( const std::exception& e ) {
-                    std::cerr << "error when process task: " << tk.path << std::endl;
-                    std::cerr << e.what() << std::endl;
-                    std::cout << tk.path << "skip" << std::endl;
-                }
-            }));
-        }
-        for(auto&& task_p : task_procs) {
-            task_p.sync();
+        auto tasks = get_tasks();
+        for ( auto&& tk_ch : 
+            tasks | ranges::view::chunk(args_.thread_num) 
+        ) {
+            for(auto&& tk : tk_ch) {
+                task_procs.emplace_back(tp.submit([
+                    this, tk, &output_paths, 
+                    &format_decoder, 
+                    &heatmap_writer,
+                    &background_writer,
+                    &tp
+                ](){
+                    try{
+                        task_proc(
+                            tk, output_paths, 
+                            format_decoder, 
+                            heatmap_writer,
+                            background_writer,
+                            tp
+                        );
+                    } catch ( const std::exception& e ) {
+                        std::cerr << "error when process task: " << tk.path << std::endl;
+                        std::cerr << e.what() << std::endl;
+                        std::cout << tk.path << "skip" << std::endl;
+                    }
+                }));
+            }
+            for(auto&& task_p : task_procs) {
+                task_p.sync();
+            }
+            task_procs.clear();
         }
         return 0;
     }
