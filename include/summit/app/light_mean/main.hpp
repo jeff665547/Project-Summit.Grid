@@ -4,6 +4,8 @@
 #include <boost/filesystem.hpp>
 #include "core.hpp"
 #include "heatmap_parser.hpp"
+#include <Nucleona/range.hpp>
+#include <Nucleona/algo/segment.hpp>
 namespace summit::app::light_mean {
 struct Parameter {
     std::string input;
@@ -52,6 +54,25 @@ struct Main {
     Main(OptionParser&& args)
     : args_(std::move(args))
     {}
+    auto row_3_idx(int row_num) {
+        std::cout << VDUMP(row_num) << std::endl;
+        std::vector<std::size_t> res;
+        res.push_back(0);
+        res.push_back(row_num / 2);
+        res.push_back(row_num - 1);
+        return res;
+    }
+    auto extract_row(
+        const std::vector<cv::Mat_<float>>& markers,
+        int row,
+        int col_num
+    ) {
+        std::vector<cv::Mat_<float>> res;
+        for(int i = 0; i < col_num; i ++ ) {
+            res.push_back(markers.at(col_num * row + i));
+        }
+        return res;
+    }
     void count_and_write(
         std::ostream& out, 
         const std::vector<HeatmapEntry>& buffer
@@ -73,11 +94,21 @@ struct Main {
         for(auto&& entry : buffer) {
             auto& mk = markers.at(mk_idx_col * entry.mk_y + entry.mk_x);
             mk(entry.mk_sub_y, entry.mk_sub_x) = entry.mean;
-            // std::cout << '(' << entry.mk_sub_x 
-            //     << ',' << entry.mk_sub_y << ')' << std::endl;
         }
         auto res = core(markers, args_.chip_spec, args_.marker_type);
         out << detector.task_id << '\t' << res.mean << '\t' << res.cv << '\n';
+        
+        // show upper, mid, and button row
+        auto row_3 = row_3_idx(mk_idx_row);
+        for(auto&& [i, ridx] : nucleona::range::indexed(row_3, 0)) {
+            auto curr_row = extract_row(markers, ridx, mk_idx_col);
+            auto curr_row_res = core(curr_row, args_.chip_spec, args_.marker_type);
+            out << detector.task_id << "-row" << i << '\t'
+                << curr_row_res.mean << '\t'
+                << curr_row_res.cv << '\n'
+            ;
+        }
+
     }
     void consume_header(std::istream& is) {
         std::string header;
