@@ -99,7 +99,7 @@ struct Single {
         auto& raw_img = raw_grid_img.mat();
         cv::imwrite(
             output_paths.single_image(output, task_id, "norm").string(),
-            chipimgproc::viewable(raw_img, 0.02, 0.02)
+            chipimgproc::viewable(raw_img)
         );
         
         // heatmap

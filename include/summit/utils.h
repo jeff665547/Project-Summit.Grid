@@ -18,6 +18,6 @@ std::vector<T> to_vector( const nlohmann::json& j ) {
     }
     return res;
 }
-cv::Mat better_viewable16(const cv::Mat& mat);
+// cv::Mat better_viewable16(const cv::Mat& mat);
 
 }

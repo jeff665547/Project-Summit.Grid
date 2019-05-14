@@ -380,7 +380,7 @@ struct ChipScan {
                                 std::cout << "FOV output: " << fov_path << std::endl;
                                 cv::imwrite(
                                     fov_path.string(), 
-                                    summit::better_viewable16(raw_img)
+                                    chipimgproc::viewable(raw_img)
                                 );
                             }
                         }
@@ -400,7 +400,7 @@ struct ChipScan {
 
                         // stitch image 
                         auto grid_image = image_stitcher_( multi_tiled_mat );
-                        auto viewable_stitch_image = chipimgproc::viewable( grid_image.mat(), 0.02, 0.02 );
+                        auto viewable_stitch_image = chipimgproc::viewable( grid_image.mat() );
                         auto stitch_image_path = output_paths.stitch_image(output, task_id, "norm", ch_name);
                         cv::imwrite(stitch_image_path.string(), viewable_stitch_image);
 

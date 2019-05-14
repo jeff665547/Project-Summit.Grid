@@ -78,7 +78,7 @@ private:
                 x += img.mat().cols;
             }
         }
-        all = chipimgproc::viewable(all, 0.02, 0.02);
+        // all = chipimgproc::viewable(all);
 
         // i = 0;
         // for(int j = 0; j < w; j += im_c ) {
