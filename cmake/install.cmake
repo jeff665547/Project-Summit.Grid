@@ -51,6 +51,12 @@ install(
     DESTINATION . 
     COMPONENT Runtime
 )
+install(
+    FILES
+        ChangeLog.md
+    DESTINATION . 
+    COMPONENT Runtime
+)
 if(INSTALL_DEPS)
     configure_file(cmake/bundle.cmake.in ${CMAKE_BINARY_DIR}/bundle.cmake @ONLY)
     install(
