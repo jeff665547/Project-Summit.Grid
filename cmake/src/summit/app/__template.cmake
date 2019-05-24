@@ -15,6 +15,7 @@ target_link_libraries(${__screw_target}
     summit-config-path
     summit-config-cell_fov
     summit-config-chip
+    summit-config-aruco_db
     ChipImgProc::ChipImgProc-stitch
     summit-format
     SummitCrypto::summit-crypto-scan_image

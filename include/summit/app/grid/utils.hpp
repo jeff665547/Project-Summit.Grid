@@ -15,6 +15,7 @@
 #include <summit/app/grid/output/data_paths.hpp>
 #include <summit/format/rfid.hpp>
 #include <summit/app/grid/output/sup_improc_data.hpp>
+#include <optional>
 
 namespace summit::app::grid{
 struct Utils{
@@ -251,26 +252,27 @@ struct Utils{
         }
         return res;
     }
-    static std::map<
-        cv::Point, // fov id 
-        chipimgproc::marker::Layout, // marker layout
-        chipimgproc::PointLess
-    > generate_sgl_pat_reg_mat_marker_layout(
-        float um2px_r,
+    template<class T>
+    using FOVMap = std::map<
+        cv::Point, T, chipimgproc::PointLess 
+    >;
+    using FOVMarkerNum = FOVMap<cv::Point>;
+    static FOVMarkerNum generate_fov_marker_num(
         const nlohmann::json& chip_spec,
-        const nlohmann::json& cell_fov,
-        const nlohmann::json& channel,
-        const std::optional<int>& fov_ec_id = std::nullopt
-
+        const nlohmann::json& cell_fov
     ) {
-
+        FOVMarkerNum marker_num;
         auto& shooting_marker   = chip_spec["shooting_marker"];
         auto& position_cl       = shooting_marker["position_cl"];
-        auto& position          = shooting_marker["position"];
         auto& fov_cl            = cell_fov["fov"];
 
-        auto fov_rows = fov_cl["rows"].get<int>();
-        auto fov_cols = fov_cl["cols"].get<int>();
+        auto fov_rows   = fov_cl["rows"].get<int>();
+        auto fov_cols   = fov_cl["cols"].get<int>();
+
+        auto fov_cl_w_d = fov_cl["w_d"].get<int>();
+        auto fov_cl_h_d = fov_cl["h_d"].get<int>();
+        auto fov_cl_w   = fov_cl[ "w" ].get<int>();
+        auto fov_cl_h   = fov_cl[ "h" ].get<int>();
 
         auto x_i = position_cl["x_i"].get<int>();
         auto y_i = position_cl["y_i"].get<int>();
@@ -280,23 +282,6 @@ struct Utils{
         auto h_d = position_cl["h_d"].get<int>();
         auto  w  = position_cl[ "w" ].get<int>();
         auto  h  = position_cl[ "h" ].get<int>();
-
-        auto fov_cl_w_d = fov_cl["w_d"].get<int>();
-        auto fov_cl_h_d = fov_cl["h_d"].get<int>();
-        auto fov_cl_w   = fov_cl[ "w" ].get<int>();
-        auto fov_cl_h   = fov_cl[ "h" ].get<int>();
-
-        auto w_dpx = position["w_d"].get<int>() * um2px_r;
-        auto h_dpx = position["h_d"].get<int>() * um2px_r;
-
-
-        auto [pats_cl, pats_px, pats_cl_mask, pats_px_mask]= get_single_marker_pattern(
-            um2px_r, shooting_marker, 
-            chip_spec["cell_w_um"].get<float>(),
-            chip_spec["cell_h_um"].get<float>(),
-            chip_spec["space_um"].get<float>(),
-            channel
-        ); 
 
         std::vector<EndP> points;
         for( int i = 0; i < fov_cols; i ++ ) {
@@ -318,12 +303,6 @@ struct Utils{
         }
         std::sort( points.begin(), points.end() );
         auto fov_mk_overlap_h = fov_mk_overlap_detect(points);
-
-        std::map<
-            cv::Point, // fov id
-            cv::Point, // marker number
-            chipimgproc::PointLess
-        > marker_num;
         int fov_h_id = 0;
         for(auto&& h_fov : fov_mk_overlap_h ) {
             int fov_w_id = 0;
@@ -333,6 +312,35 @@ struct Utils{
             }
             fov_h_id ++;
         }
+        return marker_num;
+    }
+    using FOVMarkerLayouts = FOVMap<chipimgproc::marker::Layout>;
+    static FOVMarkerLayouts generate_sgl_pat_reg_mat_marker_layout(
+        float um2px_r,
+        const nlohmann::json& chip_spec,
+        const nlohmann::json& cell_fov,
+        const nlohmann::json& channel,
+        const std::optional<int>& fov_ec_id = std::nullopt
+    ) {
+        auto& shooting_marker = chip_spec["shooting_marker"];
+        auto& position_cl     = shooting_marker["position_cl"];
+        auto& position        = shooting_marker["position"];
+        auto x_i              = position_cl["x_i"].get<int>();
+        auto y_i              = position_cl["y_i"].get<int>();
+        auto w_d              = position_cl["w_d"].get<int>();
+        auto h_d              = position_cl["h_d"].get<int>();
+        auto w_dpx            = position["w_d"].get<int>() * um2px_r;
+        auto h_dpx            = position["h_d"].get<int>() * um2px_r;
+        auto [pats_cl, pats_px, pats_cl_mask, pats_px_mask]= get_single_marker_pattern(
+            um2px_r, shooting_marker, 
+            chip_spec["cell_w_um"].get<float>(),
+            chip_spec["cell_h_um"].get<float>(),
+            chip_spec["space_um"].get<float>(),
+            channel
+        ); 
+        auto marker_num = generate_fov_marker_num(
+            chip_spec, cell_fov
+        );
 
         std::map<
             cv::Point, // fov id 
@@ -460,6 +468,53 @@ struct Utils{
             return chipimgproc::imread(fname);
         }
     }
+    template<class Channels>
+    static std::string search_white_channel(const Channels& channels) {
+        std::string res = "";
+        for(auto& ch : channels) {
+            if(ch["filter"].template get<int>() == 0) {
+                return ch["name"];
+            }
+        }
+
+    }
+    template<class Channels>
+    static std::optional<
+        std::map<cv::Point, cv::Mat_<std::uint8_t>,
+            chipimgproc::PointLess
+        >
+    > read_white_channel(
+        const Channels&                 channels,
+        const boost::filesystem::path&  src_path,
+        int                             rows, 
+        int                             cols,
+        bool                            img_enc,
+        const output::DataPaths&        data_paths
+    ) {
+        auto white_ch_name = search_white_channel(channels);
+        if(white_ch_name.empty()) return std::nullopt;
+        std::map<cv::Point, cv::Mat_<std::uint8_t>,
+            chipimgproc::PointLess
+        > res;
+        for ( int r = 0; r < rows; r ++ ) {
+            for ( int c = 0; c < cols; c ++ ) {
+                std::stringstream ss;
+                ss  << std::to_string(r) << '-' 
+                    << std::to_string(c) << '-'
+                    << white_ch_name
+                ;
+                auto img_path = src_path / ss.str();
+                std::cout << "read white channel image: " << img_path << std::endl;
+                cv::Mat_<std::uint16_t> img = Utils::imread(
+                    img_path.string(), img_enc, data_paths
+                );
+                chipimgproc::info(std::cout, img);
+                res[cv::Point(c, r)] = img;
+            }
+        }
+        return res;
+    }
+    
 };
 
 

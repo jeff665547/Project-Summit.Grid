@@ -35,6 +35,7 @@ install(
     FILES 
         lib/Summit.Spec/chip.json
         lib/Summit.Spec/cell_fov.json
+        lib/Summit.Spec/aruco_db.json
     DESTINATION etc/private
     COMPONENT Runtime
 )
