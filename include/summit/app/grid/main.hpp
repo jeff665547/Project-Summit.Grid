@@ -206,42 +206,21 @@ class Main
         );
         output::BackgroundWriter background_writer(output_paths);
         auto tp(nucleona::parallel::make_asio_pool(args_.thread_num - 1));
-        std::vector<
-            nucleona::parallel::asio_pool::Future<
-                void
-            >
-        > task_procs;
         auto tasks = get_tasks();
-        for ( auto&& tk_ch : 
-            tasks | ranges::view::chunk(args_.thread_num) 
-        ) {
-            for(auto&& tk : tk_ch) {
-                task_procs.emplace_back(tp.submit([
-                    this, tk, &output_paths, 
-                    &format_decoder, 
-                    &heatmap_writer,
-                    &background_writer,
-                    &tp
-                ](){
-                    try{
-                        task_proc(
-                            tk, output_paths, 
-                            format_decoder, 
-                            heatmap_writer,
-                            background_writer,
-                            tp
-                        );
-                    } catch ( const std::exception& e ) {
-                        std::cerr << "error when process task: " << tk.path << std::endl;
-                        std::cerr << e.what() << std::endl;
-                        std::cout << tk.path << "skip" << std::endl;
-                    }
-                }));
+        for(auto&& tk : tasks) {
+            try{
+                task_proc(
+                    tk, output_paths, 
+                    format_decoder, 
+                    heatmap_writer,
+                    background_writer,
+                    tp
+                );
+            } catch ( const std::exception& e ) {
+                std::cerr << "error when process task: " << tk.path << std::endl;
+                std::cerr << e.what() << std::endl;
+                std::cout << tk.path << "skip" << std::endl;
             }
-            for(auto&& task_p : task_procs) {
-                task_p.sync();
-            }
-            task_procs.clear();
         }
         return 0;
     }

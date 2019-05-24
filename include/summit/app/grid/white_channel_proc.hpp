@@ -79,7 +79,6 @@ constexpr struct WhiteChannelProc {
                     << fov_id << "]: " << theta << std::endl;
                 cv::Mat mat_loc = mat.clone();
                 rotate_calibrator(mat_loc, theta);
-                cv::imwrite("tmp.tiff", mat_loc);
                 auto mk_regs = marker_detector(mat_loc, 0, 0, std::cout);
                 // * detect um2px_r
                 auto um2px_r = reg_mat_um2px_r_det(
