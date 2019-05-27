@@ -19,6 +19,36 @@ constexpr struct WhiteChannelProc {
         }
         return sum / ranges::distance(rng);
     }
+    void std_reg_mat(
+        std::vector<chipimgproc::marker::detection::MKRegion>& mks
+    ) const {
+        namespace cmkdet = chipimgproc::marker::detection;
+        cmkdet::MKRegion::Group<cmkdet::MKRegion*> x_group;
+        cmkdet::MKRegion::Group<cmkdet::MKRegion*> y_group;
+        for(auto&& r : mks ) {
+            x_group[r.x_i].push_back(&r);
+        }
+        for(auto&& r : mks ) {
+            y_group[r.y_i].push_back(&r);
+        }
+        
+        for(auto&& [dir_id, dir_vec] : x_group ) {
+            auto x_mean = mean(dir_vec | nucleona::range::transformed([](auto&& mk_r){
+                return mk_r->x;
+            }));
+            for(auto&& mk_r : dir_vec) {
+                mk_r->x = x_mean;
+            }
+        }
+        for(auto&& [dir_id, dir_vec] : y_group ) {
+            auto y_mean = mean(dir_vec | nucleona::range::transformed([](auto&& mk_r){
+                return mk_r->y;
+            }));
+            for(auto&& mk_r : dir_vec) {
+                mk_r->y = y_mean;
+            }
+        }
+    }
     template<class Exetor, class Mats>
     void core(
         Exetor&                 exe_tor,
@@ -61,7 +91,7 @@ constexpr struct WhiteChannelProc {
         float mk_hd_um = mk_pos["h_d"];
         std::vector<float> rot_degs(mats.size());
         std::vector<float> um2px_rs(mats.size());
-        Utils::FOVMap<std::vector<cmk_det::MKRegion>> fov_marker_regs;
+        Utils::FOVMarkerRegionMap fov_marker_regs;
         for(auto&& [fov_id, mat] : mats) {
             fov_marker_regs[fov_id] = {};
         }
@@ -90,6 +120,7 @@ constexpr struct WhiteChannelProc {
                 std::cout << "white channel detect um2px rate [" 
                     << fov_id << "]: " << um2px_r << std::endl;
 
+                std_reg_mat(mk_regs);
                 fov_marker_regs[fov_id] = std::move(mk_regs);
                 rot_degs[i] = theta;
                 um2px_rs[i] = um2px_r;
@@ -103,7 +134,7 @@ constexpr struct WhiteChannelProc {
         auto um2px_r = mean(um2px_rs);
         chip_props.set_rot_est_result(rot_deg);
         chip_props.set_um2px_r(um2px_r);
-        // TODO: marker position hint
+        chip_props.set_fov_mk_regs(std::move(fov_marker_regs));
     }
 
     template<class Exetor, class Mats>

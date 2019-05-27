@@ -6,6 +6,7 @@
 #include <summit/config/cell_fov.hpp>
 #include <summit/config/chip.hpp>
 #include "output/format_decoder.hpp"
+#include "utils.hpp"
 namespace summit::app::grid {
 
 struct ChipProps {
@@ -34,12 +35,18 @@ struct ChipProps {
     bool                    rot_est_done()      const   { return (bool)rot_degree_; }
     bool                    um2px_r_done()      const   { return um2px_r_ > 0;      }
     const auto&             rot_degree()        const   { return rot_degree_;       }
+    const auto&             fov_mk_regs()       const   { return fov_mk_regs_;      }
 
     void set_rot_est_result( float degree ) {
         rot_degree_ = degree;
     }
     void set_um2px_r(float um2px_r) {
         um2px_r_ = um2px_r;
+    }
+    void set_fov_mk_regs(
+        Utils::FOVMarkerRegionMap&& _fov_mk_regs
+    ) {
+        fov_mk_regs_ = std::move(_fov_mk_regs);
     }
 private:
     static bool is_image_encrypted(
@@ -60,6 +67,7 @@ private:
     int                                                 fov_rows_                   ;
     std::optional<float>                                rot_degree_                 ;
     float                                               um2px_r_           { -1  }  ;
+    Utils::FOVMarkerRegionMap                           fov_mk_regs_                ;
 };
 
 }

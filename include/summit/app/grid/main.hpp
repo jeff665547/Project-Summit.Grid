@@ -13,6 +13,7 @@
 #include <summit/app/grid/reg_mat_mk_index.hpp>
 #include <summit/app/grid/output/format_decoder.hpp>
 #include <Nucleona/proftool/timer.hpp>
+#include <summit/grid/version.hpp>
 
 namespace summit::app::grid{
 
@@ -42,7 +43,7 @@ public:
     OptionParser(int argc, char* argv[])
     {
         namespace po = boost::program_options;
-        po::options_description desc("Summit marker probe QA, allowed options");
+        po::options_description desc("Summit image gridding tool, version: " + summit::grid::Version::self_str() + ", allowed options");
         desc.add_options()
             ("help,h"           ,       "show help message")
             ("input_path,i"     ,       po::value<std::string>()->required(),                  "The input path, can be directory or file."
@@ -81,11 +82,16 @@ public:
             ("secure_dir,e"     ,       po::value<std::string>()->default_value(""),           "The private directory on image server")
             ("thread_num,n"     ,       po::value<int>()->default_value(1),                    "The thread number used in the image process")
             ("marker_append"    ,       "Show marker append")
+            ("version,v"        ,       "Show version info")
         ;
         po::store(po::parse_command_line(argc, argv, desc), vm);
-        if(argc == 1 or vm.count("help"))
+        if(argc == 1 || vm.count("help"))
         {
             std::cout << desc << std::endl;
+            std::exit(1);
+        }
+        if(vm.count("version")) {
+            std::cout << summit::grid::Version::self_str() << std::endl;
             std::exit(1);
         }
         po::notify(vm);

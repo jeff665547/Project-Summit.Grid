@@ -103,6 +103,7 @@ struct ChipScan {
         const std::string&                  output_path,
         const std::string&                  task_id,
         const std::optional<float>&         rot_degree,
+        const Utils::FOVMarkerRegionMap&    fov_mk_regs,
         Executor&                           tp
     ) {
         auto timer = nucleona::proftool::make_timer(
@@ -170,7 +171,7 @@ struct ChipScan {
                 fov_id, mkly, &chip_spec, um2px_r, &no_bgp, 
                 debug, &imgs, &channel_name, this, &tp,
                 &data_paths, &output_path, &task_id, &marker_append,
-                &rot_degree
+                &rot_degree, &fov_mk_regs
             ](){
                 chipimgproc::comb::SingleGeneral<Float, GridLineID> algo;
                 algo.set_margin_method("auto_min_cv");
@@ -183,6 +184,9 @@ struct ChipScan {
                     chip_spec["space_um"].get<float>()
                 );
                 algo.set_ref_rot_degree(rot_degree);
+                if(!fov_mk_regs.empty()) {
+                    algo.set_mk_regs_hint(fov_mk_regs.at(fov_id));
+                }
                 bool own_cali_um2px_r_mux = false;
                 if(cali_um2px_r_ < 0) {
                     if(cali_um2px_r_mux_.try_lock()) {
@@ -376,6 +380,7 @@ struct ChipScan {
                         debug, no_bgp, marker_append, 
                         output_paths, output,
                         task_id, chip_props.rot_degree(), 
+                        chip_props.fov_mk_regs(),
                         tp
                     );
 

@@ -514,6 +514,11 @@ struct Utils{
         }
         return res;
     }
+    using FOVMarkerRegionMap = FOVMap<
+        std::vector<
+            chipimgproc::marker::detection::MKRegion
+        >
+    >;
     
 };
 
