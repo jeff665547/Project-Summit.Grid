@@ -1,6 +1,6 @@
 # ChangeLog
 
-## 0.9.1 - 2019.5.27
+## 0.9.2 - 2019.5.27
 - ArUco support grdding algorithm: grid location
 
 ## 0.9.0 - 2019.5.27
