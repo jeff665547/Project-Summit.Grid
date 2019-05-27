@@ -6,43 +6,43 @@ namespace summit::grid {
 
 struct Version {
 private:
-    static auto parse_micro_and_tag( const std::string& str) {
-        auto mic_tag = nucleona::algo::split(str, "-");
-        auto micro = std::stoi(mic_tag.at(0));
-        std::string tag;
-        if(mic_tag.size() > 1) {
-            tag = mic_tag.at(1);
+    static auto parse_micro_code_and_ext_tag( const std::string& str) {
+        auto mic_ext_tag = nucleona::algo::split(str, "-");
+        auto micro_code = std::stoi(mic_ext_tag.at(0));
+        std::string ext_tag;
+        if(mic_ext_tag.size() > 1) {
+            ext_tag = mic_ext_tag.at(1);
         }
-        return std::make_tuple(micro, tag);
+        return std::make_tuple(micro_code, ext_tag);
     }
 public:
     Version() = default;
-    Version(int _major, int _minor, const std::string& _micro_tag )
-    : major(_major)
-    , minor(_minor)
+    Version(int _major_code, int _minor_code, const std::string& _micro_code_ext_tag )
+    : major_code(_major_code)
+    , minor_code(_minor_code)
     {
-        std::tie(micro, tag) = parse_micro_and_tag(_micro_tag);
+        std::tie(micro_code, ext_tag) = parse_micro_code_and_ext_tag(_micro_code_ext_tag);
     }
     bool operator<=( const Version& v) const {
-        if( major == v.major ) {
-            if(minor == v.minor) {
-                if( micro == v.micro ) {
+        if( major_code == v.major_code ) {
+            if(minor_code == v.minor_code) {
+                if( micro_code == v.micro_code ) {
                     return true;
-                } else return micro < v.micro;
-            } else return minor < v.minor;
-        } else return major < v.major;
+                } else return micro_code < v.micro_code;
+            } else return minor_code < v.minor_code;
+        } else return major_code < v.major_code;
     }
     bool operator>( const Version& v) const {
         return !(operator<=(v));
     }
     std::string to_string() const {
         auto res = 
-            std::to_string(major) + "." 
-            + std::to_string(minor) + "."
-            + std::to_string(micro)
+            std::to_string(major_code) + "." 
+            + std::to_string(minor_code) + "."
+            + std::to_string(micro_code)
         ;
-        if(!tag.empty()) {
-            res += ("-" + tag);
+        if(!ext_tag.empty()) {
+            res += ("-" + ext_tag);
         }
         return res;
     }
@@ -50,12 +50,12 @@ public:
         Version vsn;
         auto version_str_vec = nucleona::algo::split(str, ".");
 
-        vsn.major = std::stoi(version_str_vec.at(0));
-        vsn.minor = std::stoi(version_str_vec.at(1));
+        vsn.major_code = std::stoi(version_str_vec.at(0));
+        vsn.minor_code = std::stoi(version_str_vec.at(1));
         std::tie(
-            vsn.micro, 
-            vsn.tag
-        ) = parse_micro_and_tag(version_str_vec.at(2));
+            vsn.micro_code, 
+            vsn.ext_tag
+        ) = parse_micro_code_and_ext_tag(version_str_vec.at(2));
         return vsn;
     }
     static Version self() {
@@ -68,10 +68,10 @@ public:
     static std::string self_str() {
         return UNWRAP_SYM_STR(SummitGrid_VERSION);
     }
-    int major;
-    int minor;
-    int micro;
-    std::string tag;
+    int major_code;
+    int minor_code;
+    int micro_code;
+    std::string ext_tag;
 };
 
 
