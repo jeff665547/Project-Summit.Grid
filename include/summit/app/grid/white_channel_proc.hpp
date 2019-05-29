@@ -105,8 +105,8 @@ constexpr struct WhiteChannelProc {
                 auto& fov_id = *p_fov_id;
                 // * count theta
                 auto theta   = iter_rot_cali(mat, std::cout);
-                std::cout << "white channel detect theta [" 
-                    << fov_id << "]: " << theta << std::endl;
+                std::cout << "white channel detect theta " 
+                    << fov_id << ": " << theta << std::endl;
                 cv::Mat mat_loc = mat.clone();
                 rotate_calibrator(mat_loc, theta);
                 auto mk_regs = marker_detector(mat_loc, 0, 0, std::cout);
@@ -117,8 +117,8 @@ constexpr struct WhiteChannelProc {
                     mk_hd_um,
                     std::cout 
                 );
-                std::cout << "white channel detect um2px rate [" 
-                    << fov_id << "]: " << um2px_r << std::endl;
+                std::cout << "white channel detect um2px rate " 
+                    << fov_id << ": " << um2px_r << std::endl;
 
                 std_reg_mat(mk_regs);
                 fov_marker_regs[fov_id] = std::move(mk_regs);
