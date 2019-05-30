@@ -136,10 +136,13 @@ constexpr struct WhiteChannelProc {
                 }
             }));
         }
+        bool is_all_task_good = true;
         for(auto& f : futs) {
-            if(!f.sync()) 
-                throw std::runtime_error("white channel process failed, probably bad aruco detection");
+            bool flag = f.sync();
+            is_all_task_good &= flag;
         }
+        if(!is_all_task_good) 
+            throw std::runtime_error("white channel process failed, probably bad aruco detection");
         // * consensus
         auto rot_deg = mean(rot_degs);
         auto um2px_r = mean(um2px_rs);
