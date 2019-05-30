@@ -18,7 +18,7 @@
         output.cen
 
 normal_mode:
-<output>-<ch>.<ofm>
+<output>-<ch>-<postfix>
 <output>/<task_id>/channels/<ch>/viewable_<tag>/<r>-<c>.png (chipscan task)
 <output>/<task_id>/channels/<ch>/viewable_<tag>/stitch.png  (chipscan task)
 <output>/<task_id>/viewable_<tag>.png                       (single image task)
@@ -30,7 +30,7 @@ normal_mode:
 <output>/marker_append/<task_id>-<r>-<c>-<ch>.png
 
 inpace_mode: { output == task_path || output == secure_output_ } 
-<output>/grid/channels/<ch>/heatmap.<ofm>
+<output>/grid/channels/<ch>/heatmap-<postfix>
 <output>/grid/channels/<ch>/viewable_<tag>/<r>-<c>.png  (chipscan task)
 <output>/grid/channels/<ch>/viewable_<tag>/stitch.png   (chipscan task)
 <output>/grid/channels/<ch>/gridline.csv
@@ -40,3 +40,11 @@ inpace_mode: { output == task_path || output == secure_output_ }
 <secure_output>/<raw_imgs...>.tiff
 <input>/grid/COMPLETE
 <output>/marker_append/<task_id>-<r>-<c>-<ch>.png
+
+
+
+* surrender TIRC mode 
+* json cache
+* explicit output mode specify
+* quality control, process log
+* white channel marker append

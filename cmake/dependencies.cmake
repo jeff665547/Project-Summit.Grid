@@ -33,4 +33,11 @@ include(${SCREW_DIR}/hunter_root.cmake)
 hunter_add_package(SummitCrypto)
 find_package(SummitCrypto CONFIG REQUIRED)
 
+# spdlog
+hunter_add_package(spdlog)
+find_package(spdlog)
+
+# fmt
+hunter_add_package(fmt)
+find_package(fmt)
 
