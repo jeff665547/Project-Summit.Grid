@@ -11,11 +11,6 @@
 #include <Nucleona/proftool/timer.hpp>
 #include <summit/grid/version.hpp>
 #include "model.hpp"
-#include "heatmap_writer.hpp"
-// #include <summit/app/grid/single.hpp>
-// #include <summit/app/grid/chipscan.hpp>
-// #include <summit/app/grid/reg_mat_mk_index.hpp>
-// #include <summit/app/grid/output/format_decoder.hpp>
 
 namespace summit::app::grid2{
 
@@ -110,13 +105,10 @@ public:
     }
 };
 
-// template<class OPTION_PARSER>
+template<class OPTION_PARSER>
 class Main
 {
-    using OPTION_PARSER = OptionParser;
-
-    using Float = float;
-    using GridLineID = std::uint16_t;
+    // using OPTION_PARSER = OptionParser;
 
 
     OPTION_PARSER args_;
@@ -185,30 +177,24 @@ class Main
             args_.output, args_.input_path,
             args_.shared_dir, args_.secure_dir
         );
-        output::FormatDecoder format_decoder(
-            args_.output_formats
-        );
-        output::HeatmapWriter<Float, GridLineID> heatmap_writer(
-            output_paths, format_decoder.enabled_heatmap_fmts()
-        );
-        output::BackgroundWriter background_writer(output_paths);
-        auto tp(nucleona::parallel::make_asio_pool(args_.thread_num - 1));
-        auto tasks = get_tasks();
-        for(auto&& tk : tasks) {
-            try{
-                task_proc(
-                    tk, output_paths, 
-                    format_decoder, 
-                    heatmap_writer,
-                    background_writer,
-                    tp
-                );
-            } catch ( const std::exception& e ) {
-                std::cerr << "error when process task: " << tk.path << std::endl;
-                std::cerr << e.what() << std::endl;
-                std::cout << tk.path << "skip" << std::endl;
-            }
-        }
+        model.set_formats(args_.output_formats);
+        model.set_executor(args_.thread_num - 1);
+        // auto tasks = get_tasks();
+        // for(auto&& tk : tasks) {
+        //     try{
+        //         task_proc(
+        //             tk, output_paths, 
+        //             format_decoder, 
+        //             heatmap_writer,
+        //             background_writer,
+        //             tp
+        //         );
+        //     } catch ( const std::exception& e ) {
+        //         std::cerr << "error when process task: " << tk.path << std::endl;
+        //         std::cerr << e.what() << std::endl;
+        //         std::cout << tk.path << "skip" << std::endl;
+        //     }
+        // }
         return 0;
     }
 };

@@ -4,7 +4,7 @@
 #include <ChipImgProc/utils.h>
 #include <Nucleona/tuple.hpp>
 #include <iostream>
-namespace summit::app::grid {
+namespace summit::grid {
 
 struct RegMatMkIndex {
     RegMatMkIndex(const std::vector<cv::Rect>& mks) // column major

@@ -1,38 +1,50 @@
 #pragma once
-#include <summit/grid/filter.hpp>
 #include <summit/grid/reg_mat_mk_index.hpp>
 #include "heatmap_writer/cell_info.hpp"
 #include "heatmap_writer/html_table_writer.hpp"
 #include "heatmap_writer/tsv_writer.hpp"
 #include "heatmap_writer/cell_info_writer.hpp"
+#include "output_format.hpp"
+#include "paths.hpp"
+#include "filter.hpp"
 #include <ChipImgProc/multi_tiled_mat.hpp>
 #include <fstream>
 #include <map>
 #include <string>
 #include <memory>
+#include <Nucleona/range.hpp>
 namespace summit::app::grid2 {
 
 // using Float = float;
 // using GLID = int;
 template<class Float, class GLID>
 struct HeatmapWriter {
-    using CellInfoWriterType = CellInfoWriter<Float, GLID>;
+    using CellInfoWriterType = heatmap_writer::CellInfoWriter<Float, GLID>;
     HeatmapWriter(
-        const output::DataPaths&              dp, 
+        const Paths&                          dp, 
         const std::vector<std::string>&       ofs
     )
     : data_paths(dp)
-    , output_formats_(ofs)
+    , output_formats_(ranges::view::transform(ofs, [](auto&& str){
+        return OutputFormat::from_string(str);
+    }))
     {}
 private:
-    auto create_output_writer(const std::string& format, std::ostream& out) {
+    auto create_output_writer(const OutputFormat::Labels& format, std::ostream& out) {
         std::unique_ptr<CellInfoWriterType> res(nullptr);
-        if( format == "tsv" ) {
-            res.reset(new output::TsvWriter<Float, GLID>(out, "\t"));
-        } else if ( format == "csv" ) {
-            res.reset(new output::TsvWriter<Float, GLID>(out, ","));
-        } else if ( format == "html" ) {
-            res.reset(new output::HtmlTableWriter<Float, GLID>(out));
+        switch(format) {
+            case OutputFormat::csv_probe_list:
+                res.reset(new heatmap_writer::TsvWriter<Float, GLID>(out, ","));
+                break;
+            case OutputFormat::tsv_probe_list:
+                res.reset(new heatmap_writer::TsvWriter<Float, GLID>(out, "\t"));
+                break;
+            case OutputFormat::html_probe_list:
+                res.reset(new heatmap_writer::HtmlTableWriter<Float, GLID>(out));
+                break;
+            default:
+                throw std::runtime_error("not support output format: " + OutputFormat::to_string(format));
+
         }
         return res;
 
@@ -119,11 +131,11 @@ private:
         // heatmap = chipimgproc::viewable(heatmap, 0.02, 0.02);
         // cv::imwrite(task_id + ".png", heatmap);
 
-        RegMatMkIndex mk_index(mat.markers());
+        summit::grid::RegMatMkIndex mk_index(mat.markers());
 
         raw_image_norm(mat);
         
-        auto filter = output::make_filter<Float, GLID>(filter_type);
+        auto filter = make_filter<Float, GLID>(filter_type);
         for( auto r = 0; r < mat.rows(); r ++ ) {
             for( auto c = 0; c < mat.cols(); c ++ ) {
                 auto full_cellinfo = mat.at(r, c, mat.min_cv_all_data());
@@ -131,7 +143,7 @@ private:
                 int mk_id_x;
                 int mk_id_y;
                 bool is_marker = mk_index.search(c, r, mk_reg, mk_id_x, mk_id_y);
-                output::CellInfo<Float, GLID> o_cell_info(
+                heatmap_writer::CellInfo<Float, GLID> o_cell_info(
                     r, c, full_cellinfo,
                     is_marker, mk_id_x, mk_id_y,
                     mk_reg
@@ -152,7 +164,7 @@ public:
     ) {
         for( auto&& ofm : output_formats_ ) {
             auto heatmap_opath = data_paths.heatmap(
-                output, task_id, ch, ofm
+                ch, OutputFormat::to_file_postfix(ofm)
             );
             heatmap_opath = heatmap_opath.make_preferred();
             auto itr = fid_map_.find(heatmap_opath.string());
@@ -199,8 +211,8 @@ private:
         std::string,
         std::unique_ptr<std::mutex>
     >                                       writer_mux_         ;
-    const output::DataPaths&                data_paths          ;
-    std::vector<std::string>                output_formats_     ;
+    const Paths&                            data_paths          ;
+    std::vector<OutputFormat::Labels>       output_formats_     ;
 };
 
 

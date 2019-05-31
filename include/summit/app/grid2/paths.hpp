@@ -66,9 +66,9 @@ struct Paths {
         boost::filesystem::path odir(output_);
         switch(mode_) {
             case normal:
-                return check_path((output_ / (ch + "-" + postfix)).string());
+                return check_path((output_ / (ch + postfix)).string());
             case inplace:
-                return check_path(odir / "grid" / "channels" / ch / ( "heatmap-" + postfix ));
+                return check_path(odir / "grid" / "channels" / ch / ( "heatmap" + postfix ));
             default:
                 throw std::runtime_error("unsupport mode");
         }

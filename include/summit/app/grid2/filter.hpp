@@ -1,24 +1,22 @@
 #pragma once
-#include <summit/app/grid/output/cell_info.hpp>
-namespace summit::app::grid::output {
+#include "heatmap_writer/cell_info.hpp"
+namespace summit::app::grid2 {
 
 struct Filter {
     template<class FLOAT, class GLID>
     using Function = std::function<bool(
-        const CellInfo<FLOAT, GLID>&
+        const heatmap_writer::CellInfo<FLOAT, GLID>&
     )>;
-
-
 };
 
 template<class FLOAT, class GLID>
 Filter::Function<FLOAT, GLID> make_filter(const std::string& name) {
     if( name == "marker_only") {
-        return []( const CellInfo<FLOAT, GLID>& ci ) {
+        return []( const heatmap_writer::CellInfo<FLOAT, GLID>& ci ) {
             return ci.marker_info.is_marker;
         };
     } else if ( name == "all" ) {
-        return []( const CellInfo<FLOAT, GLID>& ci ) {
+        return []( const heatmap_writer::CellInfo<FLOAT, GLID>& ci ) {
             return true;
         };
     } else {
