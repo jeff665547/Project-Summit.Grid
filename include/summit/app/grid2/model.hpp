@@ -8,11 +8,8 @@
 #include "format_decoder.hpp"
 #include <memory>
 #include <Nucleona/parallel/asio_pool.hpp>
-
-#define VAR_GET(T, sym) \
-public: std::add_const_t<T>& sym() const { return sym##_; } \
-private: T sym##_;
-
+#include <Nucleona/range.hpp>
+#include "model/macro.hpp"
 #include "model/task.hpp"
 
 namespace summit::app::grid2 {
@@ -28,7 +25,7 @@ struct Model
         std::string,    // task id
         model::Task     // task
     >; 
-    using Exectuor = nucleona::parallel::BasicAsioPool<
+    using Executor = nucleona::parallel::BasicAsioPool<
         boost::asio::io_service
     >;
 
@@ -37,12 +34,18 @@ struct Model
         return Paths::set(FWD(args)...);
     }
 
+    auto get_tasks() {
+        return tasks_ | ranges::view::values;
+    }
+
     model::Task& create_task(const std::string& task_id) {
         auto itr = tasks_.find(task_id);
         if(itr != tasks_.end())
             tasks_.erase(itr);
         auto [task_itr, flag] = tasks_.emplace(task_id, model::Task());
-        return task_itr->second;
+        auto& task = task_itr->second;
+        task.set_model(*this);
+        return task;
     }
     HmWriter& heatmap_writer() {
         if(!heatmap_writer_)  {
@@ -63,11 +66,11 @@ struct Model
     }
     void set_executor(std::size_t thread_num) {
         executor_.reset(
-            new Exectuor(thread_num)
+            new Executor(thread_num)
         );
     }
     Executor& executor() {
-        return *exectuor_;
+        return *executor_;
     }
 
     VAR_GET(TaskMap, tasks)

@@ -514,6 +514,9 @@ struct Utils{
         }
         return res;
     }
+    static bool is_chip_scan( const boost::filesystem::path& path ) {
+        return boost::filesystem::exists( path / "chip_log.json" );
+    }
     static std::vector<boost::filesystem::path> task_paths(
         const boost::filesystem::path& root
     ) {
@@ -533,7 +536,7 @@ struct Utils{
                 ) {
                     bf::path sub_path = itr->path();
                     auto sub_task_paths = task_paths(sub_path);
-                    if( !chip_images.empty() ) {
+                    if( !sub_task_paths.empty() ) {
                         res.insert(
                             res.end(), 
                             sub_task_paths.begin(), 
@@ -546,6 +549,12 @@ struct Utils{
         return res;
 
     }
+    static std::string to_task_id(const boost::filesystem::path& path) {
+        auto task_id = path.parent_path().filename().string();
+        task_id += "_";
+        task_id += path.filename().string();
+        return task_id;
+    }
     using FOVMarkerRegionMap = FOVMap<
         std::vector<
             chipimgproc::marker::detection::MKRegion
@@ -553,6 +562,5 @@ struct Utils{
     >;
     
 };
-
 
 }

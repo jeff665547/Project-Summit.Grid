@@ -181,8 +181,21 @@ class Main
         model.set_formats(args_.output_formats);
         model.set_executor(args_.thread_num - 1);
 
-        auto tasks = Utils::task_paths(args_.input_path);
-        // auto tasks = get_tasks();
+        auto&& task_paths = Utils::task_paths(args_.input_path);
+
+        for(auto&& task_id : task_paths
+            | ranges::view::transform([](auto&& tp){
+                return Utils::to_task_id(tp);
+            })
+        ) {
+            model.create_task(task_id);
+        }
+        model.get_tasks()
+        | ranges::view::transform([](auto&& task){
+            return 0;
+        })
+        | nucleona::range::endp
+        ;
         // for(auto&& tk : tasks) {
         //     try{
         //         task_proc(

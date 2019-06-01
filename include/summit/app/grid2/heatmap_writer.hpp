@@ -21,13 +21,11 @@ template<class Float, class GLID>
 struct HeatmapWriter {
     using CellInfoWriterType = heatmap_writer::CellInfoWriter<Float, GLID>;
     HeatmapWriter(
-        const Paths&                          dp, 
-        const std::vector<std::string>&       ofs
+        const Paths&                                dp, 
+        const std::vector<OutputFormat::Labels>&    ofs
     )
     : data_paths(dp)
-    , output_formats_(ranges::view::transform(ofs, [](auto&& str){
-        return OutputFormat::from_string(str);
-    }))
+    , output_formats_(ofs)
     {}
 private:
     auto create_output_writer(const OutputFormat::Labels& format, std::ostream& out) {
