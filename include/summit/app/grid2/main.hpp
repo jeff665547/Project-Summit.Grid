@@ -183,12 +183,14 @@ class Main
 
         auto&& task_paths = Utils::task_paths(args_.input_path);
 
-        for(auto&& task_id : task_paths
+        for(auto&& [task_id, task_path] : task_paths
             | ranges::view::transform([](auto&& tp){
-                return Utils::to_task_id(tp);
+                return nucleona::make_tuple(Utils::to_task_id(tp), std::move(tp));
             })
         ) {
-            model.create_task(task_id);
+            auto& task = model.create_task(task_id);
+            task.set_chip_log(task_path / "chip_log.json");
+            
         }
         model.get_tasks()
         | ranges::view::transform([](auto&& task){

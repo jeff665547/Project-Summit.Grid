@@ -80,5 +80,6 @@ private:
     std::unique_ptr<Executor>         executor_             ;
 };
 
-#undef VAR_GET
 }
+#undef VAR_GET
+#undef VAR_PTR_GET
