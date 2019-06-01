@@ -11,6 +11,7 @@
 #include <Nucleona/proftool/timer.hpp>
 #include <summit/grid/version.hpp>
 #include "model.hpp"
+#include "utils.hpp"
 
 namespace summit::app::grid2{
 
@@ -179,6 +180,8 @@ class Main
         );
         model.set_formats(args_.output_formats);
         model.set_executor(args_.thread_num - 1);
+
+        auto tasks = Utils::task_paths(args_.input_path);
         // auto tasks = get_tasks();
         // for(auto&& tk : tasks) {
         //     try{

@@ -514,6 +514,38 @@ struct Utils{
         }
         return res;
     }
+    static std::vector<boost::filesystem::path> task_paths(
+        const boost::filesystem::path& root
+    ) {
+        namespace bf = boost::filesystem;
+        std::vector<bf::path> res;
+        auto tmp = root;
+        if(bf::is_directory(root)) {
+            if( is_chip_scan(root)) {
+                res.push_back(
+                    tmp.make_preferred()
+                );
+            } else {
+                for(
+                    bf::directory_iterator itr(root); 
+                    itr != bf::directory_iterator() ; 
+                    ++itr 
+                ) {
+                    bf::path sub_path = itr->path();
+                    auto sub_task_paths = task_paths(sub_path);
+                    if( !chip_images.empty() ) {
+                        res.insert(
+                            res.end(), 
+                            sub_task_paths.begin(), 
+                            sub_task_paths.end()
+                        );
+                    }
+                }
+            }
+        }
+        return res;
+
+    }
     using FOVMarkerRegionMap = FOVMap<
         std::vector<
             chipimgproc::marker::detection::MKRegion
