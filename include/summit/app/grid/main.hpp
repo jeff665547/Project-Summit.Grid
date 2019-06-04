@@ -43,7 +43,7 @@ public:
     OptionParser(int argc, char* argv[])
     {
         namespace po = boost::program_options;
-        po::options_description desc("Summit image gridding tool, version: " + summit::grid::Version::self_str() + ", allowed options");
+        po::options_description desc("Summit image gridding tool, version: " + summit::grid::version().to_string() + ", allowed options");
         desc.add_options()
             ("help,h"           ,       "show help message")
             ("input_path,i"     ,       po::value<std::string>()->required(),                  "The input path, can be directory or file."
@@ -91,7 +91,7 @@ public:
             std::exit(1);
         }
         if(vm.count("version")) {
-            std::cout << summit::grid::Version::self_str() << std::endl;
+            std::cout << summit::grid::version().to_string() << std::endl;
             std::exit(1);
         }
         po::notify(vm);

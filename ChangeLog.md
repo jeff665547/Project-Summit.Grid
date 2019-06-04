@@ -1,5 +1,13 @@
 # ChangeLog
 
+## 0.9.5 - 2019.5.30
+- Bugfix: Avoid one task fail, abort all tasks in mutli-task mode 
+- Bugfix: Avoid ArUco detector crash
+
+## 0.9.4 - deprecated
+
+## 0.9.3 - deprecated
+
 ## 0.9.2 - 2019.5.27
 - ArUco support grdding algorithm: grid location
 

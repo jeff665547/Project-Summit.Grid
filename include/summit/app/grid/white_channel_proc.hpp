@@ -96,39 +96,53 @@ constexpr struct WhiteChannelProc {
             fov_marker_regs[fov_id] = {};
         }
         
-        std::vector<typename Exetor::template Future<void>> futs;
+        std::vector<typename Exetor::template Future<bool>> futs;
         for(auto&& [i, fov_id_mat] : mats | nucleona::range::indexed()) {
             auto p_mat = &fov_id_mat.second;
             auto p_fov_id = &fov_id_mat.first;
             futs.push_back(exe_tor.submit([&, i, p_mat, p_fov_id](){
-                auto& mat = *p_mat;
-                auto& fov_id = *p_fov_id;
-                // * count theta
-                auto theta   = iter_rot_cali(mat, std::cout);
-                std::cout << "white channel detect theta " 
-                    << fov_id << ": " << theta << std::endl;
-                cv::Mat mat_loc = mat.clone();
-                rotate_calibrator(mat_loc, theta);
-                auto mk_regs = marker_detector(mat_loc, 0, 0, std::cout);
-                // * detect um2px_r
-                auto um2px_r = reg_mat_um2px_r_det(
-                    mk_regs, 
-                    mk_wd_um,
-                    mk_hd_um,
-                    std::cout 
-                );
-                std::cout << "white channel detect um2px rate " 
-                    << fov_id << ": " << um2px_r << std::endl;
+                try {
+                    auto& mat = *p_mat;
+                    auto& fov_id = *p_fov_id;
+                    auto& mk_num = fov_marker_num.at(fov_id);
+                    // * count theta
+                    auto theta   = iter_rot_cali(mat, std::cout);
+                    std::cout << "white channel detect theta [" 
+                        << fov_id << "]: " << theta << std::endl;
+                    cv::Mat mat_loc = mat.clone();
+                    rotate_calibrator(mat_loc, theta);
 
-                std_reg_mat(mk_regs);
-                fov_marker_regs[fov_id] = std::move(mk_regs);
-                rot_degs[i] = theta;
-                um2px_rs[i] = um2px_r;
+                    // * detect marker regions
+                    auto mk_regs = marker_detector(mat_loc, 0, 0, std::cout);
+                    mk_regs = cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
+
+                    // * detect um2px_r
+                    auto um2px_r = reg_mat_um2px_r_det(
+                        mk_regs, 
+                        mk_wd_um,
+                        mk_hd_um,
+                        std::cout 
+                    );
+                    std::cout << "white channel detect um2px rate [" 
+                        << fov_id << "]: " << um2px_r << std::endl;
+
+                    std_reg_mat(mk_regs);
+                    fov_marker_regs[fov_id] = std::move(mk_regs);
+                    rot_degs[i] = theta;
+                    um2px_rs[i] = um2px_r;
+                    return true;
+                } catch(...) {
+                    return false;
+                }
             }));
         }
+        bool is_all_task_good = true;
         for(auto& f : futs) {
-            f.sync();
+            bool flag = f.sync();
+            is_all_task_good &= flag;
         }
+        if(!is_all_task_good) 
+            throw std::runtime_error("white channel process failed, probably bad aruco detection");
         // * consensus
         auto rot_deg = mean(rot_degs);
         auto um2px_r = mean(um2px_rs);

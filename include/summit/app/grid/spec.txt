@@ -1,9 +1,11 @@
 <IPC>/
   <RFID>/
+    analysis/
     <CID>_<TIMESTAMP>/
        <r>-<c>-<ch>.tiff
        chip_log.json
        chip_log.SFFX
+       analysis/
        grid/ # toolchain
         channels/
           <channel...>/
