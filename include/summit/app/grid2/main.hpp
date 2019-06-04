@@ -12,6 +12,7 @@
 #include <summit/grid/version.hpp>
 #include "model.hpp"
 #include "utils.hpp"
+#include "pipeline.hpp"
 
 namespace summit::app::grid2{
 
@@ -37,7 +38,7 @@ public:
     OptionParser(int argc, char* argv[])
     {
         namespace po = boost::program_options;
-        po::options_description desc("Summit image gridding tool, version: " + summit::grid::Version::self_str() + ", allowed options");
+        po::options_description desc("Summit image gridding tool, version: " + summit::grid::version().to_string() + ", allowed options");
         desc.add_options()
             ("help,h"           ,       "show help message")
             ("input_path,i"     ,       po::value<std::string>()->required(),                  "The input path, can be directory or file."
@@ -71,7 +72,7 @@ public:
             std::exit(1);
         }
         if(vm.count("version")) {
-            std::cout << summit::grid::Version::self_str() << std::endl;
+            std::cout << summit::grid::version().to_string() << std::endl;
             std::exit(1);
         }
         po::notify(vm);
@@ -119,55 +120,6 @@ class Main
     : args_( std::forward<OPTION_PARSER>( args ) )
     {}
 
-    // std::vector<Task> get_tasks() {
-    //     namespace bfs = boost::filesystem;
-    //     std::cout << "input_path: " << args_.input_path << std::endl;
-    //     return Task::search(args_.input_path);
-    // }
-    // template<class Executor>
-    // void task_proc(
-    //     const Task& tk,
-    //     const output::DataPaths&        output_paths,
-    //     const output::FormatDecoder&    fmt_decoder,
-    //     output::HeatmapWriter<
-    //         Float, 
-    //         GridLineID
-    //     >&                              heatmap_writer,
-    //     output::BackgroundWriter&       background_writer,
-    //     Executor&                       tp
-    // ) {
-    //     switch(tk.type) {
-    //         case Task::single:
-    //             single_type_proc(
-    //                 tk.path, args_.chip_type, 
-    //                 args_.fov_ec_id, args_.um2px_r, 
-    //                 args_.output,
-    //                 args_.output_formats, tk.id(),
-    //                 args_.filter, args_.debug,
-    //                 args_.no_bgp,
-    //                 output_paths, heatmap_writer
-    //             );
-    //             break;
-    //         case Task::chipscan:
-    //             chipscan_type_proc(
-    //                 tk.path, args_.chip_type, 
-    //                 args_.channel_names,
-    //                 args_.spectrum_names,
-    //                 args_.um2px_r, args_.output,
-    //                 fmt_decoder, tk.id(),
-    //                 args_.filter, args_.debug,
-    //                 args_.no_bgp,
-    //                 output_paths, 
-    //                 args_.marker_append,
-    //                 heatmap_writer,
-    //                 background_writer,
-    //                 tp
-    //             );
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    // }
     int operator()() {
         auto timer = nucleona::proftool::make_timer([](auto&& du){
             std::cout << std::chrono::duration_cast<std::chrono::seconds>(du).count() 
@@ -182,37 +134,16 @@ class Main
         model.set_executor(args_.thread_num - 1);
 
         auto&& task_paths = Utils::task_paths(args_.input_path);
-
-        for(auto&& [task_id, task_path] : task_paths
-            | ranges::view::transform([](auto&& tp){
-                return nucleona::make_tuple(Utils::to_task_id(tp), std::move(tp));
-            })
-        ) {
+        for(auto& task_path : task_paths) {
+            auto&& task_id = Utils::to_task_id(task_path);
             auto& task = model.create_task(task_id);
-            task.set_chip_log(task_path / "chip_log.json");
-            
+            task.set_chip_dir(task_path);
         }
-        model.get_tasks()
-        | ranges::view::transform([](auto&& task){
-            return 0;
-        })
+
+        model.get_task_groups()
+        | ranges::view::transform(pipeline::rfid)
         | nucleona::range::endp
         ;
-        // for(auto&& tk : tasks) {
-        //     try{
-        //         task_proc(
-        //             tk, output_paths, 
-        //             format_decoder, 
-        //             heatmap_writer,
-        //             background_writer,
-        //             tp
-        //         );
-        //     } catch ( const std::exception& e ) {
-        //         std::cerr << "error when process task: " << tk.path << std::endl;
-        //         std::cerr << e.what() << std::endl;
-        //         std::cout << tk.path << "skip" << std::endl;
-        //     }
-        // }
         return 0;
     }
 };

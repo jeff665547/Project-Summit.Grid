@@ -16,6 +16,7 @@
 #include "paths.hpp"
 #include "sup_improc_data.hpp"
 #include <optional>
+#include "task_id.hpp"
 
 namespace summit::app::grid2 {
 struct Utils{
@@ -549,18 +550,56 @@ struct Utils{
         return res;
 
     }
-    static std::string to_task_id(const boost::filesystem::path& path) {
-        auto task_id = path.parent_path().filename().string();
-        task_id += "_";
-        task_id += path.filename().string();
-        return task_id;
+    static TaskID to_task_id(const boost::filesystem::path& path) {
+        // auto task_id = path.parent_path().filename().string();
+        // task_id += "_";
+        // task_id += path.filename().string();
+        // return task_id;
+        auto rfid = path.parent_path().filename().string();
+        auto cid  = path.filename().string();
+        return TaskID(cid, rfid);
     }
     using FOVMarkerRegionMap = FOVMap<
         std::vector<
             chipimgproc::marker::detection::MKRegion
         >
     >;
-    
+    template<class Int>
+    using FOVImages= Utils::FOVMap<
+        std::tuple<
+            boost::filesystem::path,
+            cv::Mat_<std::uint16_t>
+        >
+    >;
+    template<class Int>
+    static auto read_imgs(
+        const boost::filesystem::path& src_path,
+        int rows, int cols,
+        const std::string& posfix,
+        bool img_enc,
+        const Paths& data_paths
+    ) {
+        Utils::FOVImages<Int> res;
+        for ( int r = 0; r < rows; r ++ ) {
+            for ( int c = 0; c < cols; c ++ ) {
+                std::stringstream ss;
+                ss  << std::to_string(r) << '-' 
+                    << std::to_string(c) << '-'
+                    << posfix
+                ;
+                auto img_path = src_path / ss.str();
+                std::cout << "read image: " << img_path << std::endl;
+                cv::Mat_<std::uint16_t> img = Utils::imread(
+                    img_path.string(), img_enc, data_paths
+                );
+                chipimgproc::info(std::cout, img);
+                res[cv::Point(c, r)] = nucleona::make_tuple(
+                    img_path.string(), std::move(img)
+                );
+            }
+        }
+        return res;
+    }
 };
 
 }
