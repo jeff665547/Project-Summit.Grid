@@ -11,6 +11,7 @@
 #include <Nucleona/range.hpp>
 #include "model/macro.hpp"
 #include "model/task.hpp"
+#include "model/channel.hpp"
 #include "model/task_group.hpp"
 #include <summit/config/cell_fov.hpp>
 #include <summit/config/chip.hpp>

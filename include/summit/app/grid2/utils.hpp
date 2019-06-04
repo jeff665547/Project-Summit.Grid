@@ -479,12 +479,15 @@ struct Utils{
         }
 
     }
-    template<class Channels>
-    static std::optional<
-        std::map<cv::Point, cv::Mat_<std::uint8_t>,
-            chipimgproc::PointLess
+    template<class Int>
+    using FOVImages= Utils::FOVMap<
+        std::tuple<
+            boost::filesystem::path,
+            cv::Mat_<std::uint16_t>
         >
-    > read_white_channel(
+    >;
+    template<class Channels>
+    static FOVImages<std::uint8_t> read_white_channel(
         const Channels&                 channels,
         const boost::filesystem::path&  src_path,
         int                             rows, 
@@ -493,10 +496,8 @@ struct Utils{
         const Paths&                    data_paths
     ) {
         auto white_ch_name = search_white_channel(channels);
-        if(white_ch_name.empty()) return std::nullopt;
-        std::map<cv::Point, cv::Mat_<std::uint8_t>,
-            chipimgproc::PointLess
-        > res;
+        if(white_ch_name.empty()) return {};
+        FOVImages<std::uint8_t> res;
         for ( int r = 0; r < rows; r ++ ) {
             for ( int c = 0; c < cols; c ++ ) {
                 std::stringstream ss;
@@ -510,7 +511,7 @@ struct Utils{
                     img_path.string(), img_enc, data_paths
                 );
                 chipimgproc::info(std::cout, img);
-                res[cv::Point(c, r)] = img;
+                res[cv::Point(c, r)] = std::make_tuple(img_path, img);
             }
         }
         return res;
@@ -562,13 +563,6 @@ struct Utils{
     using FOVMarkerRegionMap = FOVMap<
         std::vector<
             chipimgproc::marker::detection::MKRegion
-        >
-    >;
-    template<class Int>
-    using FOVImages= Utils::FOVMap<
-        std::tuple<
-            boost::filesystem::path,
-            cv::Mat_<std::uint16_t>
         >
     >;
     template<class Int>

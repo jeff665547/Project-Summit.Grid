@@ -39,17 +39,22 @@ struct Task {
     void set_task_id(const TaskID& task_id) {
         id_ = task_id;
     }
+    void set_white_channel_imgs(Utils::FOVImages<std::uint8_t>&& wci) {
+        white_channel_imgs_ = std::move(wci);
+    }
+    Model& get_model() { return const_cast<Model&>(*model_); }
 
-    VAR_GET(nlohmann::json,                 chip_log        )
-    VAR_GET(std::vector<nlohmann::json>,    channels        )
-    VAR_GET(boost::filesystem::path,        chip_dir        )
-    VAR_GET(bool,                           is_img_enc      )
-    VAR_GET(double,                         um2px_r         )
-    VAR_GET(std::string,                    chip_spec_name  )
-    VAR_GET(float,                          cell_h_um       )
-    VAR_GET(float,                          cell_w_um       )
-    VAR_GET(int,                            fov_rows        )
-    VAR_GET(int,                            fov_cols        )
+    VAR_GET(nlohmann::json,                 chip_log            )
+    VAR_GET(std::vector<nlohmann::json>,    channels            )
+    VAR_GET(boost::filesystem::path,        chip_dir            )
+    VAR_GET(bool,                           is_img_enc          )
+    VAR_GET(double,                         um2px_r             )
+    VAR_GET(std::string,                    chip_spec_name      )
+    VAR_GET(float,                          cell_h_um           )
+    VAR_GET(float,                          cell_w_um           )
+    VAR_GET(int,                            fov_rows            )
+    VAR_GET(int,                            fov_cols            )
+    VAR_GET(Utils::FOVImages<std::uint8_t>, white_channel_imgs  )
 
     VAR_PTR_GET(Model, model)
     VAR_PTR_GET(nlohmann::json, chipinfo)
