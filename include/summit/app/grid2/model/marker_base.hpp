@@ -4,15 +4,16 @@
 #include <summit/config/chip.hpp>
 #include <ChipImgProc/marker/loader.hpp>
 #include <mutex>
-namespace summit::app::grid2 {
-struct MarkerPair {
-    cv::Mat_<std::uint8_t> marker;
-    cv::Mat_<std::uint8_t> mask;
+namespace summit::app::grid2::model {
+
+struct MarkersPair {
+    std::vector<cv::Mat_<std::uint8_t>> marker;
+    std::vector<cv::Mat_<std::uint8_t>> mask;
 };
 using MarkerPatterns = std::map<
     std::string, // marker type (AM1/AM3)
-    std::vector<MarkerPair>
->
+    MarkersPair
+>;
 using ChipRegMatMarkers = std::map<
     std::string, // chip spec name
     MarkerPatterns // Cell level marker types
@@ -35,10 +36,16 @@ struct MarkerBase {
                 auto path = summit::install_path() / mk_path;
                 std::ifstream fin(path.string());
                 auto [mk_cl, mask_cl] = chipimgproc::marker::Loader::from_txt(fin);
-                mk_pats[mk_type_name].push_back({mk_cl, mask_cl});
+                auto mk_pat = mk_pats.at(mk_type_name);
+                mk_pat.marker.push_back(mk_cl);
+                mk_pat.mask.push_back(mask_cl);
             }
         }
         return itr->second;
+    }
+    static MarkerBase& get() {
+        static MarkerBase base;
+        return base;
     }
 
 private:

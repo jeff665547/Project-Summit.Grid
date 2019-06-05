@@ -16,6 +16,7 @@ constexpr struct RFID {
     decltype(auto) operator()(model::TaskGroup& task_group) const {
         // if(is_rfid_format(task_group.rfid()) && task_group.size() > 3) {
         // }
+        Chip chip;
         task_group
         | ranges::view::values
         | ranges::view::transform(chip)

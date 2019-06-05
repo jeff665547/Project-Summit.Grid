@@ -29,8 +29,6 @@ struct Model
         boost::asio::io_service
     >;
 
-    Model() {
-    }
     template<class... Args>
     decltype(auto) set_paths(Args&&... args) {
         return Paths::set(FWD(args)...);

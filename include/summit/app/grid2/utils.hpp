@@ -262,6 +262,7 @@ struct Utils{
         const nlohmann::json& chip_spec,
         const nlohmann::json& cell_fov
     ) {
+        // TODO: all use cache
         FOVMarkerNum marker_num;
         auto& shooting_marker   = chip_spec["shooting_marker"];
         auto& position_cl       = shooting_marker["position_cl"];
@@ -566,33 +567,53 @@ struct Utils{
         >
     >;
     template<class Int>
+    static auto read_img(
+        const boost::filesystem::path& src_path,
+        int row, int col,
+        const std::string& postfix,
+        bool img_enc,
+        const Paths& data_paths
+    ) {
+        std::stringstream ss;
+        ss  << std::to_string(row) << '-' 
+            << std::to_string(col) << '-'
+            << postfix
+        ;
+        auto img_path = src_path / ss.str();
+        std::cout << "read image: " << img_path << std::endl;
+        cv::Mat_<Int> img = Utils::imread(
+            img_path.string(), img_enc, data_paths
+        );
+        chipimgproc::info(std::cout, img);
+        return nucleona::make_tuple(std::move(img), std::move(img_path));
+    }
+    template<class Int>
     static auto read_imgs(
         const boost::filesystem::path& src_path,
         int rows, int cols,
-        const std::string& posfix,
+        const std::string& postfix,
         bool img_enc,
         const Paths& data_paths
     ) {
         Utils::FOVImages<Int> res;
         for ( int r = 0; r < rows; r ++ ) {
             for ( int c = 0; c < cols; c ++ ) {
-                std::stringstream ss;
-                ss  << std::to_string(r) << '-' 
-                    << std::to_string(c) << '-'
-                    << posfix
-                ;
-                auto img_path = src_path / ss.str();
-                std::cout << "read image: " << img_path << std::endl;
-                cv::Mat_<std::uint16_t> img = Utils::imread(
-                    img_path.string(), img_enc, data_paths
-                );
-                chipimgproc::info(std::cout, img);
+                auto [img, img_path] = Utils::read_img<Int>(src_path, r, c, postfix, img_enc, data_paths);
                 res[cv::Point(c, r)] = nucleona::make_tuple(
                     img_path.string(), std::move(img)
                 );
             }
         }
         return res;
+    }
+    template<class Rng>
+    static auto mean(Rng&& rng) {
+        using Value = nucleona::range::ValueT<std::decay_t<Rng>>;
+        Value sum(0);
+        for(auto&& v : rng) {
+            sum += v;
+        }
+        return sum / ranges::distance(rng);
     }
 };
 
