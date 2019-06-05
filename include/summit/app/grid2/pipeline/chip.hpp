@@ -9,6 +9,7 @@
 #include <summit/app/grid2/aruco_setter.hpp>
 #include <Nucleona/util/remove_const.hpp>
 #include <summit/app/grid2/model/marker_base.hpp>
+#include <ChipImgProc/algo/um2px_auto_scale.hpp>
 
 namespace summit::app::grid2::pipeline {
 namespace __alias {
@@ -163,6 +164,7 @@ struct Chip {
             task.mk_hd_cl(),
             task.um2px_r()
         );
+        std::vector<cv::Point>   low_score_marker_idx;
         auto  pbmk_iter_rot_cali = crot::make_iteration_cali(
             [&, this](const cv::Mat& mat) {
                 auto mk_regs    = probe_mk_detector(
@@ -171,6 +173,7 @@ struct Chip {
                     __alias::cimp::MatUnit::PX, 0,
                     std::cout
                 );
+                low_score_marker_idx = cmk_det::filter_low_score_marker(mk_regs);
                 auto theta      = rotate_detector(mk_regs, std::cout);
                 return theta;
             },
@@ -186,7 +189,17 @@ struct Chip {
         rotate_calibrator(mat_loc, theta);
 
         // * um2px_r auto scaler
-
+        cimp::algo::Um2PxAutoScale auto_scaler(
+            mat_loc, 
+            task.cell_w_um(), task.cell_h_um(),
+            task.space_um()
+        );
+        auto [best_um2px_r, score_mat] = auto_scaler.linear_steps(
+            probe_mk_layout, task.um2px_r(), 0.002, 7,
+            low_score_marker_idx, std::cout
+        );
+        task.set_rot_degree(theta);
+        task.set_um2px_r(best_um2px_r);
         return true;
     }
     decltype(auto) operator()(model::Task& task) const {
