@@ -15,6 +15,7 @@
 #include "model/task_group.hpp"
 #include <summit/config/cell_fov.hpp>
 #include <summit/config/chip.hpp>
+#include <Nucleona/util/remove_const.hpp>
 
 namespace summit::app::grid2 {
 
@@ -78,11 +79,22 @@ struct Model
             new Executor(thread_num)
         );
     }
+    void set_marker_append(bool mk_ap) {
+        marker_append_ = mk_ap;
+    }
+    void set_no_bgp(bool flag) {
+        no_bgp_ = flag;
+    }
     Executor& executor() {
         return *executor_;
     }
+    Executor& executor() const {
+        return nucleona::remove_const(*executor_);
+    }
 
-    VAR_GET(model::TaskGroupMap, task_groups)
+    VAR_GET(model::TaskGroupMap, task_groups    )
+    VAR_GET(bool,                marker_append  )
+    VAR_GET(bool,                no_bgp         )
 private:
     std::unique_ptr<HmWriter>         heatmap_writer_       ;
     std::unique_ptr<BackgroundWriter> background_writer_    ;

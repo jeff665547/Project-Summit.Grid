@@ -324,6 +324,7 @@ struct Utils{
         const nlohmann::json& channel,
         const std::optional<int>& fov_ec_id = std::nullopt
     ) {
+        // TODO: all use cache
         auto& shooting_marker = chip_spec["shooting_marker"];
         auto& position_cl     = shooting_marker["position_cl"];
         auto& position        = shooting_marker["position"];

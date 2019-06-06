@@ -7,6 +7,7 @@
 #include <summit/config/chip.hpp>
 #include <summit/utils.h>
 #include "marker_base.hpp"
+#include <Nucleona/util/remove_const.hpp>
 namespace summit::app::grid2 {
 struct Model;
 }
@@ -65,6 +66,9 @@ struct Task {
     }
     void set_rot_degree(const std::optional<float>& _rot_degree) {
         rot_degree_ = _rot_degree;
+    }
+    bool rot_degree_done() const {
+        return rot_degree_.has_value();
     }
     void set_fov_mk_regs(Utils::FOVMarkerRegionMap&& _fov_mk_regs) {
         fov_mk_regs_ = std::move(_fov_mk_regs);

@@ -205,23 +205,27 @@ struct Chip {
     decltype(auto) operator()(model::Task& task) const {
         using namespace __alias;
         auto& executor = task.get_model().executor();
-
-        if(!white_channel_proc(task)) {
-            task.set_white_ch_proc_failed(true);
-            if(!task.um_to_px_r_done()) {
-                std::cout << "no way to evaluate um2px_r, surrender chip\n";
-                return 1;
-            } 
-            if(!dark_channel_proc(task)) {
-                std::cout << "unknown failed\n";
-                return 1;
+        try {
+            if(!white_channel_proc(task)) {
+                task.set_white_ch_proc_failed(true);
+                if(!task.um_to_px_r_done()) {
+                    std::cout << "no way to evaluate um2px_r, surrender chip\n";
+                    return 1;
+                } 
+                if(!dark_channel_proc(task)) {
+                    std::cout << "unknown failed\n";
+                    return 1;
+                }
             }
+        } catch( const std::exception& e ) {
+            std::cout << e.what() << std::endl;
+            return 1;
         }
         task.channels()
         | ranges::view::transform([&task](auto& jch){
             model::Channel ch_mod;
             ch_mod.set_task(task);
-            ch_mod.set_channel(jch);
+            ch_mod.set_json(jch);
             return ch_mod;
         })
         | ranges::view::transform(channel)
