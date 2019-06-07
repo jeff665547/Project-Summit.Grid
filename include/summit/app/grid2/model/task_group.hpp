@@ -1,7 +1,7 @@
 #pragma once
 #include "macro.hpp"
 #include "task.hpp"
-namespace summit::app::grid2 {
+namespace summit::app::grid2::model {
 struct Model;
 }
 namespace summit::app::grid2::model {

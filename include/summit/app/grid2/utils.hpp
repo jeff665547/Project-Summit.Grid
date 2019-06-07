@@ -421,15 +421,15 @@ struct Utils{
     static auto write_background(
         std::ostream& bg_file, 
         const std::string& task_id,
-        const SupImprocData& data
+        const FOVMap<float>& data
     ) {
         float sum = 0;
-        for(auto& [fov_id, bgv] : data.backgrounds) {
+        for(auto& [fov_id, bgv] : data) {
             sum += bgv;
         }
         bg_file << task_id << ',';
-        bg_file << sum / data.backgrounds.size();
-        for(auto& [fov_id, bgv] : data.backgrounds) {
+        bg_file << sum / data.size();
+        for(auto& [fov_id, bgv] : data) {
             bg_file << ',' << bgv;
         }
         bg_file << '\n';

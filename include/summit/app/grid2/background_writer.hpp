@@ -24,8 +24,7 @@ struct BackgroundWriter {
     void write(
         const std::string& task_id,
         const std::string& ch,
-        const std::string& output,
-        const SupImprocData& bg_data
+        const Utils::FOVMap<float>& bg_data
     ) {
         auto opath = data_paths.background(task_id, ch);
         opath = opath.make_preferred();
@@ -39,7 +38,7 @@ struct BackgroundWriter {
                 fid_mux_[opath.string()].reset(new std::mutex());
 
                 *pfile << "task_id,mean";
-                for(auto& [fov_id, bgv] : bg_data.backgrounds) {
+                for(auto& [fov_id, bgv] : bg_data) {
                     *pfile << ",(" << fov_id.x << ';' << fov_id.y << ')';
                 }
                 *pfile << '\n';

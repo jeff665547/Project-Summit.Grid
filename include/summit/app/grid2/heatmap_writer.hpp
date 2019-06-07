@@ -156,7 +156,6 @@ public:
     void write(
         const std::string& task_id, 
         const std::string& ch,
-        const std::string& output, 
         const std::string& filter,
         chipimgproc::MultiTiledMat<Float, GLID>& mat 
     ) {

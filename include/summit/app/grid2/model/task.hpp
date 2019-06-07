@@ -8,11 +8,11 @@
 #include <summit/utils.h>
 #include "marker_base.hpp"
 #include <Nucleona/util/remove_const.hpp>
-namespace summit::app::grid2 {
-struct Model;
-}
-namespace summit::app::grid2::model {
+#include <ChipImgProc/multi_tiled_mat.hpp>
+#include "type.hpp"
 
+namespace summit::app::grid2::model {
+struct Model;
 struct Task {
     void set_chip_dir(const boost::filesystem::path& path) {
         chip_dir_ = path;
@@ -103,7 +103,31 @@ struct Task {
         return mk_hd_cl_ * cell_h_um_;
     }
     Model& get_model() { return const_cast<Model&>(*model_); }
-
+    // auto heatmap_writer() {
+    //     return [this](const std::string& chname, MTMat& mt_mat) {
+    //         model_->heatmap_writer().write(
+    //             id_->string(),
+    //             chname,
+    //             model_->filter(),
+    //             mt_mat
+    //         );
+    //     };
+    // }
+    // auto heatmap_writer() const {
+    //     return nucleona::remove_const(*this).heatmap_writer();
+    // }
+    // auto background_writer() {
+    //     return [this](const std::string& chname, const Utils::FOVMap<float>& bg_value) {
+    //         model_->background_writer().write(
+    //             id_->string(),
+    //             chname,
+    //             bg_value
+    //         );
+    //     };
+    // }
+    // auto background_writer() const {
+    //     return nucleona::remove_const(*this).background_writer();
+    // }
     VAR_GET(nlohmann::json,                 chip_log            )
     VAR_GET(std::vector<nlohmann::json>,    channels            )
     VAR_GET(boost::filesystem::path,        chip_dir            )
@@ -133,6 +157,7 @@ struct Task {
     VAR_GET(Utils::FOVMarkerNum,            fov_marker_num      )
     VAR_GET(std::uint32_t,                  mk_wd_cl            )
     VAR_GET(std::uint32_t,                  mk_hd_cl            )
+    VAR_GET(summit::app::grid2::TaskID,     id                  )
 
     VAR_PTR_GET(Model,                      model               )
     VAR_PTR_GET(nlohmann::json,             chipinfo            )
@@ -144,8 +169,6 @@ struct Task {
     VAR_PTR_GET(nlohmann::json,             shooting_marker     )
     VAR_PTR_GET(nlohmann::json,             sh_mk_pos_cl        )
     VAR_PTR_GET(MarkerPatterns,             marker_patterns     )
-private:
-    VAR_GET(summit::app::grid2::TaskID, id)
 
 };
 using TaskMap = std::map<

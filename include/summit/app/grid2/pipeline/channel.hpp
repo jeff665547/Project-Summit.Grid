@@ -1,6 +1,7 @@
 #pragma once
 #include <summit/app/grid2/model.hpp>
 #include <limits>
+#include <summit/app/grid2/model/type.hpp>
 namespace summit::app::grid2::pipeline {
 
 namespace __alias {
@@ -14,8 +15,8 @@ namespace cimg      = chipimgproc::gridding;
 }
 
 constexpr struct Channel {
-    using Float = typename Model::Float;
-    using GridLineID = typename Model::GridLineID;
+    using Float = summit::app::grid2::model::Float;
+    using GridLineID = summit::app::grid2::model::GridLineID;
     auto find_and_set_best_marker(
         const cv::Mat_<std::uint16_t>& mat,
         __alias::cmk::Layout& mk_layout,
@@ -67,7 +68,8 @@ constexpr struct Channel {
             task.fov(),
             channel.json()
         );
-        auto fov_good = channel.fov_good();
+        auto fov_good = channel.make_fov_map(false);
+        auto fov_imp_res = channel.make_fov_map<model::OptSingleImgProcRes>(std::nullopt);
 
         imgs
         | ranges::view::transform([&](auto&& fov){
@@ -83,6 +85,7 @@ constexpr struct Channel {
                 );
                 auto& theta_diff = std::get<0>(td_lsmk);
                 auto& ls_mk_idx  = std::get<1>(td_lsmk);
+                auto& imp_res    = fov_imp_res.at(fov_id);
                 rotate_calibrator(mat, task.rot_degree().value());
                 auto  mk_regs    = cmk_det::reg_mat_no_rot(
                     mat, mk_layout,
@@ -160,6 +163,14 @@ constexpr struct Channel {
                         }
                     );
                 }
+
+                //TODO: FOV data output
+
+                imp_res = model::SingleImgProcRes{
+                    std::move(tiled_mat),
+                    std::move(margin_res.stat_mats),
+                    std::move(bg_value)
+                };
                 return 0;
             } catch(const std::exception& e) {
                 std::cout << e.what() << std::endl;
@@ -170,12 +181,14 @@ constexpr struct Channel {
         ;
 
         channel.set_fov_good(std::move(fov_good));
+        channel.set_multi_tiled_mat(
+            model::make_multi_tiled_mat(
+                std::move(fov_imp_res), task
+            )
+        );
+        channel.write_output();
     }
     decltype(auto) operator()(model::Channel&& channel) const {
-        // for each fov,
-        // detect dark marker
-        // compare theta
-        // run white channel support algorithm
         try{
             gridding(channel);
             return 0;

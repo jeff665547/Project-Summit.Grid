@@ -133,6 +133,7 @@ class Main
         model.set_formats(args_.output_formats);
         model.set_executor(args_.thread_num - 1);
         model.set_marker_append(args_.marker_append);
+        model.set_filter(args_.filter);
 
         auto&& task_paths = Utils::task_paths(args_.input_path);
         for(auto& task_path : task_paths) {
