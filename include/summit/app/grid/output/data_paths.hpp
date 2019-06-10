@@ -146,6 +146,14 @@ struct DataPaths {
         }
         return check_path(path_p);
     }
+    boost::filesystem::path grid_log(
+        const std::string& path,
+        const std::string& task_id,
+        const std::string& channel
+    ) const {
+        auto prefix = general_prefix(path, task_id, channel);
+        return check_path(prefix / "grid_log.json");
+    }
     void create_complete_file(
         const std::string& input,
         const std::string& output,
