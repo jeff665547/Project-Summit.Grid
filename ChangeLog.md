@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.9.6 - 2019.6.10
+- Support M/pT marker type
+- Add grid log into channel directory
+
 ## 0.9.5 - 2019.5.30
 - Bugfix: Avoid one task fail, abort all tasks in mutli-task mode 
 - Bugfix: Avoid ArUco detector crash
