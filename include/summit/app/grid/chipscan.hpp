@@ -371,96 +371,97 @@ struct ChipScan {
             // process probe channels
             channels
             | ranges::view::transform([&](auto& ch){
-                std::string ch_name = ch["name"];
+                std::string ch_name = ch.at("name");
                 if( ch["filter"].template get<int>() != 0 ) {
-                    auto [multi_tiled_mat, sup_improc_data] = cen_chipscan(
-                        chip_log, src_path, ch,
-                        um2px_r, chip_props.chip_type_name(),
-                        chip_props.cell_fov(), chip_props.chip_spec(),
-                        debug, no_bgp, marker_append, 
-                        output_paths, output,
-                        task_id, chip_props.rot_degree(), 
-                        chip_props.fov_mk_regs(),
-                        tp
+                    nlohmann::json grid_log;
+                    auto grid_log_path = output_paths.grid_log(
+                        src_path.string(), task_id,  ch_name
                     );
+                    try {
+                        auto [multi_tiled_mat, sup_improc_data] = cen_chipscan(
+                            chip_log, src_path, ch,
+                            um2px_r, chip_props.chip_type_name(),
+                            chip_props.cell_fov(), chip_props.chip_spec(),
+                            debug, no_bgp, marker_append, 
+                            output_paths, output,
+                            task_id, chip_props.rot_degree(), 
+                            chip_props.fov_mk_regs(),
+                            tp
+                        );
 
-                    // sperate image output
-                    for( int r = 0; r < chip_props.fov_rows(); r ++ ) {
-                        for( int c = 0; c < chip_props.fov_cols(); c ++ ) {
-                            auto fov_path = output_paths.fov_image(
-                                output, task_id, "norm", r, c, ch_name
-                            );
-                            auto& raw_img = multi_tiled_mat.get_fov_img(c, r).mat();
-                            std::cout << "FOV output: " << fov_path << std::endl;
-                            cv::imwrite(
-                                fov_path.string(), 
-                                chipimgproc::viewable(raw_img)
+                        // sperate image output
+                        for( int r = 0; r < chip_props.fov_rows(); r ++ ) {
+                            for( int c = 0; c < chip_props.fov_cols(); c ++ ) {
+                                auto fov_path = output_paths.fov_image(
+                                    output, task_id, "norm", r, c, ch_name
+                                );
+                                auto& raw_img = multi_tiled_mat.get_fov_img(c, r).mat();
+                                std::cout << "FOV output: " << fov_path << std::endl;
+                                cv::imwrite(
+                                    fov_path.string(), 
+                                    chipimgproc::viewable(raw_img)
+                                );
+                            }
+                        }
+
+                        // heatmap
+                        heatmap_writer.write(
+                            task_id, ch_name, output, 
+                            filter, multi_tiled_mat
+                        );
+                        // auto mean_float = multi_tiled_mat.dump();
+                        // cv::Mat mean_int;
+                        // mean_float.convertTo(mean_int, CV_16U, 1);
+                        // auto mean_path = output_paths.heatmap(output, task_id, ch_name, ".tiff");
+                        // // cv::imwrite(mean_path.string(), chipimgproc::viewable(mean_int));
+                        // cv::imwrite(mean_path.string(), mean_int);
+
+
+                        // stitch image 
+                        auto grid_image = image_stitcher_( multi_tiled_mat );
+                        auto viewable_stitch_image = chipimgproc::viewable( grid_image.mat() );
+                        auto stitch_image_path = output_paths.stitch_image(output, task_id, "norm", ch_name);
+                        cv::imwrite(stitch_image_path.string(), viewable_stitch_image);
+
+                        // gridline
+                        std::ofstream gl_file(output_paths.gridline(output, task_id, ch_name).string());
+                        Utils::write_gl(gl_file, grid_image);
+
+                        // background
+                        background_writer.write(task_id, ch_name, output, sup_improc_data);
+                        // std::ofstream bgv_file(
+                        //     output_paths.background(
+                        //         output, task_id, ch_name
+                        //     ).string()
+                        // );
+                        // Utils::write_background(bgv_file, sup_improc_data);
+
+                        // cfu array
+                        if( fmt_decoder.enable_array() ) {
+                            summit::format::push_to_cfu_array(
+                                *array, multi_tiled_mat, ch_name
                             );
                         }
+
+                        // auto complete_file_path = output_paths.complete_file(output, task_id);
+                        // std::ofstream fout(complete_file_path.string(), std::fstream::trunc | std::fstream::out);
+                        // fout.close();
+                        grid_log["grid_done"] = true;
+                    } catch (const std::exception& e) {
+                        grid_log["grid_done"] = false;
+                        grid_log["fail_reason"] = e.what();
                     }
-
-                    // heatmap
-                    heatmap_writer.write(
-                        task_id, ch_name, output, 
-                        filter, multi_tiled_mat
-                    );
-                    // auto mean_float = multi_tiled_mat.dump();
-                    // cv::Mat mean_int;
-                    // mean_float.convertTo(mean_int, CV_16U, 1);
-                    // auto mean_path = output_paths.heatmap(output, task_id, ch_name, ".tiff");
-                    // // cv::imwrite(mean_path.string(), chipimgproc::viewable(mean_int));
-                    // cv::imwrite(mean_path.string(), mean_int);
-
-
-                    // stitch image 
-                    auto grid_image = image_stitcher_( multi_tiled_mat );
-                    auto viewable_stitch_image = chipimgproc::viewable( grid_image.mat() );
-                    auto stitch_image_path = output_paths.stitch_image(output, task_id, "norm", ch_name);
-                    cv::imwrite(stitch_image_path.string(), viewable_stitch_image);
-
-                    // gridline
-                    std::ofstream gl_file(output_paths.gridline(output, task_id, ch_name).string());
-                    Utils::write_gl(gl_file, grid_image);
-
-                    // background
-                    background_writer.write(task_id, ch_name, output, sup_improc_data);
-                    // std::ofstream bgv_file(
-                    //     output_paths.background(
-                    //         output, task_id, ch_name
-                    //     ).string()
-                    // );
-                    // Utils::write_background(bgv_file, sup_improc_data);
-
-                    // cfu array
-                    if( fmt_decoder.enable_array() ) {
-                        summit::format::push_to_cfu_array(
-                            *array, multi_tiled_mat, ch_name
-                        );
-                    }
-
-                    // complete file
-                    output_paths.create_complete_file(
-                        src_path.string(), output, task_id
-                    );
-                    // auto complete_file_path = output_paths.complete_file(output, task_id);
-                    // std::ofstream fout(complete_file_path.string(), std::fstream::trunc | std::fstream::out);
-                    // fout.close();
+                    std::ofstream grid_log_f(grid_log_path.string());
+                    grid_log_f << grid_log.dump(2);
                 }
-                // else {
-                //     std::cout << "channel name: " << ch_name << " is white LED, pass the scan" << std::endl;
-                //     auto& fov           = cell_fov["fov"];
-                //     auto fov_rows       = fov["rows"];
-                //     auto fov_cols       = fov["cols"];
-                //     auto is_img_enc     = is_image_encrypted(chip_log);
-                //     auto images = read_imgs(
-                //         src_path, fov_rows, fov_cols, ch_name, 
-                //         is_img_enc, output_paths
-                //     );
-                // }
                 return ch;
             })
             | nucleona::range::p_endp(tp, 1)
             ;
+            // complete file
+            output_paths.create_complete_file(
+                src_path.string(), output, task_id
+            );
         
             
 
