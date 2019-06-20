@@ -15,7 +15,7 @@ cfu::format::chip_sample::Array init_array(
 template<class FLOAT, class GLID>
 void push_to_cfu_array(
     cfu::format::chip_sample::Array& array,
-    chipimgproc::MultiTiledMat<FLOAT, GLID> multi_tiled_mat,
+    const chipimgproc::MultiTiledMat<FLOAT, GLID>& multi_tiled_mat,
     const std::string& ch_name
 ) {
     cfu::format::chip_sample::Channel channel;

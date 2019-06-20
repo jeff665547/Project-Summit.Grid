@@ -12,19 +12,20 @@
 #include <ChipImgProc/marker/txt_to_img.hpp>
 #include <summit/crypto/scan_image.hpp>
 #include <ChipImgProc/utils.h>
-#include <summit/app/grid/output/data_paths.hpp>
 #include <summit/format/rfid.hpp>
-#include <summit/app/grid/output/sup_improc_data.hpp>
+#include "paths.hpp"
+#include "sup_improc_data.hpp"
 #include <optional>
+#include "task_id.hpp"
 
-namespace summit::app::grid{
+namespace summit::app::grid {
 struct Utils{
     static auto mean(const std::vector<float>& data) {
         float sum = 0;
         int n = 0;
         for(auto& v : data) {
             if(std::isnan(v)) {
-                std::cout << "warn: a nan value detected, ignored" << std::endl; 
+                // std::cout << "warn: a nan value detected, ignored" << std::endl; 
             } else {
                 sum += v;
                 n ++;
@@ -49,7 +50,7 @@ struct Utils{
         auto u8_src = chipimgproc::norm_u8(src);
         auto& shooting_marker = chip_spec["shooting_marker"];
         auto& shooting_marker_type = shooting_marker["type"];
-        std::cout << "shooting_marker_type: " << shooting_marker_type << std::endl;
+        // std::cout << "shooting_marker_type: " << shooting_marker_type << std::endl;
         if( shooting_marker_type.get<std::string>() != "regular_matrix" ) {
             throw std::runtime_error(
                 "unsupported shooting marker type: " + 
@@ -64,9 +65,9 @@ struct Utils{
         for(auto&& mk : marker_pats ) {
             std::string path = mk["path"];
             auto pat_img_path = (summit::install_path() / path).make_preferred();
-            std::cout << "load pattern: " << pat_img_path << std::endl;
+            // std::cout << "load pattern: " << pat_img_path << std::endl;
             cv::Mat pat_img = cv::imread(pat_img_path.make_preferred().string(), cv::IMREAD_ANYCOLOR | cv::IMREAD_ANYDEPTH);
-            chipimgproc::info(std::cout, pat_img);
+            // chipimgproc::info(std::cout, pat_img);
             cv::Mat_<float> score(
                 u8_src.rows - pat_img.rows + 1,
                 u8_src.cols - pat_img.cols + 1
@@ -111,8 +112,11 @@ struct Utils{
         ) {
             for(std::size_t i = 0; i < mk_pats_cl.size(); i ++ ) {
                 auto&& obj = mk_pats_cl[i];
+                auto obj_mk_type = obj["marker_type"].get<std::string>();
+                // std::cout << VDUMP(marker_type) <<std::endl;
+                // std::cout << VDUMP(obj_mk_type) <<std::endl;
                 filter[i] = (
-                    obj["marker_type"].get<std::string>() 
+                    obj_mk_type 
                     != marker_type
                 );
             }
@@ -141,16 +145,17 @@ struct Utils{
         std::vector<cv::Mat_<std::uint8_t>> candi_pats_px_mask;
 
         auto& mk_pats_cl        = shooting_marker["mk_pats_cl"];
-
+        // std::cout << VDUMP(mk_pats_cl.size()) << '\n';
         auto mk_pats_cl_path = filter_path(
             mk_pats_cl, channel
         );
+        // std::cout << VDUMP(mk_pats_cl_path.size()) << '\n';
         // collect candi_pats_cl;
         for( auto&& mk : mk_pats_cl_path ) {
             auto path = summit::install_path() / mk;
             std::ifstream fin(path.string());
             auto [mk_cl, mask_cl] = chipimgproc::marker::Loader::from_txt(
-                fin, std::cout
+                fin, nucleona::stream::null_out
             );
             candi_pats_cl.push_back(mk_cl);
             candi_pats_cl_mask.push_back(mask_cl);
@@ -261,6 +266,7 @@ struct Utils{
         const nlohmann::json& chip_spec,
         const nlohmann::json& cell_fov
     ) {
+        // TODO: all use cache
         FOVMarkerNum marker_num;
         auto& shooting_marker   = chip_spec["shooting_marker"];
         auto& position_cl       = shooting_marker["position_cl"];
@@ -322,6 +328,7 @@ struct Utils{
         const nlohmann::json& channel,
         const std::optional<int>& fov_ec_id = std::nullopt
     ) {
+        // TODO: all use cache
         auto& shooting_marker = chip_spec["shooting_marker"];
         auto& position_cl     = shooting_marker["position_cl"];
         auto& position        = shooting_marker["position"];
@@ -418,21 +425,21 @@ struct Utils{
     static auto write_background(
         std::ostream& bg_file, 
         const std::string& task_id,
-        const output::SupImprocData& data
+        const FOVMap<float>& data
     ) {
         float sum = 0;
-        for(auto& [fov_id, bgv] : data.backgrounds) {
+        for(auto& [fov_id, bgv] : data) {
             sum += bgv;
         }
         bg_file << task_id << ',';
-        bg_file << sum / data.backgrounds.size();
-        for(auto& [fov_id, bgv] : data.backgrounds) {
+        bg_file << sum / data.size();
+        for(auto& [fov_id, bgv] : data) {
             bg_file << ',' << bgv;
         }
         bg_file << '\n';
         bg_file << std::flush;
     }
-    static auto imread(const std::string& fname_no_ext, bool img_enc, const output::DataPaths& data_paths) {
+    static auto imread(const std::string& fname_no_ext, bool img_enc, const Paths& data_paths) {
         if(img_enc) {
             boost::filesystem::path fname_path_no_ext(fname_no_ext);
             std::ifstream fin(fname_no_ext + ".srl", std::ios::binary);
@@ -447,7 +454,7 @@ struct Utils{
                     res.convertTo(small_image, CV_8U, 0.00390625);
                 }
                 cv::imwrite(
-                    (data_paths.raw_img_dir() / (fname_path_no_ext.stem().string() + ".jpg")).string(), 
+                    (data_paths.sc_raw_img_dir() / (fname_path_no_ext.stem().string() + ".tiff")).string(), 
                     small_image
                 );
             }
@@ -470,32 +477,32 @@ struct Utils{
     }
     template<class Channels>
     static std::string search_white_channel(const Channels& channels) {
-        std::string res = "";
         for(auto& ch : channels) {
             if(ch["filter"].template get<int>() == 0) {
                 return ch["name"];
             }
         }
-
+        return "";
     }
-    template<class Channels>
-    static std::optional<
-        std::map<cv::Point, cv::Mat_<std::uint8_t>,
-            chipimgproc::PointLess
+    template<class Int>
+    using FOVImages= Utils::FOVMap<
+        std::tuple<
+            boost::filesystem::path,
+            cv::Mat_<std::uint16_t>
         >
-    > read_white_channel(
+    >;
+    template<class Channels>
+    static FOVImages<std::uint8_t> read_white_channel(
         const Channels&                 channels,
         const boost::filesystem::path&  src_path,
         int                             rows, 
         int                             cols,
         bool                            img_enc,
-        const output::DataPaths&        data_paths
+        const Paths&                    data_paths
     ) {
         auto white_ch_name = search_white_channel(channels);
-        if(white_ch_name.empty()) return std::nullopt;
-        std::map<cv::Point, cv::Mat_<std::uint8_t>,
-            chipimgproc::PointLess
-        > res;
+        if(white_ch_name.empty()) return {};
+        FOVImages<std::uint8_t> res;
         for ( int r = 0; r < rows; r ++ ) {
             for ( int c = 0; c < cols; c ++ ) {
                 std::stringstream ss;
@@ -504,23 +511,127 @@ struct Utils{
                     << white_ch_name
                 ;
                 auto img_path = src_path / ss.str();
-                std::cout << "read white channel image: " << img_path << std::endl;
+                // std::cout << "read white channel image: " << img_path << std::endl;
                 cv::Mat_<std::uint16_t> img = Utils::imread(
                     img_path.string(), img_enc, data_paths
                 );
-                chipimgproc::info(std::cout, img);
-                res[cv::Point(c, r)] = img;
+                // chipimgproc::info(std::cout, img);
+                res[cv::Point(c, r)] = std::make_tuple(img_path, img);
             }
         }
         return res;
+    }
+    static bool is_chip_scan( const boost::filesystem::path& path ) {
+        return boost::filesystem::exists( path / "chip_log.json" );
+    }
+    static std::vector<boost::filesystem::path> task_paths(
+        const boost::filesystem::path& root
+    ) {
+        namespace bf = boost::filesystem;
+        std::vector<bf::path> res;
+        auto tmp = root;
+        if(bf::is_directory(root)) {
+            if( is_chip_scan(root)) {
+                res.push_back(
+                    tmp.make_preferred()
+                );
+            } else {
+                for(
+                    bf::directory_iterator itr(root); 
+                    itr != bf::directory_iterator() ; 
+                    ++itr 
+                ) {
+                    bf::path sub_path = itr->path();
+                    auto sub_task_paths = task_paths(sub_path);
+                    if( !sub_task_paths.empty() ) {
+                        res.insert(
+                            res.end(), 
+                            sub_task_paths.begin(), 
+                            sub_task_paths.end()
+                        );
+                    }
+                }
+            }
+        }
+        return res;
+
+    }
+    static TaskID to_task_id(const boost::filesystem::path& path) {
+        // auto task_id = path.parent_path().filename().string();
+        // task_id += "_";
+        // task_id += path.filename().string();
+        // return task_id;
+        auto src = path.parent_path();
+        auto rfid = src.filename().string();
+        src = src.parent_path();
+        auto cid  = path.filename().string();
+        return TaskID(cid, rfid, src);
     }
     using FOVMarkerRegionMap = FOVMap<
         std::vector<
             chipimgproc::marker::detection::MKRegion
         >
     >;
-    
+    template<class Int>
+    static auto read_img(
+        const boost::filesystem::path& src_path,
+        int row, int col,
+        const std::string& postfix,
+        bool img_enc,
+        const Paths& data_paths
+    ) {
+        std::stringstream ss;
+        ss  << std::to_string(row) << '-' 
+            << std::to_string(col) << '-'
+            << postfix
+        ;
+        auto img_path = src_path / ss.str();
+        // std::cout << "read image: " << img_path << std::endl;
+        cv::Mat_<Int> img = Utils::imread(
+            img_path.string(), img_enc, data_paths
+        );
+        // chipimgproc::info(std::cout, img);
+        return nucleona::make_tuple(std::move(img), std::move(img_path));
+    }
+    template<class Int>
+    static auto read_imgs(
+        const boost::filesystem::path& src_path,
+        int rows, int cols,
+        const std::string& postfix,
+        bool img_enc,
+        const Paths& data_paths
+    ) {
+        Utils::FOVImages<Int> res;
+        for ( int r = 0; r < rows; r ++ ) {
+            for ( int c = 0; c < cols; c ++ ) {
+                auto [img, img_path] = Utils::read_img<Int>(src_path, r, c, postfix, img_enc, data_paths);
+                res[cv::Point(c, r)] = nucleona::make_tuple(
+                    img_path.string(), std::move(img)
+                );
+            }
+        }
+        return res;
+    }
+    static std::vector<cv::Point> fov_ids(
+        int rows, int cols
+    ) {
+        std::vector<cv::Point> res;
+        for( int r = 0; r < rows; r++) {
+            for(int c = 0; c < cols; c++) {
+                res.push_back(cv::Point(c, r));
+            }
+        }
+        return res;
+    }
+    template<class Rng>
+    static auto mean(Rng&& rng) {
+        using Value = nucleona::range::ValueT<std::decay_t<Rng>>;
+        Value sum(0);
+        for(auto&& v : rng) {
+            sum += v;
+        }
+        return sum / ranges::distance(rng);
+    }
 };
-
 
 }

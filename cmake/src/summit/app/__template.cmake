@@ -19,6 +19,7 @@ target_link_libraries(${__screw_target}
     ChipImgProc::ChipImgProc-stitch
     summit-format
     SummitCrypto::summit-crypto-scan_image
+    ChipImgProc::ChipImgProc-logger
 )
 if(MINGW)
     target_compile_options(${__screw_target} PUBLIC -Wa,-mbig-obj)

@@ -8,27 +8,21 @@
 #include <Nucleona/algo/split.hpp>
 #include <ChipImgProc/comb/single_general.hpp>
 #include <ChipImgProc/multi_tiled_mat.hpp>
-#include <summit/app/grid/single.hpp>
-#include <summit/app/grid/chipscan.hpp>
-#include <summit/app/grid/reg_mat_mk_index.hpp>
-#include <summit/app/grid/output/format_decoder.hpp>
 #include <Nucleona/proftool/timer.hpp>
 #include <summit/grid/version.hpp>
+#include "model.hpp"
+#include "utils.hpp"
+#include "pipeline.hpp"
 
 namespace summit::app::grid{
 
 struct Parameters
 {
     std::string input_path;
-    std::string chip_type;
-    int fov_ec_id;
-    std::vector<std::string> channel_names;
-    std::vector<std::string> spectrum_names;
     std::vector<std::string> output_formats;
     std::string filter;
     std::string output;
     int debug;
-    float um2px_r;
     bool  no_bgp;
     std::string shared_dir;
     std::string secure_dir;
@@ -48,40 +42,25 @@ public:
             ("help,h"           ,       "show help message")
             ("input_path,i"     ,       po::value<std::string>()->required(),                  "The input path, can be directory or file."
                                                                                                "If the path is directory, a chip_log.json file must in the directory."
-            )
-            ("chip_type,t"      ,       po::value<std::string>()->required()                      
-                                                            ->default_value(
-                                                                "zion22"
-                                                            ),                                 "Select a chip type in cell_fov.json."
-            )
-            ("fov_ec_id,f"      ,       po::value<int>()->required()
-                                                    ->default_value(0),                        "The <n>th FOV related to chip type."
-            )
-            ("channel_names,c"  ,       po::value<std::string>()->required()
-                                    ->default_value("CY3,CY5,CY3_500K,CY3_1M,CY3_2M,CY3_4M"),  "The channel going to process. (Centrillion version favor)"
-            )
-            ("spectrum_names,s" ,       po::value<std::string>()->required()
-                                                       ->default_value("2,3"),                 "The spectrum going to process. (TIRC version favor)"
+                                                                                               "If the path is a file, it must be grid_log.json"
             )
             ("output_formats,r" ,       po::value<std::string>()->required()
-                                                       ->default_value("cen"),                 "Identify the output file format"
+                                                       ->default_value("csv_probe_list"),      "Identify the output file format"
             )
             ("filter,l"         ,       po::value<std::string>()->required()
                                                        ->default_value("all"),                 "The output feature filter"
             )
-            ("output,o"         ,       po::value<std::string>()->required(),                  "The output path."
+            ("output,o"         ,       po::value<std::string>()->required()
+                                                       ->default_value(""),                    "The output path."
             )
             ("debug,d"          ,       po::value<int>()->required()
-                                                        ->default_value(0),                    "Show debug images."
-            )
-            ("um2px_r,u"        ,       po::value<float>()->required()
-                                                        ->default_value(-1.0),                 "Specify the um to pixel rate."
+                                                        ->default_value(0),                    "Verbose levels, can be [0,6] and if the level >= 2, the program will generate debug image."
             )
             ("no_bgp,b"         ,       "No background process.")
             ("shared_dir,a"     ,       po::value<std::string>()->default_value(""),           "The share directory from reader IPC to image server")
             ("secure_dir,e"     ,       po::value<std::string>()->default_value(""),           "The private directory on image server")
             ("thread_num,n"     ,       po::value<int>()->default_value(1),                    "The thread number used in the image process")
-            ("marker_append"    ,       "Show marker append")
+            ("marker_append,m"  ,       "Show marker append")
             ("version,v"        ,       "Show version info")
         ;
         po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -96,15 +75,10 @@ public:
         }
         po::notify(vm);
         Base::get_parameter( "input_path"        , input_path        );
-        Base::get_parameter( "chip_type"         , chip_type         );
-        Base::get_parameter( "fov_ec_id"         , fov_ec_id         );
-        get_parameter(       "channel_names"     , channel_names     );
-        get_parameter(       "spectrum_names"    , spectrum_names    );
         get_parameter(       "output_formats"    , output_formats    );
         Base::get_parameter( "filter"            , filter            );
         Base::get_parameter( "output"            , output            );
         Base::get_parameter( "debug"             , debug             );
-        Base::get_parameter( "um2px_r"           , um2px_r           );
         Base::get_parameter( "no_bgp"            , no_bgp            );
         Base::get_parameter( "shared_dir"        , shared_dir        );
         Base::get_parameter( "secure_dir"        , secure_dir        );
@@ -114,6 +88,10 @@ public:
         auto output_      = boost::filesystem::absolute(output);
         input_path = input_path_.make_preferred().string();
         output     = output_.make_preferred().string();
+
+        if(debug < 0 || debug > 7) {
+            throw std::runtime_error("debug level should be [0,7], but " + std::to_string(debug));
+        }
     }
 
     template< class StringType, class ParType >
@@ -135,9 +113,6 @@ class Main
 {
     // using OPTION_PARSER = OptionParser;
 
-    using Float = float;
-    using GridLineID = std::uint16_t;
-
 
     OPTION_PARSER args_;
 
@@ -146,92 +121,75 @@ class Main
     : args_( std::forward<OPTION_PARSER>( args ) )
     {}
 
-    std::vector<Task> get_tasks() {
-        namespace bfs = boost::filesystem;
-        std::cout << "input_path: " << args_.input_path << std::endl;
-        return Task::search(args_.input_path);
-    }
-    template<class Executor>
-    void task_proc(
-        const Task& tk,
-        const output::DataPaths&        output_paths,
-        const output::FormatDecoder&    fmt_decoder,
-        output::HeatmapWriter<
-            Float, 
-            GridLineID
-        >&                              heatmap_writer,
-        output::BackgroundWriter&       background_writer,
-        Executor&                       tp
-    ) {
-        switch(tk.type) {
-            case Task::single:
-                single_type_proc(
-                    tk.path, args_.chip_type, 
-                    args_.fov_ec_id, args_.um2px_r, 
-                    args_.output,
-                    args_.output_formats, tk.id(),
-                    args_.filter, args_.debug,
-                    args_.no_bgp,
-                    output_paths, heatmap_writer
-                );
-                break;
-            case Task::chipscan:
-                chipscan_type_proc(
-                    tk.path, args_.chip_type, 
-                    args_.channel_names,
-                    args_.spectrum_names,
-                    args_.um2px_r, args_.output,
-                    fmt_decoder, tk.id(),
-                    args_.filter, args_.debug,
-                    args_.no_bgp,
-                    output_paths, 
-                    args_.marker_append,
-                    heatmap_writer,
-                    background_writer,
-                    tp
-                );
-                break;
-            default:
-                break;
+    bool is_not_auto_gridding(boost::filesystem::path& grid_log_path) {
+        boost::filesystem::path path(args_.input_path);
+        path = boost::filesystem::absolute(path);
+        path = path.make_preferred();
+        if(path.filename() == "grid_log.json") {
+            grid_log_path = path;
+            return true;
+        } else {
+            return false;
         }
     }
+    
     int operator()() {
-        auto timer = nucleona::proftool::make_timer([](auto&& du){
-            std::cout << std::chrono::duration_cast<std::chrono::seconds>(du).count() 
-                << " sec." << std::endl;
-        });
-        output::DataPaths output_paths(
-            args_.output, args_.input_path,
-            args_.shared_dir, args_.secure_dir
-        );
-        output::FormatDecoder format_decoder(
-            args_.output_formats
-        );
-        output::HeatmapWriter<Float, GridLineID> heatmap_writer(
-            output_paths, format_decoder.enabled_heatmap_fmts()
-        );
-        output::BackgroundWriter background_writer(output_paths);
-        auto tp(nucleona::parallel::make_asio_pool(args_.thread_num - 1));
-        auto tasks = get_tasks();
-        for(auto&& tk : tasks) {
-            try{
-                task_proc(
-                    tk, output_paths, 
-                    format_decoder, 
-                    heatmap_writer,
-                    background_writer,
-                    tp
-                );
-            } catch ( const std::exception& e ) {
-                std::cerr << "error when process task: " << tk.path << std::endl;
-                std::cerr << e.what() << std::endl;
-                std::cout << tk.path << "skip" << std::endl;
-            }
+        summit::grid::log.set_level(std::min(args_.debug, 6));
+        chipimgproc::log.set_level(std::max(args_.debug - 1, 0));
+
+        Model model;
+        model.set_executor(args_.thread_num - 1);
+        model.set_debug(args_.debug);
+
+        boost::filesystem::path grid_log_path; 
+        std::vector<boost::filesystem::path> task_paths;
+
+        if(is_not_auto_gridding(grid_log_path)) {
+            summit::grid::log.info("input require not to auto gridding");
+            summit::grid::log.info("direct use gridding parameter in input grid log");
+            model.set_not_auto_gridding(grid_log_path.string());
+            task_paths = Utils::task_paths(
+                model.in_grid_log()["chip_dir"].get<std::string>()
+            );
+        } else {
+            summit::grid::log.info("input require auto gridding, process everything");
+            model.set_paths(
+                args_.output, args_.input_path,
+                args_.shared_dir, args_.secure_dir
+            );
+            model.set_formats(args_.output_formats);
+            model.set_marker_append(args_.marker_append);
+            model.set_filter(args_.filter);
+            model.set_no_bgp(args_.no_bgp);
+            model.set_auto_gridding(true);
+            task_paths = Utils::task_paths(model.input());
         }
+
+        std::map<
+            std::string, // rfid
+            std::vector<TaskID>  // task_path
+        > task_groups;
+        for(auto& task_path : task_paths) {
+            auto&& task_id = Utils::to_task_id(task_path);
+            task_groups[task_id.rfid()].push_back(task_id) ;
+        }
+
+        task_groups
+        | ranges::view::transform([&](auto&& tg_param){
+            auto& rfid = tg_param.first;
+            auto& task_ids = tg_param.second;
+            model::TaskGroup task_group;
+            task_group.set_model(model);
+            task_group.set_rfid(rfid);
+            task_group.set_task_ids(task_ids);
+            pipeline::rfid(task_group);
+            return 0;
+        })
+        | nucleona::range::endp
+        ;
+        summit::grid::log.info("process done");
         return 0;
     }
-    Single      single_type_proc        ;
-    ChipScan    chipscan_type_proc      ;
 };
 
 template<class OPTION_PARSER>
@@ -240,5 +198,4 @@ auto make ( OPTION_PARSER&& option_parser )
     return Main<OPTION_PARSER> ( 
         std::forward < OPTION_PARSER > ( option_parser )
     );
-}
-}
+}}

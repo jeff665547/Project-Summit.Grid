@@ -1,0 +1,70 @@
+#pragma once
+#include "level.hpp"
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <Nucleona/language.hpp>
+#include <memory>
+namespace summit::grid {
+
+constexpr struct Logger {
+private:
+    auto& console_sink() const {
+        static auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        return console_sink;
+    }
+    auto& file_sink() const {
+        static auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("summit-grid.log", true);
+        return file_sink;
+    }
+    auto create_logger() const {
+        auto log = std::make_shared<spdlog::logger>("SGRD", console_sink());
+        log->sinks().push_back(file_sink());
+        log->set_pattern("[%Y-%m-%d %H:%M:%S.%e][%n][%l][thread %t] %v");
+        return log;
+    }
+    auto& core() const {
+        static auto log(create_logger());
+        return *log;
+    }
+public:
+    template<class... Args>
+    void trace(Args&&... args) const {
+        core().trace(FWD(args)...);
+    }
+    
+    template<class... Args>
+    void debug(Args&&... args) const {
+        core().debug(FWD(args)...);
+    }
+    
+    template<class... Args>
+    void info(Args&&... args) const {
+        core().info(FWD(args)...);
+    }
+    
+    template<class... Args>
+    void warn(Args&&... args) const {
+        core().warn(FWD(args)...);
+    }
+    
+    template<class... Args>
+    void error(Args&&... args) const {
+        core().error(FWD(args)...);
+    }
+
+    template<class... Args>
+    void critical(Args&&... args) const {
+        core().critical(FWD(args)...);
+    }
+    
+    void set_level(int n)const {
+        auto level = logger::level_trans(n);
+        console_sink()->set_level(level);
+        file_sink()->set_level(level);
+        core().set_level(level);
+    }
+
+} log;
+
+}
