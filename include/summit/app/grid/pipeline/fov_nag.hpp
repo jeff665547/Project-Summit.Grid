@@ -127,6 +127,7 @@ constexpr struct FOVNAG {
             f_grid_log["gl_y"] = grid_res.gl_y;
             f_grid_log["grid_bad"] = grid_bad;
             f_grid_log["marker_region_source"] = fov_mod.mk_reg_src();
+            f_grid_log["id"] = fov_mod.in_grid_log().at("id");
             grid_done = true;
         } catch(const std::exception& e) {
             f_grid_log["grid_fail_reason"] = e.what();
