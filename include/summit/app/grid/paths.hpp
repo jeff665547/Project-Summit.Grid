@@ -249,7 +249,7 @@ private:
         const std::string& ch
     ) const {
         boost::filesystem::path viewable_tag("viewable_" + tag);
-        return ( viewable_tag / ("stitch-" + ch + ".tiff" )).string();
+        return ( viewable_tag / ("stitch-" + ch + ".png" )).string();
 
     }
     boost::filesystem::path general_prefix(

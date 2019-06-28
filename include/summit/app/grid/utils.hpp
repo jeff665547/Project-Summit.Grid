@@ -440,28 +440,29 @@ struct Utils{
         bg_file << std::flush;
     }
     static auto imread(const std::string& fname_no_ext, bool img_enc, const Paths& data_paths) {
+        cv::Mat res;
+        boost::filesystem::path fname_path_no_ext(fname_no_ext);
         if(img_enc) {
-            boost::filesystem::path fname_path_no_ext(fname_no_ext);
             std::ifstream fin(fname_no_ext + ".srl", std::ios::binary);
             summit::crypto::EncryptedScanImage en_img;
             en_img.load(fin);
-            auto res = summit::crypto::scan_image_de(en_img, "qsefthukkuhtfesq");
-            if( data_paths.secure_output_enabled()) {
-                cv::Mat small_image;
-                if( res.depth() == CV_8U ) {
-                    small_image = res;
-                } else if( res.depth() == CV_16U) {
-                    res.convertTo(small_image, CV_8U, 0.00390625);
-                }
-                cv::imwrite(
-                    (data_paths.sc_raw_img_dir() / (fname_path_no_ext.stem().string() + ".tiff")).string(), 
-                    small_image
-                );
-            }
-            return res;
+            res = summit::crypto::scan_image_de(en_img, "qsefthukkuhtfesq");
         } else {
-            return chipimgproc::imread(fname_no_ext + ".tiff");
+            res = chipimgproc::imread(fname_no_ext + ".tiff");
         }
+        if( data_paths.secure_output_enabled()) {
+            cv::Mat small_image;
+            if( res.depth() == CV_8U ) {
+                small_image = res;
+            } else if( res.depth() == CV_16U) {
+                res.convertTo(small_image, CV_8U, 0.00390625);
+            }
+            cv::imwrite(
+                (data_paths.sc_raw_img_dir() / (fname_path_no_ext.stem().string() + ".png")).string(), 
+                small_image
+            );
+        }
+        return res;
     }
     static auto imread(const std::string& fname) {
         boost::filesystem::path fpath(fname);
