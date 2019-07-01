@@ -1,4 +1,11 @@
 # ChangeLog
+## 1.0.0 - 2019.7.1
+- Feature: Formal grid log, include fov, channel and many parameters
+- Feature: None auto grid mode, use modified grid log as input, summit.grid will re-generate all output
+- Feature: Raw image generate in secure directory and grid/channels/*/viewable_raw
+- Feature: debug mode remake, thread supported log
+- Feature: Marker append image from 2x9x(3x3) => 2x9x9
+- Feature: Remove FOV image generate in grid/channels/*/viewable_norm, only preserve the stitched image
 
 ## 0.9.6 - 2019.6.10
 - Support M/pT marker type
