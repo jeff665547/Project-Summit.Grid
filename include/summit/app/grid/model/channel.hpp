@@ -63,11 +63,11 @@ struct Channel {
     auto pch_grid_view(int r, int c) const {
         return debug_img_view(r, c, "grid", false);
     }
-    auto mk_append_view(int r, int c) const {
-        return [r, c, this](const cv::Mat& view) {
+    auto mk_append_view() const {
+        return [this](const cv::Mat& view) {
             cv::Mat tmp = (view * 8.192) + 8192;
             auto path = task().model().marker_append_path(
-                task_id(), r, c, ch_name_
+                task_id(), ch_name_
             );
             cv::imwrite(path.string(), tmp);
         };
@@ -87,6 +87,52 @@ struct Channel {
         return task_->gridline(ch_name_);
     }
     template<class FOVMod>
+    void collect_fovs_mk_append(Utils::FOVMap<FOVMod>& fov_mods) {
+        Utils::FOVMap<cv::Rect> roi;
+        int y_start = 0;
+        for(auto y : nucleona::range::irange_0(task_->fov_rows())) {
+            int row_max = 0;
+            int x_start = 0;
+            for(auto x : nucleona::range::irange_0(task_->fov_cols())) {
+                cv::Point fov_id(x, y);
+                auto&& mk_a = fov_mods.at(fov_id).mk_append();
+                auto& fov_roi = roi[fov_id];
+                fov_roi.x = x_start;
+                fov_roi.y = y_start;
+                fov_roi.width  = mk_a.cols;
+                fov_roi.height = mk_a.rows;
+                summit::grid::log.trace(
+                    "fov_roi({},{},{},{})", 
+                    fov_roi.x, fov_roi.y, 
+                    fov_roi.width, fov_roi.height
+                );
+                if(row_max < mk_a.rows) {
+                    row_max = mk_a.rows;
+                }
+                x_start += mk_a.cols;
+            }
+            y_start += row_max;
+        }
+        cv::Point first(0,0);
+        cv::Point last(task_->fov_cols() - 1, task_->fov_rows() - 1);
+        auto& last_roi = roi.at(last);
+        auto& first_ma = fov_mods.at(first).mk_append();
+        cv::Mat data(
+            last_roi.y + last_roi.height, 
+            last_roi.x + last_roi.width,
+            first_ma.type()
+        );
+        for(auto y : nucleona::range::irange_0(task_->fov_rows())) {
+            for(auto x : nucleona::range::irange_0(task_->fov_cols())) {
+                cv::Point fov_id(x, y);
+                auto& fov_roi = roi.at(fov_id);
+                auto&& mk_a = fov_mods.at(fov_id).mk_append();
+                mk_a.copyTo(data(fov_roi));
+            }
+        }
+        mk_append_mat_ = data;
+    }
+    template<class FOVMod>
     void collect_fovs(Utils::FOVMap<FOVMod>& fov_mods) {
         auto& fovs = grid_log_["fovs"];
         fovs = nlohmann::json::array();
@@ -94,6 +140,7 @@ struct Channel {
             fovs.push_back(fov.grid_log());
         }
         multi_tiled_mat_ = make_multi_tiled_mat(fov_mods, *task_);
+        collect_fovs_mk_append(fov_mods);
     }
     template<class GLID>
     void set_gridline(
@@ -110,8 +157,16 @@ struct Channel {
         }
         grid_log_["grid_done"] = flag;
     }
+    void update_grid_bad() {
+        bool flag = false;
+        for(auto&& fov_log : grid_log_.at("fovs")) {
+            flag = flag || fov_log.at("grid_bad").get<bool>();
+        }
+        grid_log_["grid_bad"] = flag;
+    }
     void set_grid_failed(const std::string& reason) {
         grid_log_["grid_done"] = false;
+        grid_log_["grid_bad"] = true;
         grid_log_["grid_fail_reason"] = reason;
     }
     auto& in_grid_log() const {
@@ -121,6 +176,7 @@ struct Channel {
     VAR_GET(std::string,                            ch_name             )
     VAR_GET(int,                                    id                  )
     VAR_IO(OptMTMat,                                multi_tiled_mat     )
+    VAR_IO(cv::Mat,                                 mk_append_mat       )
     VAR_IO(nlohmann::json,                          grid_log            )
 
     VAR_PTR_GET(Task,                               task)

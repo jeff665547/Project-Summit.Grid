@@ -451,15 +451,21 @@ struct Utils{
             res = chipimgproc::imread(fname_no_ext + ".tiff");
         }
         if( data_paths.secure_output_enabled()) {
-            cv::Mat small_image;
-            if( res.depth() == CV_8U ) {
-                small_image = res;
-            } else if( res.depth() == CV_16U) {
-                res.convertTo(small_image, CV_8U, 0.00390625);
-            }
+            // cv::Mat small_image = res;
+            // if( res.depth() == CV_8U ) {
+            //     small_image = res;
+            // } else if( res.depth() == CV_16U) {
+            //     res.convertTo(small_image, CV_8U, 0.00390625);
+            // }
+            // cv::imwrite(
+            //     (data_paths.sc_raw_img_dir() 
+            //         / (fname_path_no_ext.stem().string() + ".png")).string(), 
+            //     small_image
+            // );
             cv::imwrite(
-                (data_paths.sc_raw_img_dir() / (fname_path_no_ext.stem().string() + ".png")).string(), 
-                small_image
+                (data_paths.sc_raw_img_dir() 
+                    / (fname_path_no_ext.stem().string() + ".png")).string(), 
+                res
             );
         }
         return res;

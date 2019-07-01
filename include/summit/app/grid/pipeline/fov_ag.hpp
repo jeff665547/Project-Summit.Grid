@@ -68,7 +68,7 @@ constexpr struct FOVAG {
         auto& grid_bad   = fov_mod.proc_bad();
         auto& grid_done  = fov_mod.proc_done();
         auto& task       = fov_mod.channel().task();
-        auto log_prefix   = fmt::format("[{}-{}-({},{})]", 
+        auto log_prefix  = fmt::format("[{}-{}-({},{})]", 
             task.id().chip_id(), channel.ch_name(), fov_id.x, fov_id.y
         );
         summit::grid::log.trace(
@@ -145,12 +145,22 @@ constexpr struct FOVAG {
             // auto fov_norm_path = channel.fov_image("norm", fov_id.y, fov_id.x);
             // cv::imwrite(fov_norm_path.string(), chipimgproc::viewable(mat));
 
+            // write raw result
+            auto fov_norm_path = channel.fov_image("raw", fov_id.y, fov_id.x);
+            auto x0 = grid_res.gl_x.at(0);
+            auto y0 = grid_res.gl_y.at(0);
+            auto x_d = grid_res.gl_x.back() - x0;
+            auto y_d = grid_res.gl_y.back() - y0;
+            cv::imwrite(fov_norm_path.string(), mat(
+                cv::Rect(x0, y0, x_d, y_d)
+            ));
+
             if(task.model().marker_append()) {
                 auto mk_append_res = cmk::roi_append(
                     mat, mk_layout, mk_regs
                 );
-                fov_mod.mk_append_view()(
-                    mk_append_res
+                fov_mod.set_mk_append(
+                    std::move(mk_append_res)
                 );
             }
             auto tiled_mat = cimp::TiledMat<>::make_from_grid_res(
@@ -207,12 +217,14 @@ constexpr struct FOVAG {
         } catch(const std::exception& e) {
             f_grid_log["grid_fail_reason"] = e.what();
             grid_done = false;
+            grid_bad = true;
             summit::grid::log.error(
                 "channel: {}, FOV: ({},{}) process failed, reason: {}", 
                 channel.ch_name(), fov_id.x, fov_id.y, e.what()
             );
         }
         f_grid_log["grid_done"] = grid_done;
+        f_grid_log["grid_bad"] = grid_bad;
         return grid_done;
     }
     __alias::crot::Calibrate                    rotate_calibrator       ;

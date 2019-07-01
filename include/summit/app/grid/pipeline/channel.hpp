@@ -105,19 +105,21 @@ constexpr struct Channel {
             bg_value[fov_id] = Utils::mean(fov_mod.bg_means());
         }
         channel.background_writer()(bg_value);
-        
+
+        // marker append
+        channel.mk_append_view()(channel.mk_append_mat());
     }
     decltype(auto) operator()(model::Channel& channel) const {
         try{
             gridding(channel);
             channel.update_grid_done();
+            channel.update_grid_bad();
         } catch (const std::exception& e) {
             channel.set_grid_failed(e.what());
             summit::grid::log.error(
                 "channel: {} process failed, reason: {}", channel.ch_name(), e.what()
             );
         }
-        // channel.write_log();
         return channel.grid_log().at("grid_done").get<bool>();
     }
 private:

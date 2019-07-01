@@ -157,7 +157,7 @@ struct Task {
     VAR_GET(std::uint32_t,                  spec_w_cl           )
     VAR_GET(float,                          proc_time           )
     VAR_GET(bool,                           grid_done           )
-    VAR_GET(summit::app::grid::TaskID,     id                  )
+    VAR_GET(summit::app::grid::TaskID,      id                  )
 
     VAR_PTR_GET(Model,                      model               )
     VAR_PTR_GET(nlohmann::json,             chipinfo            )

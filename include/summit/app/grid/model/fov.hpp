@@ -50,9 +50,6 @@ struct FOV {
     auto pch_grid_view() const {
         return channel_->pch_grid_view(fov_id_.y, fov_id_.x);
     }
-    auto mk_append_view() const {
-        return channel_->mk_append_view(fov_id_.y, fov_id_.x);
-    }
     auto& take_tiled_mat() {
         return tiled_mat_;
     }
@@ -77,6 +74,7 @@ struct FOV {
     VAR_IO(std::vector<CimpMKRegion>,           mk_regs                 );
     VAR_IO(std::vector<cv::Point>,              low_score_marker_idx    );
     VAR_IO(std::string,                         mk_reg_src              ); // white channel, probe channel
+    VAR_IO(cv::Mat,                             mk_append               );
 
     VAR_PTR_GET(Channel,                        channel                 );
     VAR_PTR_GET(nlohmann::json,                 in_grid_log             );

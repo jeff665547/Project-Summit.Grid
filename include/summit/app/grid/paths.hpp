@@ -58,19 +58,14 @@ struct Paths {
         if(!enable_secure_output_) throw std::runtime_error("secure output not enable");
         auto chip_log = secure_output_ / "chip_log.json";
         return check_path(chip_log);
-
     }
     boost::filesystem::path marker_append_path(
         const std::string& task_id,
-        int r, int c, const std::string& ch
+        const std::string& ch
     ) const {
         boost::filesystem::path odir(output_);
-        auto res = check_path(odir / "marker_append" / (
-            task_id + "-" + 
-            std::to_string(r) + "-" + std::to_string(c) + "-" + ch +
-            ".tiff"
-        ));
-        // std::cout << "marker append path: " << res << std::endl;
+        auto file_name = fmt::format("{}-{}.tiff", task_id, ch);
+        auto res = check_path(odir / "marker_append" / file_name);
         return res;
     }
     boost::filesystem::path input() const {

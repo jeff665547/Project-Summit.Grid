@@ -78,8 +78,8 @@ constexpr struct FOVNAG {
                 auto mk_append_res = cmk::roi_append(
                     mat, mk_layout, mk_regs
                 );
-                fov_mod.mk_append_view()(
-                    mk_append_res
+                fov_mod.set_mk_append(
+                    std::move(mk_append_res)
                 );
             }
             auto tiled_mat = cimp::TiledMat<>::make_from_grid_res(
