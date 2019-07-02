@@ -55,16 +55,27 @@ constexpr struct FOVNAG {
             );
             // gridding
             auto grid_res = gridder(
-                in_grid_log.at("gl_x").get<std::vector<std::uint32_t>>(),
-                in_grid_log.at("gl_y").get<std::vector<std::uint32_t>>(),
+                Utils::abs_px(
+                    in_grid_log.at("x0_px").get<double>(),
+                    in_grid_log.at("du_x").get<std::vector<double>>(),
+                    task.um2px_r()
+                ),
+                Utils::abs_px(
+                    in_grid_log.at("y0_px").get<double>(),
+                    in_grid_log.at("du_y").get<std::vector<double>>(),
+                    task.um2px_r()
+                ),
                 fov_mod.pch_grid_view(),
                 &mat
             );
             grid_bad = false;
             // marker location
+            auto ru32 = [](auto&& v){ 
+                return (std::uint32_t)std::round(v);
+            };
             auto mk_regs = cmk_det::layout_lookup(
-                grid_res.gl_x, 
-                grid_res.gl_y, 
+                grid_res.gl_x | ranges::view::transform(ru32), 
+                grid_res.gl_y | ranges::view::transform(ru32), 
                 mk_layout
             );
             fov_mod.set_mk_reg_src("gridline_infer");
@@ -123,8 +134,10 @@ constexpr struct FOVNAG {
             fov_mod.set_tiled_mat(std::move(tiled_mat));
             fov_mod.set_stat_mats(std::move(margin_res.stat_mats));
             fov_mod.set_bg_means(std::move(bg_value));
-            f_grid_log["gl_x"] = grid_res.gl_x;
-            f_grid_log["gl_y"] = grid_res.gl_y;
+            f_grid_log["x0_px"] = in_grid_log.at("x0_px");
+            f_grid_log["y0_px"] = in_grid_log.at("y0_px");
+            f_grid_log["du_x"] = in_grid_log.at("du_x");
+            f_grid_log["du_y"] = in_grid_log.at("du_y");
             f_grid_log["grid_bad"] = grid_bad;
             f_grid_log["marker_region_source"] = fov_mod.mk_reg_src();
             f_grid_log["id"] = fov_mod.in_grid_log().at("id");

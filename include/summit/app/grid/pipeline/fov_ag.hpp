@@ -204,8 +204,10 @@ constexpr struct FOVAG {
             fov_mod.set_tiled_mat(std::move(tiled_mat));
             fov_mod.set_stat_mats(std::move(margin_res.stat_mats));
             fov_mod.set_bg_means(std::move(bg_value));
-            f_grid_log["gl_x"] = grid_res.gl_x;
-            f_grid_log["gl_y"] = grid_res.gl_y;
+            f_grid_log["x0_px"] = std::round(grid_res.gl_x[0] * 100) / 100;
+            f_grid_log["y0_px"] = std::round(grid_res.gl_y[0] * 100) / 100;
+            f_grid_log["du_x"] = Utils::du_um(grid_res.gl_x, task.um2px_r());
+            f_grid_log["du_y"] = Utils::du_um(grid_res.gl_y, task.um2px_r());
             f_grid_log["grid_bad"] = grid_bad;
             f_grid_log["marker_region_source"] = fov_mod.mk_reg_src();
             auto& fov_log_id = f_grid_log["id"];

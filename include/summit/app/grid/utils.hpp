@@ -639,6 +639,27 @@ struct Utils{
         }
         return sum / ranges::distance(rng);
     }
+    static auto du_um(const std::vector<double>& gl, float um2px_r) {
+        std::vector<double> res(gl.size() - 1);
+        for(std::size_t i = 0; i < res.size(); i ++ ) {
+            res.at(i) = static_cast<int>(std::round(
+                (gl.at(i + 1) - gl.at(i)
+            ) / um2px_r * 1000)) * 0.001;
+        }
+        return res;
+    }
+    static auto abs_px(
+        double org,
+        const std::vector<double>& gl_du, 
+        float um2px_r
+    ) {
+        std::vector<double> res(gl_du.size() + 1);
+        res.at(0) = org;
+        for(std::size_t i = 0 ; i < gl_du.size(); i ++ ) {
+            res.at(i + 1) = gl_du.at(i) * um2px_r + res.at(i);
+        }
+        return res;
+    }
 };
 
 }
