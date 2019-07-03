@@ -51,10 +51,6 @@ hunter_config(
     OpenCV-Extra
     VERSION "3.4.0"
 )
-hunter_config(
-    Boost
-    VERSION "1.64.0"
-)
 hunter_config(SummitCrypto GIT_SUBMODULE "lib/Summit.Crypto"
     CMAKE_ARGS
         BUILD_TESTS=OFF
