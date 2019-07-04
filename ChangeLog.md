@@ -1,5 +1,5 @@
 # ChangeLog
-## 1.0.1-dev - 2019.7.3
+## 1.0.1 - 2019.7.4
 - Feature: Use micron distance to record the grid line position in grid log
 - Bugfix: marker append FOV add boundary highlight
 
