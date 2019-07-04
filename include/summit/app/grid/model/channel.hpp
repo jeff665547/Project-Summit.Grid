@@ -65,11 +65,10 @@ struct Channel {
     }
     auto mk_append_view() const {
         return [this](const cv::Mat& view) {
-            cv::Mat tmp = (view * 8.192) + 8192;
             auto path = task().model().marker_append_path(
                 task_id(), ch_name_
             );
-            cv::imwrite(path.string(), tmp);
+            cv::imwrite(path.string(), view);
         };
     }
     auto fov_image(
@@ -127,7 +126,12 @@ struct Channel {
                 cv::Point fov_id(x, y);
                 auto& fov_roi = roi.at(fov_id);
                 auto&& mk_a = fov_mods.at(fov_id).mk_append();
-                mk_a.copyTo(data(fov_roi));
+                cv::Mat tmp = (mk_a * 8.192) + 8192;
+                tmp.copyTo(data(fov_roi));
+                auto white = chipimgproc::cmax(data.depth());
+                auto gray = (int)std::round(white / 2);
+                summit::grid::log.trace("gray: {}", gray);
+                cv::rectangle(data, fov_roi, gray, 1);
             }
         }
         mk_append_mat_ = data;
