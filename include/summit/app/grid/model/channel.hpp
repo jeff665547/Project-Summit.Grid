@@ -130,7 +130,6 @@ struct Channel {
                 tmp.copyTo(data(fov_roi));
                 auto white = chipimgproc::cmax(data.depth());
                 auto gray = (int)std::round(white / 2);
-                summit::grid::log.trace("gray: {}", gray);
                 cv::rectangle(data, fov_roi, gray, 1);
             }
         }
