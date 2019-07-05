@@ -120,6 +120,9 @@ struct Task {
         fout << chip_log_;
         fout.close();
     }
+    bool support_aruco() const {
+        return origin_infer_algo_ == "aruco_detection";
+    }
 
     VAR_GET(nlohmann::json,                 chip_log            )
     VAR_GET(nlohmann::json,                 grid_log            )
@@ -157,6 +160,7 @@ struct Task {
     VAR_GET(std::uint32_t,                  spec_w_cl           )
     VAR_GET(float,                          proc_time           )
     VAR_GET(bool,                           grid_done           )
+    VAR_GET(std::string,                    origin_infer_algo   )
     VAR_GET(summit::app::grid::TaskID,      id                  )
 
     VAR_PTR_GET(Model,                      model               )
@@ -196,8 +200,22 @@ private:
         chip_info_name_   = chipinfo_->at("name");
         chip_spec_name_   = chipinfo_->at("spec").at("name");
         origin_infer_     = &chipinfo_->at("origin_infer");
-        db_key_           = origin_infer_->at("db_key");
-        cell_size_px_     = origin_infer_->at("cell_size_px");
+        origin_infer_algo_= origin_infer_->at("algo");
+        if(support_aruco()) {
+            db_key_           = origin_infer_->at("db_key");
+            pyramid_level_    = origin_infer_->at("pyramid_level");
+            nms_count_        = origin_infer_->at("nms_count");
+            cell_size_px_     = origin_infer_->at("cell_size_px");
+            aruco_marker_     = &chipspec_->at("aruco_marker");
+            id_map_           = &aruco_marker_->at("id_map");
+            border_bits_      = aruco_marker_->at("border_bits");
+            fringe_bits_      = aruco_marker_->at("fringe_bits");
+            bit_w_            = aruco_marker_->at("bit_w");
+            margin_size_      = aruco_marker_->at("margin_size");
+            nms_radius_       = aruco_marker_->at("nms_radius");
+            frame_template_   = (summit::install_path() / aruco_marker_->at("frame_template").get<std::string>()).make_preferred();
+            frame_mask_       = (summit::install_path() / aruco_marker_->at("frame_mask").get<std::string>()).make_preferred();
+        }
 
         // chipinfo_->erase("spec");
 
@@ -209,11 +227,9 @@ private:
         cell_h_um_        = chipspec_->at("cell_w_um");
         cell_w_um_        = chipspec_->at("cell_h_um");
         space_um_         = chipspec_->at("space_um");
-        aruco_marker_     = &chipspec_->at("aruco_marker");
         shooting_marker_  = &chipspec_->at("shooting_marker");
         spec_h_cl_        = chipspec_->at("h_cl");
         spec_w_cl_        = chipspec_->at("w_cl");
-        id_map_           = &aruco_marker_->at("id_map");
 
         sh_mk_pats_cl_    = &shooting_marker_->at("mk_pats_cl");
         sh_mk_pos_cl_     = &shooting_marker_->at("position_cl");
@@ -221,17 +237,7 @@ private:
         mk_wd_cl_         = sh_mk_pos_cl_->at("w_d");
         mk_hd_cl_         = sh_mk_pos_cl_->at("h_d");
 
-        pyramid_level_    = origin_infer_->at("pyramid_level");
-        nms_count_        = origin_infer_->at("nms_count");
-        cell_size_px_     = origin_infer_->at("cell_size_px");
 
-        border_bits_      = aruco_marker_->at("border_bits");
-        fringe_bits_      = aruco_marker_->at("fringe_bits");
-        bit_w_            = aruco_marker_->at("bit_w");
-        margin_size_      = aruco_marker_->at("margin_size");
-        nms_radius_       = aruco_marker_->at("nms_radius");
-        frame_template_   = (summit::install_path() / aruco_marker_->at("frame_template").get<std::string>()).make_preferred();
-        frame_mask_       = (summit::install_path() / aruco_marker_->at("frame_mask").get<std::string>()).make_preferred();
 
         // TODO: all use cache
         fov_marker_num_   = Utils::generate_fov_marker_num(

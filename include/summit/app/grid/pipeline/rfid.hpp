@@ -20,10 +20,15 @@ constexpr struct RFID {
         Chip chip;
         task_group.task_ids()
         | ranges::view::transform([&](auto&& task_id){
-            model::Task task;
-            task.set_model(task_group.model());
-            task.set_task_id(task_id);
-            return chip(task);
+            try {
+                model::Task task;
+                task.set_model(task_group.model());
+                task.set_task_id(task_id);
+                return chip(task);
+            } catch(const std::exception& e) {
+                summit::grid::log.error("BUG: {}", e.what());
+                return 1;
+            }
         })
         | nucleona::range::p_endp(
             task_group.model().executor()

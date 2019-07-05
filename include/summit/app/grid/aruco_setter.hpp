@@ -11,6 +11,7 @@ constexpr struct ArUcoSetter {
        const model::Task& task
     ) const {
         if(!task.um_to_px_r_done()) return false;
+        if(!task.support_aruco()) return false;
 
         auto& arucodb = summit::config::arucodb();
         marker_detector.set_dict(arucodb, task.db_key());
