@@ -1,5 +1,5 @@
 # ChangeLog
-## 1.0.2-dev - 2019.7.5
+## 1.0.2 - 2019.7.11
 - Bugfix: ZION chip gridding failed
 
 ## 1.0.1 - 2019.7.4
