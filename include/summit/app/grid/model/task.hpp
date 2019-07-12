@@ -201,6 +201,7 @@ private:
         chip_spec_name_   = chipinfo_->at("spec").at("name");
         origin_infer_     = &chipinfo_->at("origin_infer");
         origin_infer_algo_= origin_infer_->at("algo");
+        chipspec_         = &summit::config::chip().get_spec(chip_spec_name_);
         if(support_aruco()) {
             db_key_           = origin_infer_->at("db_key");
             pyramid_level_    = origin_infer_->at("pyramid_level");
@@ -223,7 +224,6 @@ private:
         fov_rows_         = fov_->at("fov").at("rows");
         fov_cols_         = fov_->at("fov").at("cols");
 
-        chipspec_         = &summit::config::chip().get_spec(chip_spec_name_);
         cell_h_um_        = chipspec_->at("cell_w_um");
         cell_w_um_        = chipspec_->at("cell_h_um");
         space_um_         = chipspec_->at("space_um");

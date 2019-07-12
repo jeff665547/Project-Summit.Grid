@@ -1,6 +1,9 @@
 # ChangeLog
+## 1.0.3-dev - 2019.7.12
+- Bugfix: BANFF chip crash (from 1.0.2)
+
 ## 1.0.2 - 2019.7.11
-- Bugfix: ZION chip gridding failed
+- Bugfix: ZION chip gridding failed (from 1.0.0)
 
 ## 1.0.1 - 2019.7.4
 - Feature: Use micron distance to record the grid line position in grid log
