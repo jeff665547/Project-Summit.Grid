@@ -123,6 +123,17 @@ struct Task {
     bool support_aruco() const {
         return origin_infer_algo_ == "aruco_detection";
     }
+    void collect_fovs_mk_append(Utils::FOVMap<cv::Mat>& fov_mk_append) {
+        auto wh_mk_append_mat = Utils::make_fovs_mk_append(
+            fov_mk_append, 
+            fov_rows(), fov_cols(),
+            [](auto&& mat){ return mat; }
+        );
+        auto path = model().marker_append_path(
+            id_.string(), ""
+        );
+        cv::imwrite(path.string(), wh_mk_append_mat);
+    }
 
     VAR_GET(nlohmann::json,                 chip_log            )
     VAR_GET(nlohmann::json,                 grid_log            )
@@ -176,6 +187,8 @@ struct Task {
     VAR_PTR_GET(MarkerPatterns,             marker_patterns     )
 
     VAR_LOCAL_PTR_GET(nlohmann::json,       channel_log         )
+
+    // VAR_IO(cv::Mat,                         wh_mk_append_mat    )
 private:
     void set_chip_dir(const boost::filesystem::path& path) {
         channel_log_ = &grid_log_["channels"];

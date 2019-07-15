@@ -64,7 +64,12 @@ struct Paths {
         const std::string& ch
     ) const {
         boost::filesystem::path odir(output_);
-        auto file_name = fmt::format("{}-{}.tiff", task_id, ch);
+        std::string file_name;
+        if(ch.empty()) {
+            file_name = fmt::format("{}.tiff", task_id);
+        } else {
+            file_name = fmt::format("{}-{}.tiff", task_id, ch);
+        }
         auto res = check_path(odir / "marker_append" / file_name);
         return res;
     }

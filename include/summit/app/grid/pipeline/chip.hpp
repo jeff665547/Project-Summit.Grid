@@ -10,6 +10,7 @@
 #include <Nucleona/util/remove_const.hpp>
 #include <summit/app/grid/model/marker_base.hpp>
 #include <ChipImgProc/algo/um2px_auto_scale.hpp>
+#include <summit/app/grid/white_mk_append.hpp>
 
 namespace summit::app::grid::pipeline {
 namespace __alias {
@@ -41,7 +42,8 @@ struct Chip {
                 rotate_calibrator(mat, theta /*debug viewer*/);
             }
         );
-        auto& executor = task.model().executor();
+        auto& executor  = task.model().executor();
+        auto& model     = task.model();
         
         task.set_white_channel_imgs(Utils::read_white_channel(
             task.channels(),
@@ -62,8 +64,10 @@ struct Chip {
         std::vector<float> um2px_rs (task.white_channel_imgs().size());
         std::vector<bool>  success  (task.white_channel_imgs().size());
         Utils::FOVMarkerRegionMap fov_marker_regs;
+        Utils::FOVMap<cv::Mat>    fov_mk_append;
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
             fov_marker_regs[fov_id] = {};
+            fov_mk_append[fov_id] = cv::Mat();
         }
 
         task.white_channel_imgs()
@@ -95,6 +99,12 @@ struct Chip {
                     task.mk_hd_um(),
                     nucleona::stream::null_out
                 );
+                if(model.marker_append()) {
+                    auto fov_wh_mk_append = white_mk_append(
+                        mat_loc, mk_regs, task, um2px_r
+                    );
+                    fov_mk_append.at(fov_id) = fov_wh_mk_append;
+                }
                 // std::cout << "white channel detect um2px rate " 
                 //     << fov_id << ": " << um2px_r << std::endl;
 
@@ -136,6 +146,9 @@ struct Chip {
         task.set_rot_degree(rot_deg);
         task.set_um2px_r(um2px_r);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
+        if(model.marker_append()) {
+            task.collect_fovs_mk_append(fov_mk_append);
+        }
         return true;
     }
     bool probe_channel_proc(model::Task& task) const {

@@ -87,53 +87,16 @@ struct Channel {
     }
     template<class FOVMod>
     void collect_fovs_mk_append(Utils::FOVMap<FOVMod>& fov_mods) {
-        Utils::FOVMap<cv::Rect> roi;
-        int y_start = 0;
-        for(auto y : nucleona::range::irange_0(task_->fov_rows())) {
-            int row_max = 0;
-            int x_start = 0;
-            for(auto x : nucleona::range::irange_0(task_->fov_cols())) {
-                cv::Point fov_id(x, y);
-                auto&& mk_a = fov_mods.at(fov_id).mk_append();
-                auto& fov_roi = roi[fov_id];
-                fov_roi.x = x_start;
-                fov_roi.y = y_start;
-                fov_roi.width  = mk_a.cols;
-                fov_roi.height = mk_a.rows;
-                summit::grid::log.trace(
-                    "fov_roi({},{},{},{})", 
-                    fov_roi.x, fov_roi.y, 
-                    fov_roi.width, fov_roi.height
-                );
-                if(row_max < mk_a.rows) {
-                    row_max = mk_a.rows;
-                }
-                x_start += mk_a.cols;
-            }
-            y_start += row_max;
+        Utils::FOVMap<cv::Mat> fov_mats;
+        for(auto&& [fov_id, mod] : fov_mods) {
+            fov_mats[fov_id] = mod.mk_append();
         }
-        cv::Point first(0,0);
-        cv::Point last(task_->fov_cols() - 1, task_->fov_rows() - 1);
-        auto& last_roi = roi.at(last);
-        auto& first_ma = fov_mods.at(first).mk_append();
-        cv::Mat data(
-            last_roi.y + last_roi.height, 
-            last_roi.x + last_roi.width,
-            first_ma.type()
+        mk_append_mat_ = Utils::make_fovs_mk_append(fov_mats, 
+            task_->fov_rows(), task_->fov_cols(),
+            [](auto&& mat) {
+                return (mat * 8.192) + 8.192;
+            }
         );
-        for(auto y : nucleona::range::irange_0(task_->fov_rows())) {
-            for(auto x : nucleona::range::irange_0(task_->fov_cols())) {
-                cv::Point fov_id(x, y);
-                auto& fov_roi = roi.at(fov_id);
-                auto&& mk_a = fov_mods.at(fov_id).mk_append();
-                cv::Mat tmp = (mk_a * 8.192) + 8192;
-                tmp.copyTo(data(fov_roi));
-                auto white = chipimgproc::cmax(data.depth());
-                auto gray = (int)std::round(white / 2);
-                cv::rectangle(data, fov_roi, gray, 1);
-            }
-        }
-        mk_append_mat_ = data;
     }
     template<class FOVMod>
     void collect_fovs(Utils::FOVMap<FOVMod>& fov_mods) {

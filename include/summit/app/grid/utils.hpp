@@ -495,7 +495,7 @@ struct Utils{
     using FOVImages= Utils::FOVMap<
         std::tuple<
             boost::filesystem::path,
-            cv::Mat_<std::uint16_t>
+            cv::Mat_<Int>
         >
     >;
     template<class Channels>
@@ -519,7 +519,7 @@ struct Utils{
                 ;
                 auto img_path = src_path / ss.str();
                 // std::cout << "read white channel image: " << img_path << std::endl;
-                cv::Mat_<std::uint16_t> img = Utils::imread(
+                cv::Mat_<std::uint8_t> img = Utils::imread(
                     img_path.string(), img_enc, data_paths
                 );
                 // chipimgproc::info(std::cout, img);
@@ -659,6 +659,61 @@ struct Utils{
             res.at(i + 1) = gl_du.at(i) * um2px_r + res.at(i);
         }
         return res;
+    }
+    template<class Func>
+    static auto make_fovs_mk_append(
+        Utils::FOVMap<cv::Mat>& fov_mk_append, 
+        int fov_rows, int fov_cols,
+        Func&& light_tf
+    ) {
+        Utils::FOVMap<cv::Rect> roi;
+        int y_start = 0;
+        for(auto y : nucleona::range::irange_0(fov_rows)) {
+            int row_max = 0;
+            int x_start = 0;
+            for(auto x : nucleona::range::irange_0(fov_cols)) {
+                cv::Point fov_id(x, y);
+                auto&& mk_a = fov_mk_append.at(fov_id);
+                auto& fov_roi = roi[fov_id];
+                fov_roi.x = x_start;
+                fov_roi.y = y_start;
+                fov_roi.width  = mk_a.cols;
+                fov_roi.height = mk_a.rows;
+                summit::grid::log.trace(
+                    "fov_roi({},{},{},{})", 
+                    fov_roi.x, fov_roi.y, 
+                    fov_roi.width, fov_roi.height
+                );
+                if(row_max < mk_a.rows) {
+                    row_max = mk_a.rows;
+                }
+                x_start += mk_a.cols;
+            }
+            y_start += row_max;
+        }
+        cv::Point first(0,0);
+        cv::Point last(fov_cols - 1, fov_rows - 1);
+        auto& last_roi = roi.at(last);
+        auto& first_ma = fov_mk_append.at(first);
+        cv::Mat data(
+            last_roi.y + last_roi.height, 
+            last_roi.x + last_roi.width,
+            first_ma.type()
+        );
+        for(auto y : nucleona::range::irange_0(fov_rows)) {
+            for(auto x : nucleona::range::irange_0(fov_cols)) {
+                cv::Point fov_id(x, y);
+                auto& fov_roi = roi.at(fov_id);
+                auto&& mk_a = fov_mk_append.at(fov_id);
+                cv::Mat tmp = light_tf(mk_a);
+                // cv::Mat tmp = (mk_a * 8.192) + 8192;
+                tmp.copyTo(data(fov_roi));
+                auto white = chipimgproc::cmax(data.depth());
+                auto gray = (int)std::round(white / 2);
+                cv::rectangle(data, fov_roi, gray, 1);
+            }
+        }
+        return data;
     }
 };
 

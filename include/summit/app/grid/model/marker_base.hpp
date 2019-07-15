@@ -4,6 +4,7 @@
 #include <summit/config/chip.hpp>
 #include <ChipImgProc/marker/loader.hpp>
 #include <mutex>
+#include <summit/utils.h>
 namespace summit::app::grid::model {
 
 struct MarkersPair {

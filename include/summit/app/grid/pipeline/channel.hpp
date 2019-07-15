@@ -107,7 +107,9 @@ constexpr struct Channel {
         channel.background_writer()(bg_value);
 
         // marker append
-        channel.mk_append_view()(channel.mk_append_mat());
+        if(model.marker_append()) {
+            channel.mk_append_view()(channel.mk_append_mat());
+        }
     }
     decltype(auto) operator()(model::Channel& channel) const {
         try{
