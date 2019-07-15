@@ -1,4 +1,7 @@
 # ChangeLog
+## 1.0.4-dev - 2019.7.15
+- Feature: Add white marker append
+
 ## 1.0.3 - 2019.7.12
 - Bugfix: BANFF chip crash (from 1.0.2)
 
