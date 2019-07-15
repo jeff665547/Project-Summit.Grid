@@ -1,5 +1,5 @@
 # ChangeLog
-## 1.0.3-dev - 2019.7.12
+## 1.0.3 - 2019.7.12
 - Bugfix: BANFF chip crash (from 1.0.2)
 
 ## 1.0.2 - 2019.7.11
