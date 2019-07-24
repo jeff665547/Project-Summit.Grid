@@ -53,6 +53,7 @@ struct Task {
                 return nucleona::make_tuple(std::move(i), ch);
             }
         }
+        throw std::runtime_error("the chip log doesn't include any probe channel");
     }
     const MarkersPair& get_marker_patterns(const std::string& marker_type) {
         return marker_patterns_->at(marker_type);

@@ -5,6 +5,7 @@
 #include <summit/utils.h>
 #include <ChipImgProc/marker/loader.hpp>
 #include <numeric>
+#include <fmt/format.h>
 namespace summit::app::light_mean {
 
 struct Core {
@@ -19,6 +20,9 @@ struct Core {
                     summit::install_path() / mkp["path"].get<std::string>();
             }
         }
+        throw std::runtime_error(
+            fmt::format("marker type: {}, doesn't exist in current chip info", marker_type)
+        );
     }
     std::vector<float> extract_light_probe(
         const cv::Mat_<std::uint8_t>&   marker_spec, 
