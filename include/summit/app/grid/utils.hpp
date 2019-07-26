@@ -668,6 +668,7 @@ struct Utils{
     ) {
         Utils::FOVMap<cv::Rect> roi;
         int y_start = 0;
+        int x_max(0), y_max(0);
         for(auto y : nucleona::range::irange_0(fov_rows)) {
             int row_max = 0;
             int x_start = 0;
@@ -684,22 +685,20 @@ struct Utils{
                     fov_roi.x, fov_roi.y, 
                     fov_roi.width, fov_roi.height
                 );
-                if(row_max < mk_a.rows) {
-                    row_max = mk_a.rows;
-                }
+                row_max = std::max(row_max, mk_a.rows);
                 x_start += mk_a.cols;
             }
+            x_max = std::max(x_max, x_start);
             y_start += row_max;
         }
+        y_max = std::max(y_max, y_start);
         cv::Point first(0,0);
-        cv::Point last(fov_cols - 1, fov_rows - 1);
-        auto& last_roi = roi.at(last);
         auto& first_ma = fov_mk_append.at(first);
         cv::Mat data(
-            last_roi.y + last_roi.height, 
-            last_roi.x + last_roi.width,
+            y_max, x_max, 
             first_ma.type()
         );
+        summit::grid::log.trace("data size: ({},{})", data.cols, data.rows);
         for(auto y : nucleona::range::irange_0(fov_rows)) {
             for(auto x : nucleona::range::irange_0(fov_cols)) {
                 cv::Point fov_id(x, y);
@@ -707,6 +706,7 @@ struct Utils{
                 auto&& mk_a = fov_mk_append.at(fov_id);
                 cv::Mat tmp = light_tf(mk_a);
                 // cv::Mat tmp = (mk_a * 8.192) + 8192;
+                summit::grid::log.trace("fov_roi: ({},{},{},{})", fov_roi.x, fov_roi.y, fov_roi.width, fov_roi.height);
                 tmp.copyTo(data(fov_roi));
                 auto white = chipimgproc::cmax(data.depth());
                 auto gray = (int)std::round(white / 2);

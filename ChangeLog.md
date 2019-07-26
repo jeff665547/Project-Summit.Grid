@@ -1,5 +1,5 @@
 # ChangeLog
-## 1.0.4-dev - 2019.7.22
+## 1.0.4 - 2019.7.22
 - Feature: Add white marker append
 - Update: Update run batch script
 
