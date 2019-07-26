@@ -1,4 +1,8 @@
 # ChangeLog
+
+## 1.0.5 - 2019.7.27
+- Bugfix: None auto grid sometimes crash(marker append ROI bug)
+
 ## 1.0.4 - 2019.7.22
 - Feature: Add white marker append
 - Update: Update run batch script
