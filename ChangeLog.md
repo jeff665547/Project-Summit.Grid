@@ -1,4 +1,5 @@
 # ChangeLog
+## 1.0.6-dev - 2019.7.27
 
 ## 1.0.5 - 2019.7.27
 - Bugfix: None auto grid sometimes crash(marker append ROI bug)
