@@ -1,4 +1,7 @@
 # ChangeLog
+
+## 1.0.7-dev - 2019.8.16
+
 ## 1.0.6 - 2019.8.16
 - Bugfix: Crypto algorithm
 
