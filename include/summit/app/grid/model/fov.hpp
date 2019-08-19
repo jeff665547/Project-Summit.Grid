@@ -50,6 +50,12 @@ struct FOV {
     auto pch_grid_view() const {
         return channel_->pch_grid_view(fov_id_.y, fov_id_.x);
     }
+    auto pch_margin_view_0(bool no_bgp) const {
+        return channel_->pch_margin_view_0(fov_id_.y, fov_id_.x, no_bgp);
+    }
+    auto pch_margin_view_1(bool no_bgp) const {
+        return channel_->pch_margin_view_1(fov_id_.y, fov_id_.x, no_bgp);
+    }
     auto& take_tiled_mat() {
         return tiled_mat_;
     }

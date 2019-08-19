@@ -63,6 +63,18 @@ struct Channel {
     auto pch_grid_view(int r, int c) const {
         return debug_img_view(r, c, "grid", false);
     }
+    auto pch_margin_view_0(int r, int c, bool no_bgp) const {
+        if(no_bgp)
+            return debug_img_view(r, c, "margin", false);
+        else 
+            return std::function<void(const cv::Mat&)>(nullptr);
+    }
+    auto pch_margin_view_1(int r, int c, bool no_bgp) const {
+        if(no_bgp)
+            return std::function<void(const cv::Mat&)>(nullptr);
+        else 
+            return debug_img_view(r, c, "margin", false);
+    }
     auto mk_append_view() const {
         return [this](const cv::Mat& view) {
             auto path = task().model().marker_append_path(
