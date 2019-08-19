@@ -188,7 +188,7 @@ constexpr struct FOVAG {
                 !task.model().no_bgp(),
                 nucleona::stream::null_out
             );
-            if(task.model().no_bgp()) {
+            if(!task.model().no_bgp()) {
                 tiled_mat.get_cali_img() = grid_raw_img.mat();
                 tiled_mat.get_tiles() = tiles;
                 margin_res = margin(
