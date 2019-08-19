@@ -1,6 +1,8 @@
 # ChangeLog
 
-## 1.0.7-dev - 2019.8.16
+## 1.0.7-dev - 2019.8.19
+- Bugfix: no backgroud process workflow cell margin twice
+- Feature: debug mode add margin view
 
 ## 1.0.6 - 2019.8.16
 - Bugfix: Crypto algorithm
