@@ -91,6 +91,8 @@ constexpr struct Channel {
         auto v_st_img = cimp::viewable(grid_image.mat());
         auto st_img_path = channel.stitch_image("norm");
         cv::imwrite(st_img_path.string(), v_st_img);
+        auto r_st_img_path = channel.stitch_image("raw");
+        cv::imwrite(r_st_img_path.string(), grid_image.mat());
 
         // gridline
         std::ofstream gl_file(channel.gridline().string());
