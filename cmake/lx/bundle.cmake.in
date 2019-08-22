@@ -1,0 +1,17 @@
+file(READ "@CMAKE_BINARY_DIR@/_3rdParty/Hunter/install-root-dir" dep_dirs)
+
+foreach(dd ${dep_dirs})
+    file(GLOB_RECURSE tmp "${dd}/*@CMAKE_SHARED_LIBRARY_SUFFIX@*")
+    list(APPEND libs ${tmp})
+endforeach()
+file(INSTALL ${libs} DESTINATION @CMAKE_INSTALL_FULL_LIBDIR@)
+message(STATUS "CMAKE_INSTALL_FULL_LIBDIR: ${CMAKE_INSTALL_FULL_LIBDIR}")
+message(STATUS "CMAKE_INSTALL_LIBDIR: ${CMAKE_INSTALL_LIBDIR}")
+foreach(exe @exe_targets@)
+    file(RENAME @CMAKE_INSTALL_FULL_BINDIR@/${exe} @CMAKE_INSTALL_FULL_BINDIR@/${exe}.bin)
+    configure_file(
+        @CMAKE_SOURCE_DIR@/cmake/lx/exe.sh.in 
+        @CMAKE_INSTALL_FULL_BINDIR@/${exe} @ONLY
+    )
+endforeach()
+

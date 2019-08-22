@@ -1,0 +1,6 @@
+#!/bin/sh
+appname=@exe@
+bindir=`dirname $0`
+LD_LIBRARY_PATH="$bindir"/../@CMAKE_INSTALL_LIBDIR@:"$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH
+"$0".bin "$@"

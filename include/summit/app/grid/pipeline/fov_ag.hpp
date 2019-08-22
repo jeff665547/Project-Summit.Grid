@@ -177,7 +177,7 @@ constexpr struct FOVAG {
                     0.6,
                     &tiled_mat,
                     task.model().no_bgp(),
-                    std::function<void(const cv::Mat&)>(nullptr)
+                    fov_mod.pch_margin_view_0(task.model().no_bgp())
                 }
             );
             auto bg_value = cimp::bgb::chunk_local_mean(
@@ -188,7 +188,7 @@ constexpr struct FOVAG {
                 !task.model().no_bgp(),
                 nucleona::stream::null_out
             );
-            if(task.model().no_bgp()) {
+            if(!task.model().no_bgp()) {
                 tiled_mat.get_cali_img() = grid_raw_img.mat();
                 tiled_mat.get_tiles() = tiles;
                 margin_res = margin(
@@ -197,7 +197,7 @@ constexpr struct FOVAG {
                         0.6,
                         &tiled_mat,
                         true,
-                        std::function<void(const cv::Mat&)>(nullptr)
+                        fov_mod.pch_margin_view_1(task.model().no_bgp())
                     }
                 );
             }

@@ -67,11 +67,11 @@ public:
         if(argc == 1 || vm.count("help"))
         {
             std::cout << desc << std::endl;
-            std::exit(1);
+            std::exit(0);
         }
         if(vm.count("version")) {
             std::cout << summit::grid::version().to_string() << std::endl;
-            std::exit(1);
+            std::exit(0);
         }
         po::notify(vm);
         Base::get_parameter( "input_path"        , input_path        );
