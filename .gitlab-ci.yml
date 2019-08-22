@@ -9,6 +9,7 @@ Win_CI:
         - cd build
         - cmake -G "MinGW Makefiles" ../ -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DBUILD_TESTS=ON -DINSTALL_DEPS=ON -DHUNTER_ROOT="C:\.hunter"
         - cmake --build . --target install
+        - ..\stage\bin\summit-app-grid.exe --help
     only:
         - 1.0.x
     tags:
@@ -28,6 +29,7 @@ CentOS_CI:
         - cd build
         - cmake ../ -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DBUILD_TESTS=ON -DINSTALL_DEPS=ON
         - cmake --build . --target install
+        - ..\stage\bin\summit-app-grid.exe --help
     only:
         - 1.0.x
     tags:
