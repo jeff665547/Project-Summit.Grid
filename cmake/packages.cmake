@@ -58,3 +58,6 @@ hunter_config(SummitCrypto GIT_SUBMODULE "lib/Summit.Crypto"
 hunter_config(range-v3
     VERSION "0.5.0"
 )
+hunter_config(cryptopp
+    VERSION "5.6.5-p0"
+)
