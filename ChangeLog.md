@@ -1,31 +1,41 @@
 # ChangeLog
 
 ## 1.0.7-dev - 2019.8.19
+
 - Bugfix: no backgroud process workflow cell margin twice
 - Feature: debug mode add margin view
 - Feature: add raw stitch image output
+- Feature: new ArUco matching algorithm import
+- Develop update: Linux use new dynamic link solution
 
 ## 1.0.6 - 2019.8.16
+
 - Bugfix: Crypto algorithm
 
 ## 1.0.5 - 2019.7.27
+
 - Bugfix: None auto grid sometimes crash(marker append ROI bug)
 
 ## 1.0.4 - 2019.7.22
+
 - Feature: Add white marker append
 - Update: Update run batch script
 
 ## 1.0.3 - 2019.7.12
+
 - Bugfix: BANFF chip crash (from 1.0.2)
 
 ## 1.0.2 - 2019.7.11
+
 - Bugfix: ZION chip gridding failed (from 1.0.0)
 
 ## 1.0.1 - 2019.7.4
+
 - Feature: Use micron distance to record the grid line position in grid log
 - Bugfix: marker append FOV add boundary highlight
 
 ## 1.0.0 - 2019.7.1
+
 - Feature: Formal grid log, include fov, channel and many parameters
 - Feature: None auto grid mode, use modified grid log as input, summit.grid will re-generate all output
 - Feature: Raw image generate in secure directory and grid/channels/*/viewable_raw
@@ -34,10 +44,12 @@
 - Feature: Remove FOV image generate in grid/channels/*/viewable_norm, only preserve the stitched image
 
 ## 0.9.6 - 2019.6.10
+
 - Support M/pT marker type
 - Add grid log into channel directory
 
 ## 0.9.5 - 2019.5.30
+
 - Bugfix: Avoid one task fail, abort all tasks in mutli-task mode 
 - Bugfix: Avoid ArUco detector crash
 
@@ -46,12 +58,15 @@
 ## 0.9.3 - deprecated
 
 ## 0.9.2 - 2019.5.27
+
 - ArUco support grdding algorithm: grid location
 
 ## 0.9.0 - 2019.5.27
+
 - ArUco support grdding algorithm: rotation estimation, micron to pixel compute
 
 ## 0.8.6 - 2019.5.15
+
 - Better viewable image auto contrast adjustor
 - Light mean analysis add 3 row analysis
 - Bugfix: Avoid multi-task mode consume all memory and crash
