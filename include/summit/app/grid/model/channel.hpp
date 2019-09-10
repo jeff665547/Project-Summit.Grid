@@ -167,27 +167,12 @@ private:
     std::string task_id() const {
         return task().id().string();
     }
-    boost::filesystem::path debug_img(int r, int c, const std::string& tag) const {
-        return task().model().debug_img(task_id(), ch_name_, r, c, tag);
-    }
     std::function<void(const cv::Mat&)> debug_img_view(
-        int r, int c, const std::string& tag, bool viewable = false
+        int r, int c, 
+        const std::string& tag, 
+        bool viewable = false
     ) const {
-        if(task().model().debug() > 1) {
-            if(viewable) {
-                return [r, c, tag, this](const cv::Mat& view) {
-                    auto path = debug_img(r, c, tag);
-                    cv::imwrite(path.string(), chipimgproc::viewable(view));
-                };
-            } else {
-                return [r, c, tag, this](const cv::Mat& view) {
-                    auto path = debug_img(r, c, tag);
-                    cv::imwrite(path.string(), view);
-                };
-            }
-        } else {
-            return nullptr;
-        }
+        return task().debug_img_view(ch_name_, r, c, tag, viewable);
     }
 };
 

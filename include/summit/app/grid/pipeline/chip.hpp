@@ -68,12 +68,16 @@ struct Chip {
             fov_marker_regs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
         }
-        auto aruco_mk_det = [&, this](const cv::Mat& mat, const cv::Point& fov_id) {
+        auto aruco_mk_det = [&, this](
+            const cv::Mat& mat, 
+            const cv::Point& fov_id, 
+            double um2px_r
+        ) {
             auto fov_mk_num = fov_marker_num.at(fov_id);
             auto mk_regs = aruco_mk_detector(
                 static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
-                task.mk_wd_px(),    task.mk_hd_px(),
-                task.mk_w_px(),     task.mk_h_px(),
+                task.mk_wd_px(um2px_r),    task.mk_hd_px(um2px_r),
+                task.mk_w_px(um2px_r),     task.mk_h_px(um2px_r),
                 fov_mk_num.x,       fov_mk_num.y,
                 task.pyramid_level(),
                 cell_layout.mk_id_fov_to_chip(fov_id.x, fov_id.y)
@@ -82,9 +86,13 @@ struct Chip {
             return mk_regs;
         };
         auto aruco_iter_rot_cali = crot::make_iteration_cali(
-            [&, this](const cv::Mat& mat, const cv::Point& fov_id) {
-                auto mk_regs    = aruco_mk_det(mat, fov_id);
-                auto theta      = rotate_detector(mk_regs, nucleona::stream::null_out);
+            [&, this](
+                const cv::Mat& mat, 
+                const cv::Point& fov_id, 
+                double um2px_r
+            ) {
+                auto mk_regs = aruco_mk_det(mat, fov_id, um2px_r);
+                auto theta   = rotate_detector(mk_regs, nucleona::stream::null_out);
                 return theta;
             },
             [&, this](cv::Mat& mat, auto theta) {
@@ -105,7 +113,10 @@ struct Chip {
 
                 // * count theta
                 auto theta      = aruco_iter_rot_cali(
-                                    mat, nucleona::make_tuple(fov_id)
+                                    mat, 
+                                    nucleona::make_tuple(
+                                        fov_id, task.um2px_r()
+                                    )
                                   );
                 // std::cout << "white channel detect theta " 
                 //     << fov_id << ": " << theta << std::endl;
@@ -113,7 +124,10 @@ struct Chip {
                 rotate_calibrator(mat_loc, theta);
 
                 // * detect marker regions
-                auto mk_regs = aruco_mk_det(mat_loc, fov_id);
+                auto mk_regs = aruco_mk_det(mat_loc, fov_id, task.um2px_r());
+                task.aruco_ch_mk_seg_view(fov_id.y, fov_id.x)(
+                    chipimgproc::marker::view(mat_loc, mk_regs)
+                );
                 mk_regs = __alias::cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
 
                 // * detect um2px_r
@@ -123,6 +137,9 @@ struct Chip {
                     task.mk_hd_um(),
                     nucleona::stream::null_out
                 );
+                mk_regs = aruco_mk_det(mat_loc, fov_id, um2px_r);
+                mk_regs = __alias::cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
+
                 if(model.marker_append()) {
                     auto fov_wh_mk_append = white_mk_append(
                         mat_loc, mk_regs, task, um2px_r

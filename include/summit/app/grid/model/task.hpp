@@ -85,6 +85,18 @@ struct Task {
     double mk_h_px() const {
         return mk_h_um() * um2px_r_;
     }
+    double mk_wd_px(double um2px_r) const {
+        return mk_wd_um() * um2px_r;
+    }
+    double mk_hd_px(double um2px_r) const {
+        return mk_hd_um() * um2px_r;
+    }
+    double mk_w_px(double um2px_r) const {
+        return mk_w_um() * um2px_r;
+    }
+    double mk_h_px(double um2px_r) const {
+        return mk_h_um() * um2px_r;
+    }
     auto grid_log_path() const {
         return model_->task_grid_log(id_.string()).string();
     }
@@ -152,6 +164,47 @@ struct Task {
             id_.string(), ""
         );
         cv::imwrite(path.string(), wh_mk_append_mat);
+    }
+    boost::filesystem::path debug_img(
+        const std::string& ch_name, 
+        int r, int c, 
+        const std::string& tag
+    ) const {
+        return model().debug_img(id().string(), ch_name, r, c, tag);
+    }
+    template<class Str>
+    std::function<void(const cv::Mat&)> debug_img_view(
+        Str&& ch_name, 
+        int r, int c, 
+        const std::string& tag, 
+        bool viewable = false
+    ) const {
+        if(model().debug() > 1) {
+            if(viewable) {
+                return [
+                    chn = FWD(ch_name), 
+                    r, c, tag, 
+                    this
+                ](const cv::Mat& view) {
+                    auto path = debug_img(chn, r, c, tag);
+                    cv::imwrite(path.string(), chipimgproc::viewable(view));
+                };
+            } else {
+                return [
+                    chn = FWD(ch_name), 
+                    r, c, tag, 
+                    this
+                ](const cv::Mat& view) {
+                    auto path = debug_img(chn, r, c, tag);
+                    cv::imwrite(path.string(), view);
+                };
+            }
+        } else {
+            return nullptr;
+        }
+    }
+    auto aruco_ch_mk_seg_view(int r, int c) const {
+        return debug_img_view("aruco", r, c, "aruco_mkseg", false);
     }
 
     VAR_GET(nlohmann::json,                 chip_log            )
