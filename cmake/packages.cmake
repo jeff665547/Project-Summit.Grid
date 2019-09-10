@@ -55,3 +55,6 @@ hunter_config(SummitCrypto GIT_SUBMODULE "lib/Summit.Crypto"
     CMAKE_ARGS
         BUILD_TESTS=OFF
 )
+hunter_config(range-v3
+    VERSION "0.5.0"
+)
