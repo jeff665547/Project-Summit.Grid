@@ -96,12 +96,12 @@ constexpr struct FOVAG {
             );
             auto& mk_des     = mk_layout.get_single_pat_marker_des();
             auto& std_mk_px  = mk_des.get_std_mk(cimp::MatUnit::PX);
-            for(auto&& mk : wh_mk_regs) {
-                mk.x = mk.x - (std_mk_px.cols / 2);
-                mk.y = mk.y - (std_mk_px.rows / 2);
-                mk.width  = std_mk_px.cols;
-                mk.height = std_mk_px.rows;
-            }
+            // for(auto&& mk : wh_mk_regs) {
+            //     mk.x = mk.x - (std_mk_px.cols / 2);
+            //     mk.y = mk.y - (std_mk_px.rows / 2);
+            //     mk.width  = std_mk_px.cols;
+            //     mk.height = std_mk_px.rows;
+            // }
             if(theta_diff > 0.5)  {
                 if(wh_mk_regs.empty()) {
                     grid_bad = true;

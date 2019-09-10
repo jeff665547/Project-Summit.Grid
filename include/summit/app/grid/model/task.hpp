@@ -61,11 +61,29 @@ struct Task {
     const cv::Point& get_fov_marker_num(int r, int c) {
         return fov_marker_num_.at(cv::Point(c, r));
     }
-    float mk_wd_um() const {
+    double mk_wd_um() const {
         return mk_wd_cl_ * (cell_w_um_ + space_um_);
     }
-    float mk_hd_um() const {
+    double mk_hd_um() const {
         return mk_hd_cl_ * (cell_h_um_ + space_um_);
+    }
+    double mk_w_um() const {
+        return mk_w_cl_ * (cell_w_um_ + space_um_);
+    }
+    double mk_h_um() const {
+        return mk_h_cl_ * (cell_h_um_ + space_um_);
+    }
+    double mk_wd_px() const {
+        return mk_wd_um() * um2px_r_;
+    }
+    double mk_hd_px() const {
+        return mk_hd_um() * um2px_r_;
+    }
+    double mk_w_px() const {
+        return mk_w_um() * um2px_r_;
+    }
+    double mk_h_px() const {
+        return mk_h_um() * um2px_r_;
     }
     auto grid_log_path() const {
         return model_->task_grid_log(id_.string()).string();
@@ -150,6 +168,10 @@ struct Task {
     VAR_GET(float,                          space_um            )
     VAR_GET(int,                            fov_rows            )
     VAR_GET(int,                            fov_cols            )
+    VAR_GET(int,                            fov_w               )
+    VAR_GET(int,                            fov_h               )
+    VAR_GET(int,                            fov_wd              )
+    VAR_GET(int,                            fov_hd              )
     VAR_GET(Utils::FOVImages<std::uint8_t>, white_channel_imgs  )
     VAR_GET(std::int32_t,                   pyramid_level       )
     VAR_GET(std::int32_t,                   border_bits         )
@@ -168,6 +190,12 @@ struct Task {
     VAR_GET(Utils::FOVMarkerNum,            fov_marker_num      )
     VAR_GET(std::uint32_t,                  mk_wd_cl            )
     VAR_GET(std::uint32_t,                  mk_hd_cl            )
+    VAR_GET(std::uint32_t,                  mk_w_cl             )
+    VAR_GET(std::uint32_t,                  mk_h_cl             )
+    VAR_GET(std::uint32_t,                  mk_col_cl           )
+    VAR_GET(std::uint32_t,                  mk_row_cl           )
+    VAR_GET(std::uint32_t,                  mk_xi_cl            )
+    VAR_GET(std::uint32_t,                  mk_yi_cl            )
     VAR_GET(std::uint32_t,                  spec_h_cl           )
     VAR_GET(std::uint32_t,                  spec_w_cl           )
     VAR_GET(float,                          proc_time           )
@@ -218,7 +246,8 @@ private:
         chipspec_         = &summit::config::chip().get_spec(chip_spec_name_);
         if(support_aruco()) {
             db_key_           = origin_infer_->at("db_key");
-            pyramid_level_    = origin_infer_->at("pyramid_level");
+            // pyramid_level_    = origin_infer_->at("pyramid_level");
+            pyramid_level_    = 1;
             nms_count_        = origin_infer_->at("nms_count");
             cell_size_px_     = origin_infer_->at("cell_size_px");
             aruco_marker_     = &chipspec_->at("aruco_marker");
@@ -235,8 +264,13 @@ private:
         // chipinfo_->erase("spec");
 
         fov_              = &summit::config::cell_fov().get_fov_type(chip_info_name_);
-        fov_rows_         = fov_->at("fov").at("rows");
-        fov_cols_         = fov_->at("fov").at("cols");
+        auto& tmp_fov     = fov_->at("fov");
+        fov_rows_         = tmp_fov.at("rows");
+        fov_cols_         = tmp_fov.at("cols");
+        fov_wd_           = tmp_fov.at("w_d");
+        fov_hd_           = tmp_fov.at("h_d");
+        fov_w_            = tmp_fov.at("w");
+        fov_h_            = tmp_fov.at("h");
 
         cell_h_um_        = chipspec_->at("cell_w_um");
         cell_w_um_        = chipspec_->at("cell_h_um");
@@ -250,6 +284,12 @@ private:
 
         mk_wd_cl_         = sh_mk_pos_cl_->at("w_d");
         mk_hd_cl_         = sh_mk_pos_cl_->at("h_d");
+        mk_w_cl_          = sh_mk_pos_cl_->at("w");
+        mk_h_cl_          = sh_mk_pos_cl_->at("h");
+        mk_xi_cl_         = sh_mk_pos_cl_->at("x_i");
+        mk_yi_cl_         = sh_mk_pos_cl_->at("y_i");
+        mk_col_cl_        = sh_mk_pos_cl_->at("col");
+        mk_row_cl_        = sh_mk_pos_cl_->at("row");
 
 
 
