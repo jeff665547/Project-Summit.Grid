@@ -1,6 +1,6 @@
 # ChangeLog
 
-## 1.0.7-dev - 2019.8.19
+## 1.0.7 - 2019.8.19
 
 - Bugfix: no backgroud process workflow cell margin twice
 - Feature: debug mode add margin view
