@@ -6,23 +6,25 @@ target_include_directories(${__screw_target} PUBLIC
 )
 screw_add_launch_task(${__screw_target})
 target_link_libraries(${__screw_target}
-    ChipImgProc::ChipImgProc-hough_transform
-    Nucleona::Nucleona
-    Boost::filesystem
-    ChipImgProc::ChipImgProc-utils
-    Boost::program_options
     summit-utils
     summit-config-path
     summit-config-cell_fov
     summit-config-chip
     summit-config-aruco_db
-    ChipImgProc::ChipImgProc-stitch
     summit-format
+    summit-grid-logger
+    ChipImgProc::ChipImgProc
     SummitCrypto::summit-crypto-scan_image
-    ChipImgProc::ChipImgProc-logger
+    Nucleona::Nucleona
+    Boost::filesystem
+    Boost::program_options
+
 )
 if(MINGW)
     target_compile_options(${__screw_target} PUBLIC -Wa,-mbig-obj)
+endif()
+if(MSVC)
+  target_compile_options(${__screw_target} PUBLIC /bigobj)
 endif()
 target_compile_definitions(${__screw_target} PRIVATE NUCLEONA_RANGE_USE_V3)
 screw_show_var(__screw_target)

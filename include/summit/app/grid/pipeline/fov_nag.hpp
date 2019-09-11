@@ -11,6 +11,7 @@
 #include <ChipImgProc/stitch/gridline_based.hpp>
 #include <summit/app/grid/model/fov.hpp>
 #include <ChipImgProc/marker/detection/layout_lookup.hpp>
+#include <fmt/format.h>
 namespace summit::app::grid::pipeline {
 
 namespace __alias {
