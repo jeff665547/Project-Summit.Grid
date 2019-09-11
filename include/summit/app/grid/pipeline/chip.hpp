@@ -76,11 +76,7 @@ struct Chip {
             auto fov_mk_num = fov_marker_num.at(fov_id);
             auto mk_regs = aruco_mk_detector(
                 static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
-                task.mk_wd_px(um2px_r),    task.mk_hd_px(um2px_r),
-                task.mk_w_px(um2px_r),     task.mk_h_px(um2px_r),
-                fov_mk_num.x,       fov_mk_num.y,
-                task.pyramid_level(),
-                cell_layout.mk_id_fov_to_chip(fov_id.x, fov_id.y)
+                task.mk_w_px(um2px_r),     task.mk_h_px(um2px_r)
             );
             __alias::cmk_det::filter_low_score_marker(mk_regs);
             return mk_regs;
