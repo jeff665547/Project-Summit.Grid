@@ -64,3 +64,5 @@ data/
 workdir/
 Summit.Grid_v*
 version.h
+ms-build/
+ms-stage/
