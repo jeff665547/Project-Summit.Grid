@@ -2,6 +2,8 @@
 
 ## 1.0.8-dev - 2019.9.11
 
+- Update: ArUco matching update
+
 ## 1.0.7 - 2019.9.11
 
 - Bugfix: no backgroud process workflow cell margin twice
