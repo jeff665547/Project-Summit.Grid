@@ -1,6 +1,6 @@
 #pragma once
 
-namespace chipimgproc {
+namespace summit::grid {
 
 constexpr struct Logger{
     template<class... Args>

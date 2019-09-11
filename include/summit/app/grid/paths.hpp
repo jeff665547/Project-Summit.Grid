@@ -4,6 +4,7 @@
 #include <sstream>
 #include "output_format.hpp"
 #include <summit/grid/logger.hpp>
+#include <fmt/format.h>
 namespace summit::app::grid {
 
 struct Paths {

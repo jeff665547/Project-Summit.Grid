@@ -10,9 +10,9 @@ target_link_libraries(${__screw_target}
     Boost::filesystem
     Boost::program_options
     ChipImgProc::ChipImgProc-utils
+    fmt::fmt
     summit-utils
     summit-config-chip
-    fmt::fmt
 )
 if(MINGW)
     target_compile_options(${__screw_target} PUBLIC -Wa,-mbig-obj)

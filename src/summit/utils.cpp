@@ -26,28 +26,11 @@ std::vector<std::string> to_str_vector( const nlohmann::json& j ) {
     return res;
 }
 
-// cv::Mat better_viewable16(const cv::Mat& mat) {
-//     if(mat.depth() != CV_16U) {
-//         throw std::runtime_error("assert fail, better_viewable16 expect input is 16bit image");
-//     }
-//     const cv::Mat_<std::uint16_t>& mat16 = static_cast<const cv::Mat_<std::uint16_t>&>(mat);
-//     auto mat8 = chipimgproc::norm_u8(mat16);
-//     cv::Mat_<std::uint8_t> bin;
-//     cv::threshold(mat8, bin, 150, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
-//     cv::Mat_<std::uint16_t> res = mat16.clone();
-//     auto max_px_itr = std::max_element(res.begin(), res.end());
-//     float rate = 40000 / *max_px_itr;
-//     res.forEach([&bin, &rate](std::uint16_t& px, const int* pos){
-//         auto& b = bin(pos[0], pos[1]);
-//         if(b != 0) {
-//             px = std::round(px*rate);
-//         }
-//         
-//     });
-//     res = chipimgproc::viewable(res);
-//     return res;
-// }
-
-
+cv::Mat better_viewable16(const cv::Mat& mat) {
+    if(mat.depth() != CV_16U) {
+        throw std::runtime_error("assert fail, better_viewable16 expect input is 16bit image");
+    }
+    return chipimgproc::viewable(mat);
+}
 
 }
