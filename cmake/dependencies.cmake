@@ -12,6 +12,12 @@ find_package(nlohmann_json CONFIG REQUIRED)
 hunter_add_package(Nucleona)
 find_package(Nucleona CONFIG REQUIRED)
 
+# range-v3 workaround
+find_package(range-v3 CONFIG REQUIRED)
+if(MSVC)
+    target_compile_options(range-v3 INTERFACE /permissive-)
+endif()
+
 # CFU
 hunter_add_package(CFU)
 find_package(CFU CONFIG REQUIRED)

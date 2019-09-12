@@ -1,8 +1,12 @@
 # ChangeLog
 
-## 1.0.8-dev - 2019.9.11
+## 1.0.9 - 2019.9.11
 
 - Update: ArUco matching update
+- Source code: MSVC build support
+  - Currently only support Visual Studio 2017 v15.9
+
+## 1.0.8 - deprecated
 
 ## 1.0.7 - 2019.9.11
 
