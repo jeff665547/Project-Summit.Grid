@@ -118,7 +118,7 @@ struct Main {
         std::ifstream heatmap_file(args_.input);
         std::ofstream output_file(args_.output);
 
-        HeatmapParser parser("\t");
+        HeatmapParser parser(",");
         HeatmapEntry entry;
 
         std::vector<HeatmapEntry> buffer;
