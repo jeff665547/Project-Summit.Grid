@@ -6,6 +6,8 @@
 #include <ChipImgProc/marker/loader.hpp>
 #include <numeric>
 #include <fmt/format.h>
+#include "heatmap_parser.hpp"
+#include <Nucleona/range.hpp>
 namespace summit::app::light_mean {
 
 struct Core {
@@ -38,21 +40,23 @@ struct Core {
         }
         return res;
     }
-    struct Result {
+    struct StatResult {
         float mean;
         float stddev;
         float cv;
     };
-    auto statistic(const std::vector<float>& v) const {
+    template<class Rng>
+    auto statistic(Rng&& v) const {
         float sum = std::accumulate(v.begin(), v.end(), 0.0);
         float mean = sum / v.size();
 
         float sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
         float stdev = std::sqrt(sq_sum / v.size() - mean * mean);
-        return Result{mean, stdev, stdev / mean};
+        return StatResult{mean, stdev, stdev / mean};
     }
-    Result operator()(
-        const std::vector<cv::Mat_<float>>& markers, 
+    template<class Rng>
+    auto select_light_probe(
+        Rng&& ents,
         const std::string& chip_spec,
         const std::string& marker_type 
     ) const {
@@ -60,12 +64,40 @@ struct Core {
         auto marker_path = get_marker_type_path(chip, marker_type);
         std::ifstream marker_file(marker_path.string());
         auto [marker_spec, mask] = chipimgproc::marker::Loader::from_txt(marker_file);
-        std::vector<float> light_probes;
-        for(auto&& mk : markers) {
-            auto tmp = extract_light_probe(marker_spec, mk);
-            light_probes.insert(light_probes.end(), tmp.begin(), tmp.end());
+        std::vector<std::size_t> light_probes;
+        for(std::size_t i = 0; i < ents.size(); i ++) {
+            auto&& e = ents.at(i);
+            if(marker_spec(e.mk_sub_y, e.mk_sub_x) == 255) {
+                light_probes.push_back(i);
+            }
         }
-        return statistic(light_probes);
+        return light_probes;
+
+        // for(auto&& mk : markers) {
+        //     auto tmp = extract_light_probe(marker_spec, mk);
+        //     light_probes.insert(light_probes.end(), tmp.begin(), tmp.end());
+        // }
+        // return statistic(light_probes);
+    }
+    template<class Rng>
+    auto operator()(
+        Rng&& buffer,
+        const std::string& chip_spec,
+        const std::string& marker_type 
+    ) const {
+        auto light_probe_idx = select_light_probe(
+            buffer, chip_spec, marker_type
+        );
+        auto light_probes = buffer 
+            | nucleona::range::at(light_probe_idx)
+        ;
+        auto light_probe_means = light_probes
+            | nucleona::range::transformed([](auto&& ent){
+                return ent.mean;
+            })
+        ;
+        auto res = statistic(light_probe_means);
+        return res;
     }
 };
 
