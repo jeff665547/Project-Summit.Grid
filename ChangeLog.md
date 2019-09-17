@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.0.10 - 2019.9.17
+
+- Update: light mean application output detail probe informations.
+
 ## 1.0.9 - 2019.9.11
 
 - Update: ArUco matching update
