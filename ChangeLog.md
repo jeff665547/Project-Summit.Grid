@@ -1,5 +1,7 @@
 # ChangeLog
 
+## 1.0.11-dev - 2019.9.17
+
 ## 1.0.10 - 2019.9.17
 
 - Update: light mean application output detail probe informations.
