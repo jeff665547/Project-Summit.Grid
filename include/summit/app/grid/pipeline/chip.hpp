@@ -96,6 +96,8 @@ struct Chip {
             }
         );
 
+        summit::grid::log.debug("white channel image nums: {}", task.white_channel_imgs().size());
+
         task.white_channel_imgs()
         | nucleona::range::indexed()
         | ranges::view::transform([&](auto&& p){
@@ -104,6 +106,7 @@ struct Chip {
             auto& fov_id        = fov_id_mat.first;
             auto& path          = std::get<0>(fov_id_mat.second);
             auto& mat           = std::get<1>(fov_id_mat.second);
+            summit::grid::log.debug("white channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
             try {
                 auto& mk_num    = fov_marker_num.at(fov_id);
 
@@ -140,7 +143,11 @@ struct Chip {
                     auto fov_wh_mk_append = white_mk_append(
                         mat_loc, mk_regs, task, um2px_r
                     );
-                    fov_mk_append.at(fov_id) = fov_wh_mk_append;
+                    // cv::imwrite(
+                    //     fmt::format("{}-{}-mk_ap.tiff", fov_id.x, fov_id.y), 
+                    //     fov_wh_mk_append
+                    // );
+                    fov_mk_append.at(fov_id) = fov_wh_mk_append.clone();
                 }
                 // std::cout << "white channel detect um2px rate " 
                 //     << fov_id << ": " << um2px_r << std::endl;
@@ -154,10 +161,13 @@ struct Chip {
             } catch (...) {
                 success.at(i) = false;
             }
+            summit::grid::log.debug("white channel, fov id:({}, {}) end process", fov_id.x, fov_id.y);
             return 0;
         })
         | nucleona::range::p_endp(executor)
         ;
+
+        summit::grid::log.debug("white channel FOVs process done");
 
         std::size_t success_num = 0;
         for(auto f : success) {

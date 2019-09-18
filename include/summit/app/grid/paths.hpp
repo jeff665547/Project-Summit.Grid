@@ -24,6 +24,8 @@ struct Paths {
         boost::filesystem::path abs_input(input);
         abs_output = boost::filesystem::absolute(abs_output);
         abs_input = boost::filesystem::absolute(abs_input);
+        summit::grid::log.trace("shared_dir: {}", shared_dir.string());
+        summit::grid::log.trace("secure_dir: {}", secure_dir.string());
         if( shared_dir != "" && secure_dir != "" ) {
             enable_secure_output_ = true;
             boost::filesystem::path abs_shared_dir;
@@ -32,6 +34,8 @@ struct Paths {
             abs_secure_dir = boost::filesystem::absolute(secure_dir);
             secure_output_ = abs_secure_dir 
                 / boost::filesystem::relative(abs_input, abs_shared_dir);
+        } else {
+            enable_secure_output_ = false;
         } 
         summit::grid::log.trace("abs_output: {}", abs_output.string());
         summit::grid::log.trace("secure_output_: {}", secure_output_.string());
@@ -56,8 +60,10 @@ struct Paths {
         return enable_secure_output_;
     }
     auto sc_chip_log() const {
+        summit::grid::log.trace("enable_secure_output_: {}", enable_secure_output_);
         if(!enable_secure_output_) throw std::runtime_error("secure output not enable");
         auto chip_log = secure_output_ / "chip_log.json";
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(chip_log);
     }
     boost::filesystem::path marker_append_path(
@@ -71,6 +77,7 @@ struct Paths {
         } else {
             file_name = fmt::format("{}-{}.tiff", task_id, ch);
         }
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         auto res = check_path(odir / "marker_append" / file_name);
         return res;
     }
@@ -82,6 +89,7 @@ struct Paths {
     }
     boost::filesystem::path sc_raw_img_dir() const {
         if(!enable_secure_output_) throw std::runtime_error("secure output not enable");
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         check_path(secure_output_ / "tmp");
         return secure_output_;
     }
@@ -101,6 +109,7 @@ struct Paths {
             default:
                 throw std::runtime_error("unsupport mode");
         }
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(output_p);
     }
     boost::filesystem::path heatmap(
@@ -115,8 +124,10 @@ struct Paths {
         boost::filesystem::path odir(output_);
         switch(mode_) {
             case normal:
+                summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
                 return check_path((output_ / (ch + postfix)).string());
             case inplace:
+                summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
                 return check_path(odir / "grid" / "channels" / ch / ( "heatmap" + postfix ));
             default:
                 throw std::runtime_error("unsupport mode");
@@ -127,6 +138,7 @@ struct Paths {
         const std::string& tag,
         int r, int c, const std::string& ch
     ) const {
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(general_prefix(output_.string(), task_id, ch) / fov_image_posfix(tag, r, c, ch));
     }
     boost::filesystem::path stitch_image(
@@ -134,12 +146,14 @@ struct Paths {
         const std::string& tag,
         const std::string& ch
     ) const {
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(general_prefix(output_.string(), task_id, ch) / stitch_image_posfix(tag, ch));
     }
     boost::filesystem::path gridline(
         const std::string& task_id,
         const std::string& channel
     ) const {
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(general_prefix(output_.string(), task_id, channel) / "gridline.csv");
     }
     boost::filesystem::path complete_file(
@@ -159,6 +173,7 @@ struct Paths {
             default:
                 throw std::runtime_error("unsupport mode");
         }
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(path_p);
     }
     void create_complete_file(
@@ -177,8 +192,10 @@ struct Paths {
         boost::filesystem::path odir(output_);
         switch(mode_) {
             case normal:
+                summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
                 return check_path(odir /(channel + "_background.csv"));
             case inplace:
+                summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
                 return check_path(
                     general_prefix(output_.string(), task_id, channel) / "background.csv"
                 );
@@ -190,6 +207,7 @@ struct Paths {
         const std::string& task_id, 
         const std::string& channel
     ) const {
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         auto dir = check_path(general_prefix(output_.string(), task_id, channel) / "debug");
         return dir;
     }
@@ -206,12 +224,14 @@ struct Paths {
             ss << '-' << tag;
         }
         ss << ".tiff";
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(debug_dir / ss.str());
     }
     boost::filesystem::path channel_grid_log(
         const std::string& task_id, 
         const std::string& channel
     ) const {
+        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(general_prefix(output_.string(), task_id, channel) / "grid_log.json");
     }
     boost::filesystem::path task_grid_log(
@@ -219,8 +239,10 @@ struct Paths {
     ) const {
         switch(mode_) {
             case normal:
+                summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
                 return check_path(output_ / (task_id  + "-grid_log.json"));
             case inplace:
+                summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
                 return check_path(output_ / "grid" / "grid_log.json");
             default:
                 throw std::runtime_error("unsupport mode");
@@ -231,6 +253,7 @@ private:
         auto tmp = p;
         tmp.make_preferred();
         auto _dir = tmp.parent_path();
+        summit::grid::log.debug("check directory: {}", _dir.string());
         if(!boost::filesystem::exists(_dir)) {
             boost::filesystem::create_directories(_dir);
         }
