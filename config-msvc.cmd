@@ -1,0 +1,1 @@
+cmake .. -DCMAKE_INSTALL_PREFIX="../stage" -G "Visual Studio 15 2017 Win64" -DINSTALL_DEPS=ON -DHUNTER_ROOT="D:/.hunter" -DCMAKE_BUILD_TYPE="Release"
