@@ -78,7 +78,7 @@ struct Chip {
                 static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
                 task.mk_w_px(um2px_r),     task.mk_h_px(um2px_r)
             );
-            __alias::cmk_det::filter_low_score_marker(mk_regs);
+            // __alias::cmk_det::filter_low_score_marker(mk_regs);
             return mk_regs;
         };
         auto aruco_iter_rot_cali = crot::make_iteration_cali(
@@ -89,6 +89,7 @@ struct Chip {
             ) {
                 auto mk_regs = aruco_mk_det(mat, fov_id, um2px_r);
                 auto theta   = rotate_detector(mk_regs, nucleona::stream::null_out);
+                summit::grid::log.debug("theta: {}", theta);
                 return theta;
             },
             [&, this](cv::Mat& mat, auto theta) {
