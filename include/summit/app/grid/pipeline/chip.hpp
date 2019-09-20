@@ -125,9 +125,9 @@ struct Chip {
 
                 // * detect marker regions
                 auto mk_regs = aruco_mk_det(mat_loc, fov_id, task.um2px_r());
-                task.aruco_ch_mk_seg_view(fov_id.y, fov_id.x)(
-                    chipimgproc::marker::view(mat_loc, mk_regs)
-                );
+                auto aruco_ch_mk_seg_view = task.aruco_ch_mk_seg_view(fov_id.y, fov_id.x);
+                if(aruco_ch_mk_seg_view)
+                    aruco_ch_mk_seg_view(chipimgproc::marker::view(mat_loc, mk_regs));
                 mk_regs = __alias::cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
 
                 // * detect um2px_r
