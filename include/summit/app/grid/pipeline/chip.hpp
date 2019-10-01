@@ -305,7 +305,7 @@ struct Chip {
                 auto& i = std::get<0>(i_jch);
                 auto& jch = std::get<1>(i_jch);
                 model::Channel ch_mod;
-                ch_mod.init(task, jch, i);
+                ch_mod.init(task, jch);
                 channel(ch_mod);
                 task.channel_log().at(i) = ch_mod.grid_log();
                 return 0;

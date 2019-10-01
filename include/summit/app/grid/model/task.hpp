@@ -254,6 +254,7 @@ struct Task {
     VAR_GET(float,                          proc_time           )
     VAR_GET(bool,                           grid_done           )
     VAR_GET(std::string,                    origin_infer_algo   )
+    VAR_GET(std::vector<int>,               filter_to_channel_id)
     VAR_GET(summit::app::grid::TaskID,      id                  )
 
     VAR_PTR_GET(Model,                      model               )
@@ -272,6 +273,50 @@ struct Task {
 
     // VAR_IO(cv::Mat,                         wh_mk_append_mat    )
 private:
+
+    void parse_filter_to_channel_id(const nlohmann::json& chip_log) {
+        /* 
+            example:
+
+            "filter_to_genotype_channel_id": [
+                [2, 0],
+                [4, 1]
+            ]
+        */
+        auto itr = chip_log.find("filter_to_genotype_channel_id");
+        if(itr == chip_log.end()) {
+            /* use default filter_to_genotype_channel_id */
+            filter_to_channel_id_.resize(5, -1);
+            filter_to_channel_id_.at(2) = 0;
+            filter_to_channel_id_.at(4) = 1;
+            return;
+        }
+
+        auto& filter_to_channel_id = *itr;
+        int max_filter_id = -1;
+        std::set<int> chid_checker;
+        std::set<int> fid_checker;
+        for(auto&& mapper : filter_to_channel_id) {
+            auto filter_id = mapper.at(0).get<int>();
+            auto channel_id = mapper.at(1).get<int>();
+            if(chid_checker.count(channel_id) > 0) {
+                throw std::runtime_error("invalid filter_to_genotype_channel_id");
+            }
+            if(fid_checker.count(filter_id) > 0) {
+                throw std::runtime_error("invalid filter_to_genotype_channel_id");
+            }
+            fid_checker.emplace(filter_id);
+            chid_checker.emplace(channel_id);
+            max_filter_id = std::max(max_filter_id, filter_id);
+        }
+        filter_to_channel_id_.resize(max_filter_id + 1, -1);
+        for(auto&& mapper : filter_to_channel_id) {
+            auto filter_id = mapper.at(0).get<int>();
+            auto channel_id = mapper.at(1).get<int>();
+            filter_to_channel_id_.at(filter_id) = channel_id;
+        }
+    }
+    
     void set_chip_dir(const boost::filesystem::path& path) {
         channel_log_ = &grid_log_["channels"];
         chip_dir_ = path;
@@ -279,12 +324,26 @@ private:
             std::size_t i = 0;
             std::ifstream fin((path / "chip_log.json").string());
             fin >> chip_log_;
+            parse_filter_to_channel_id(chip_log_);
             for(auto&& cl : chip_log_["channels"]) {
                 channels_.push_back(cl);
-                if(cl.at("filter")!=0) {
+                auto filter_id = cl.at("filter");
+                if(filter_id != 0) {
+                    auto chid = filter_to_channel_id_.at(filter_id);
                     probe_channels_.push_back(cl);
+                    probe_channels_.back()["id"] = chid;
                     (*channel_log_)[i] = nlohmann::json::object();
                     i ++;
+                }
+            }
+            // if has any invalid channel id, all channel assign to sequencial id.
+            for(auto&& pch : probe_channels_) {
+                if(pch.at("id") < 0) {
+                    for(std::size_t i = 0; i < probe_channels_.size(); i++) {
+                        auto& _pch = probe_channels_[i];
+                        _pch.at("id") = i;
+                    }
+                    break;
                 }
             }
         }

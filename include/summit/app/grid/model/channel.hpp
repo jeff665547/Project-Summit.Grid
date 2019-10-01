@@ -14,18 +14,19 @@ namespace summit::app::grid::model {
 
 struct Channel {
 
-    void init(const Task& _task, const nlohmann::json& jch, int ch_id) {
+    void init(const Task& _task, const nlohmann::json& jch) {
         task_ = &_task;
         json_ = &jch;
         ch_name_ = json_->at("name");
         grid_log_["name"] = ch_name_;
-        id_ = ch_id;
+        id_ = json_->at("id");
     }
     auto heatmap_writer() {
         return [this](MTMat& mt_mat){
             task_->model().heatmap_writer().write(
                 *task_,
                 ch_name_,
+                id_,
                 task_->model().filter(),
                 mt_mat
             );
@@ -156,7 +157,7 @@ struct Channel {
     }
     
     VAR_GET(std::string,                            ch_name             )
-    VAR_GET(int,                                    id                  )
+    // VAR_GET(int,                                    id                  )
     VAR_IO(OptMTMat,                                multi_tiled_mat     )
     VAR_IO(cv::Mat,                                 mk_append_mat       )
     VAR_IO(nlohmann::json,                          grid_log            )
@@ -164,6 +165,7 @@ struct Channel {
     VAR_PTR_GET(Task,                               task)
     VAR_PTR_GET(nlohmann::json,                     json)
 private:
+    int id_;
     std::string task_id() const {
         return task().id().string();
     }

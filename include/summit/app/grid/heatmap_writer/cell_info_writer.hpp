@@ -14,6 +14,7 @@ struct CellInfoWriter {
         const chipimgproc::MultiTiledMat<FLOAT, GLID>& mat, 
         const std::string& task_id, 
         const std::string& ch_name, 
+        const int&         ch_id,
         const std::string& filter
     ) = 0;
     virtual ~CellInfoWriter() {}

@@ -3,6 +3,7 @@
 #include "cell_info_writer.hpp"
 #include <summit/format/cfu_array.hpp>
 #include <CFU/format/cen/file.hpp>
+#include <fmt/format.h>
 namespace summit::app::grid::heatmap_writer{
 
 template<class FLOAT, class GLID>
@@ -29,9 +30,11 @@ struct CENWriter
         const chipimgproc::MultiTiledMat<FLOAT, GLID>& mat, 
         const std::string& task_id, 
         const std::string& ch_name, 
+        const int&         ch_id,
         const std::string& filter
     ) override {
-        summit::format::push_to_cfu_array(array_, mat, ch_name);
+        std::string cen_ch_name = fmt::format("channel-{}", ch_id);
+        summit::format::push_to_cfu_array(array_, mat, cen_ch_name);
     }
     virtual void flush() override {
         cfu::format::cen::File file(file_path_, H5F_ACC_TRUNC);

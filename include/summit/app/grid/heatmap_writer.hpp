@@ -170,6 +170,7 @@ public:
     void write(
         const Task& task,
         const std::string& ch,
+        int ch_id,
         const std::string& filter,
         chipimgproc::MultiTiledMat<Float, GLID>& mat 
     ) {
@@ -195,7 +196,7 @@ public:
             {
                 std::lock_guard<std::mutex> lock(*mux);
                 if(writer->is_write_entire_mat()) {
-                    writer->write(mat, task_id, ch, filter);
+                    writer->write(mat, task_id, ch, ch_id, filter);
                 } else {
                     write_output(*writer, task_id, mat, ch, filter);
                 }
