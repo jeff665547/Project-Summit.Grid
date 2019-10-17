@@ -151,6 +151,7 @@ class Main
             task_paths = Utils::task_paths(
                 model.in_grid_log()["chip_dir"].get<std::string>()
             );
+            model.add_formats(args_.output_formats);
         } else {
             summit::grid::log.info("input require auto gridding, process everything");
             model.set_paths(

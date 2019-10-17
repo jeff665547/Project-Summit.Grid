@@ -22,6 +22,19 @@ struct FormatDecoder {
             );
         }
     }
+    void add_formats(const std::vector<std::string>& formats) {
+        for( auto& n : formats) {
+            auto ftag = OutputFormat::from_string(n);
+            auto itr = std::find(
+                enabled_heatmap_fmts_.begin(), 
+                enabled_heatmap_fmts_.end(), 
+                ftag
+            );
+            if(itr == enabled_heatmap_fmts_.end()) {
+                enabled_heatmap_fmts_.push_back(ftag);
+            }
+        }
+    }
     auto to_string() const {
         std::vector<std::string> res;
         for(auto&& lab : enabled_heatmap_fmts_) {

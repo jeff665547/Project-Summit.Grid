@@ -12,6 +12,7 @@
 #include <ChipImgProc/algo/um2px_auto_scale.hpp>
 #include <summit/app/grid/white_mk_append.hpp>
 #include <ChipImgProc/marker/cell_layout.hpp>
+#include <summit/grid/version.hpp>
 
 namespace summit::app::grid::pipeline {
 namespace __alias {
@@ -321,6 +322,7 @@ struct Chip {
             task.grid_log()["secure_dir"] = task.model().secure_dir_path().string();
             task.grid_log()["marker_append"] = task.model().marker_append();
             task.grid_log()["auto_gridding"] = task.model().auto_gridding();
+            task.grid_log()["version"] = summit::grid::version().to_string();
             task.summary_channel_log();
             task.model().heatmap_writer().flush();
         } catch( const std::exception& e ) {
