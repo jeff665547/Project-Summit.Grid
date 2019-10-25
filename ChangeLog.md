@@ -1,9 +1,10 @@
 # ChangeLog
 
-## 1.0.11-dev - 2019.9.17
+## 1.0.11 - 2019.10.25
 
 - Bugfix: debug flag effect the image process behavior
   - ArUco marker detection failed when debug level <= 1
+- Bugfix: CEN file Channel ID not match specification
 
 ## 1.0.10 - 2019.9.17
 
@@ -67,7 +68,7 @@
 
 ## 0.9.5 - 2019.5.30
 
-- Bugfix: Avoid one task fail, abort all tasks in mutli-task mode 
+- Bugfix: Avoid one task fail, abort all tasks in mutli-task mode
 - Bugfix: Avoid ArUco detector crash
 
 ## 0.9.4 - deprecated
