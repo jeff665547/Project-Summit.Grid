@@ -1,5 +1,7 @@
 # ChangeLog
 
+## 1.0.12-dev
+
 ## 1.0.11 - 2019.10.25
 
 - Bugfix: debug flag effect the image process behavior
