@@ -179,7 +179,7 @@ struct Task {
         const std::string& tag, 
         bool viewable = false
     ) const {
-        if(model().debug() > 1) {
+        if(model().debug() >=5 ) {
             if(viewable) {
                 return [
                     chn = FWD(ch_name), 
