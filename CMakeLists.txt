@@ -9,7 +9,7 @@ set(
 include(cmake/HunterGate.cmake)
 HunterGate(
     URL "ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/hunter.git"
-    SHA1 4b6e2fdb4ce8d224f4a570e03cbe2ad047ec8148
+    SHA1 d1e33161df6bdb2975214acad559a921a36d17e1
     FILEPATH ${CMAKE_CURRENT_LIST_DIR}/cmake/packages.cmake
 )
 project(SummitGrid LANGUAGES C CXX)
