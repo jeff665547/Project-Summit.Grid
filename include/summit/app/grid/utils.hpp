@@ -345,6 +345,7 @@ struct Utils{
             chip_spec["space_um"].get<float>(),
             channel
         ); 
+        std::uint32_t space_px = std::ceil(um2px_r * chip_spec.at("space_um").get<float>());
         auto marker_num = generate_fov_marker_num(
             chip_spec, cell_fov
         );
@@ -363,7 +364,8 @@ struct Utils{
                 fov_mk_num.y, fov_mk_num.x,
                 cv::Point(x_i, y_i),
                 w_d, h_d,
-                w_dpx, h_dpx
+                w_dpx, h_dpx,
+                space_px
             );
             marker_layout.set_single_mk_pat(pats_cl, pats_px, 
                 pats_cl_mask, pats_px_mask);

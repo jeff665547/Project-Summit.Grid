@@ -13,7 +13,7 @@ struct TsvWriter : public CellInfoWriter<FLOAT, GLID> {
     {
         os_ << fields(
                 "task_id", "x", "y", 
-                "num", "mean", "stddev", "cv", 
+                "num", "mean", "stddev", "cv", "bg",
                 "is_mk", "mk_x", "mk_y", 
                 "mk_sub_x", "mk_sub_y" 
             );
@@ -42,7 +42,7 @@ struct TsvWriter : public CellInfoWriter<FLOAT, GLID> {
         os_ <<
             fields(
                 task_id, ci.cl_x, ci.cl_y,
-                ci.height * ci.width, ci.mean, ci.stddev, ci.cv,
+                ci.height * ci.width, ci.mean, ci.stddev, ci.cv, ci.bg,
                 bool_str(ci.marker_info.is_marker), ci.marker_info.mk_id_x, ci.marker_info.mk_id_y,
                 ci.marker_info.sub_x, ci.marker_info.sub_y
             )

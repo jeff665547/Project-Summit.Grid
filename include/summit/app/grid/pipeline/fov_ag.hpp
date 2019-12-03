@@ -147,10 +147,10 @@ constexpr struct FOVAG {
 
             // write raw result
             auto fov_norm_path = channel.fov_image("raw", fov_id.y, fov_id.x);
-            auto x0 = grid_res.gl_x.at(0);
-            auto y0 = grid_res.gl_y.at(0);
-            auto x_d = grid_res.gl_x.back() - x0;
-            auto y_d = grid_res.gl_y.back() - y0;
+            auto x0 = std::round(grid_res.gl_x.front());
+            auto y0 = std::round(grid_res.gl_y.front());
+            auto x_d = std::round(grid_res.gl_x.back() - grid_res.gl_x.front());
+            auto y_d = std::round(grid_res.gl_y.back() - grid_res.gl_y.front());
             cv::imwrite(fov_norm_path.string(), mat(
                 cv::Rect(x0, y0, x_d, y_d)
             ));
@@ -172,7 +172,7 @@ constexpr struct FOVAG {
 
             auto tiles = tiled_mat.get_tiles();
             auto margin_res = margin(
-                "auto_min_cv",
+                "sig_est",
                 cimp::margin::Param<GridLineID> {
                     0.6,
                     &tiled_mat,
@@ -192,7 +192,7 @@ constexpr struct FOVAG {
                 tiled_mat.get_cali_img() = grid_raw_img.mat();
                 tiled_mat.get_tiles() = tiles;
                 margin_res = margin(
-                    "auto_min_cv",
+                    "sig_est",
                     cimp::margin::Param<GridLineID> {
                         0.6,
                         &tiled_mat,

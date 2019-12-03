@@ -29,6 +29,7 @@ struct CellInfo {
     , mean        ( ele.cell_info.mean   )
     , stddev      ( ele.cell_info.stddev )
     , cv          ( ele.cell_info.cv     )
+    , bg          ( ele.cell_info.bg     )
     , probe       ( ele.pixels           )
     , marker_info {
         is_marker,
@@ -46,6 +47,7 @@ struct CellInfo {
     FLOAT       mean        ;
     FLOAT       stddev      ;
     FLOAT       cv          ;
+    FLOAT       bg          ;
     cv::Mat     probe       ;
 
     MarkerInfo  marker_info ;
