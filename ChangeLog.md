@@ -2,7 +2,7 @@
 
 ## 1.1.0-dev - 2019.12.3
 
-- Update: Add and use sig_est margin (include local background subtraction)
+- Update: Add sig_est margin method (include local background subtraction)
 - Update: Improve BF and FL marker detection process
 - Update: Image debug level 2 -> 5
 - Bugfix: Numerical type accuracy and chip specification mismatch 
