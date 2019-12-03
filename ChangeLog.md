@@ -2,10 +2,10 @@
 
 ## 1.1.0-dev - 2019.12.3
 
-- Update: Add and use sig_est margin
-- Update: Improve marker detection
+- Update: Add and use sig_est margin (include local background subtraction)
+- Update: Improve BF and FL marker detection process
 - Update: Image debug level 2 -> 5
-- Bugfix: Numerical type accuracy and chip specification miss match 
+- Bugfix: Numerical type accuracy and chip specification mismatch 
   cause miss inference of grid lines by 1~2 pixel
 
 ## 1.0.11 - 2019.10.25
