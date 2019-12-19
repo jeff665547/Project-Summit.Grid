@@ -172,7 +172,7 @@ constexpr struct FOVAG {
 
             auto tiles = tiled_mat.get_tiles();
             auto margin_res = margin(
-                "sig_est",
+                task.model().method(),
                 cimp::margin::Param<GridLineID> {
                     0.6,
                     &tiled_mat,
@@ -192,7 +192,7 @@ constexpr struct FOVAG {
                 tiled_mat.get_cali_img() = grid_raw_img.mat();
                 tiled_mat.get_tiles() = tiles;
                 margin_res = margin(
-                    "sig_est",
+                    task.model().method(),
                     cimp::margin::Param<GridLineID> {
                         0.6,
                         &tiled_mat,

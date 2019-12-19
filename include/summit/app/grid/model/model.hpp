@@ -74,6 +74,9 @@ struct Model
     void set_auto_gridding(bool flag) {
         auto_gridding_ = flag;
     }
+    void set_method(const std::string& method) {
+        method_ = method;
+    }
     void set_not_auto_gridding(const std::string& in_grid_log_path) {
         std::ifstream fin(in_grid_log_path);
         fin >> in_grid_log_;
@@ -88,6 +91,10 @@ struct Model
         set_filter("all");
         set_no_bgp(in_grid_log_.at("no_bgp"));
         set_auto_gridding(false);
+        if (in_grid_log_.count("method"))
+            set_method(in_grid_log_.at("method"));
+        else
+            set_method(method_);
     }
     Executor& executor() {
         return *executor_;
@@ -102,6 +109,7 @@ struct Model
     VAR_GET(int,                 debug          )
     VAR_GET(bool,                auto_gridding  )
     VAR_GET(nlohmann::json,      in_grid_log    )
+    VAR_GET(std::string,         method         )
 private:
     std::unique_ptr<HmWriter>         heatmap_writer_       ;
     std::unique_ptr<BackgroundWriter> background_writer_    ;

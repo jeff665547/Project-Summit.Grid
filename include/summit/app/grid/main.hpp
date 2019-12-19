@@ -22,6 +22,7 @@ struct Parameters
     std::vector<std::string> output_formats;
     std::string filter;
     std::string output;
+    std::string method;
     int debug;
     bool  no_bgp;
     std::string shared_dir;
@@ -60,6 +61,8 @@ public:
             ("shared_dir,a"     ,       po::value<std::string>()->default_value(""),           "The share directory from reader IPC to image server")
             ("secure_dir,e"     ,       po::value<std::string>()->default_value(""),           "The private directory on image server")
             ("thread_num,n"     ,       po::value<int>()->default_value(1),                    "The thread number used in the image process")
+            ("method,s"         ,       po::value<std::string>()->required()
+                                                        ->default_value("auto_min_cv"),        "The signal extraction method")
             ("marker_append,m"  ,       "Show marker append")
             ("version,v"        ,       "Show version info")
         ;
@@ -84,6 +87,7 @@ public:
         Base::get_parameter( "secure_dir"        , secure_dir        );
         Base::get_parameter( "thread_num"        , thread_num        );
         Base::get_parameter( "marker_append"     , marker_append     );
+        Base::get_parameter( "method"            , method            );
         auto input_path_  = boost::filesystem::absolute(input_path);
         auto output_      = boost::filesystem::absolute(output);
         input_path = input_path_.make_preferred().string();
@@ -147,6 +151,7 @@ class Main
         if(is_not_auto_gridding(grid_log_path)) {
             summit::grid::log.info("input require not to auto gridding");
             summit::grid::log.info("direct use gridding parameter in input grid log");
+            model.set_method(args_.method);
             model.set_not_auto_gridding(grid_log_path.string());
             task_paths = Utils::task_paths(
                 model.in_grid_log()["chip_dir"].get<std::string>()
@@ -162,6 +167,7 @@ class Main
             model.set_marker_append(args_.marker_append);
             model.set_filter(args_.filter);
             model.set_no_bgp(args_.no_bgp);
+            model.set_method(args_.method);
             model.set_auto_gridding(true);
             task_paths = Utils::task_paths(model.input());
         }

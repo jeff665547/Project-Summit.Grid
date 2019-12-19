@@ -318,6 +318,7 @@ struct Chip {
             task.grid_log()["output_formats"] = task.model().FormatDecoder::to_string();
             task.grid_log()["output"] = task.model().output().string();
             task.grid_log()["no_bgp"] = task.model().no_bgp();
+            task.grid_log()["method"] = task.model().method();
             task.grid_log()["shared_dir"] = task.model().shared_dir_path().string();
             task.grid_log()["secure_dir"] = task.model().secure_dir_path().string();
             task.grid_log()["marker_append"] = task.model().marker_append();
