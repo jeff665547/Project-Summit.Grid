@@ -1,6 +1,6 @@
 # ChangeLog
 
-## 1.1.1-dev - 2019.12.24
+## 1.1.1 - 2019.12.24
 - Update: Make margin method configurable (the default method is "auto_min_cv")
 
 ## 1.1.0 - 2019.12.3
