@@ -1,6 +1,8 @@
 # ChangeLog
 
-## 1.1.0-dev - 2019.12.3
+## 1.1.1-dev - 2019.12.24
+
+## 1.1.0 - 2019.12.3
 
 - Update: Add sig_est margin method (include local background subtraction)
 - Update: Improve BF and FL marker detection process
