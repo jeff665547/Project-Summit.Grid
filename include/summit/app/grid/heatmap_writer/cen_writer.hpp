@@ -33,8 +33,7 @@ struct CENWriter
         const int&         ch_id,
         const std::string& filter
     ) override {
-        std::string cen_ch_name = fmt::format("channel-{}", ch_id);
-        summit::format::push_to_cfu_array(array_, mat, cen_ch_name);
+        summit::format::push_to_cfu_array(array_, mat, ch_name);
     }
     virtual void flush() override {
         cfu::format::cen::File file(file_path_, H5F_ACC_TRUNC);
