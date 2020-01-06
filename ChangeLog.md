@@ -1,6 +1,10 @@
 # ChangeLog
 
-## 1.1.1-dev - 2019.12.24
+## 1.1.2-dev - 2019.1.6
+
+- Update: Use raw channel name as CEN file channel name, instead of channel-0/1
+
+## 1.1.1 - 2019.12.24
 
 - Update: Make margin method configurable (the default method is "auto_min_cv")
 
