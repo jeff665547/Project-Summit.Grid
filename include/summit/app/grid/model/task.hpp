@@ -146,6 +146,9 @@ struct Task {
         model_->create_complete_file(id_.string());
     }
     void copy_chip_log() const {
+        std::ofstream grid_cl(model_->grid_chip_log(id_.string()).string());
+        grid_cl << chip_log_;
+        grid_cl.close();
         if(!model_->secure_output_enabled()) return ;
         std::ofstream fout(model_->sc_chip_log().string());
         fout << chip_log_;

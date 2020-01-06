@@ -66,6 +66,9 @@ struct Paths {
         summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(chip_log);
     }
+    auto grid_chip_log(const std::string& task_id) const {
+        return grid_dir(task_id) / "chip_log.json";
+    }
     boost::filesystem::path marker_append_path(
         const std::string& task_id,
         const std::string& ch
@@ -96,21 +99,7 @@ struct Paths {
     boost::filesystem::path array_cen(
         const std::string& task_id
     ) const {
-        boost::filesystem::path output_p(output_);
-        switch(mode_) {
-            case normal:
-                output_p = output_p / task_id
-                    / "array.cen";
-                break;
-            case inplace:
-                output_p = output_p / "grid" 
-                    / "array.cen";
-                break;
-            default:
-                throw std::runtime_error("unsupport mode");
-        }
-        summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
-        return check_path(output_p);
+        return grid_dir(task_id) / "array.cen";
     }
     boost::filesystem::path heatmap(
         const std::string& task_id,
@@ -282,17 +271,23 @@ private:
         const std::string& task_id,
         const std::string& channel
     ) const {
-        boost::filesystem::path output_p(output);
+        return grid_dir(task_id) / "channels" / channel;
+    }
+    boost::filesystem::path grid_dir(
+        const std::string& task_id
+    ) const {
+        boost::filesystem::path output_p(output_);
         switch(mode_) {
             case normal:
-                return output_p / task_id 
-                    / "channels" / channel;
+                output_p = output_p / task_id;
+                break;
             case inplace:
-                return output_p / "grid" 
-                    / "channels" / channel;
+                output_p = output_p / "grid";
+                break;
             default:
                 throw std::runtime_error("unsupport mode");
         }
+        return check_path(output_p);
     }
     Mode mode_;
     bool enable_secure_output_;
