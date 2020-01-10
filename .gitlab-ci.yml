@@ -3,6 +3,10 @@ Win_CI:
         GIT_SUBMODULE_STRATEGY: normal
     stage: build
     script: 
+        - git lfs env
+        - git lfs install
+        - git submodule init
+        - git submodule update
         - rmdir stage /s /q
         - rmdir build /s /q
         - mkdir build
@@ -10,6 +14,9 @@ Win_CI:
         - cmake -G "MinGW Makefiles" ../ -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DBUILD_TESTS=ON -DINSTALL_DEPS=ON -DHUNTER_ROOT="C:\.hunter"
         - cmake --build . --target install
         - ..\stage\bin\summit-app-grid.exe --help
+        - mkdir ..\test\secure
+        - cd ..
+        - stage\bin\summit-app-grid.exe -i lib\Summit.Grid-CI-data\zion\158_20171220095723 -o test\secure\zion\158_20171220095723 -a lib\Summit.Grid-CI-data -e test\secure
     only:
         - 1.0.x
         - 1.1.x
