@@ -16,10 +16,13 @@ Win_CI:
         - ..\stage\bin\summit-app-grid.exe --help
         - mkdir ..\test\secure
         - cd ..
-        - stage\bin\summit-app-grid.exe -i lib\Summit.Grid-CI-data\zion\158_20171220095723 -o test\secure\zion\158_20171220095723 -a lib\Summit.Grid-CI-data -e test\secure
+        - stage\bin\summit-app-grid.exe -i lib\Summit.Grid-CI-data\zion\158_20171220095723 -o test\secure\zion\158_20171220095723 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - stage\bin\summit-app-grid.exe -i lib\Summit.Grid-CI-data\banff\25_20171218123658 -o test\secure\banff\25_20171218123658 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - stage\bin\summit-app-grid.exe -i lib\Summit.Grid-CI-data\yz01\877-09_without96 -o test\secure\yz01\877-09_without96 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
     only:
         - 1.0.x
         - 1.1.x
+        - add-ci
     tags:
         - WIN
 
@@ -28,6 +31,8 @@ CentOS_CI:
         GIT_SUBMODULE_STRATEGY: normal
     stage: build
     script: 
+        - git submodule init
+        - git submodule update
         - source /opt/rh/devtoolset-7/enable
         - source /opt/rh/python27/enable
         - source /opt/rh/rh-python35/enable
@@ -38,8 +43,14 @@ CentOS_CI:
         - cmake ../ -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DBUILD_TESTS=ON -DINSTALL_DEPS=ON
         - cmake --build . --target install
         - ../stage/bin/summit-app-grid --help
+        - mkdir ../test/secure
+        - cd ..
+        - stage/bin/summit-app-grid.exe -i lib/Summit.Grid-CI-data/zion/158_20171220095723 -o test/secure/zion/158_20171220095723 -a lib/Summit.Grid-CI-data -e test/secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - stage/bin/summit-app-grid.exe -i lib/Summit.Grid-CI-data/banff/25_20171218123658 -o test/secure/banff/25_20171218123658 -a lib/Summit.Grid-CI-data -e test/secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - stage/bin/summit-app-grid.exe -i lib/Summit.Grid-CI-data/yz01/877-09_without96 -o test/secure/yz01/877-09_without96 -a lib/Summit.Grid-CI-data -e test/secure -m -r cen_file,tsv_probe_list,mat_tiff
     only:
         - 1.0.x
         - 1.1.x
+        - add-ci
     tags:
         - CENTOS
