@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.1.1 - 2019.1.22
+
+- Update: Add marker region to grid log
+
 ## 1.1.1 - 2019.12.24
 
 - Update: Make margin method configurable (the default method is "auto_min_cv")
