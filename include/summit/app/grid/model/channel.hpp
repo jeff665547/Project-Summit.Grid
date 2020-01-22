@@ -119,11 +119,8 @@ struct Channel {
         for(auto&& [fov_id, fov] : fov_mods) {
             fovs.push_back(fov.grid_log());
         }
-        summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
         multi_tiled_mat_ = make_multi_tiled_mat(fov_mods, *task_);
-        summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
         collect_fovs_mk_append(fov_mods);
-        summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
     }
     template<class GLID>
     void set_gridline(
