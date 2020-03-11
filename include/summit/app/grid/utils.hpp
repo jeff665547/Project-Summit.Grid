@@ -318,6 +318,10 @@ struct Utils{
             }
             fov_h_id ++;
         }
+        summit::grid::log.trace("FOV marker numbers:");
+        for(auto&& [id, num] : marker_num) {
+            summit::grid::log.trace("({},{}): ({},{})", id.x, id.y, num.x, num.y);
+        }
         return marker_num;
     }
     using FOVMarkerLayouts = FOVMap<chipimgproc::marker::Layout>;
@@ -336,6 +340,8 @@ struct Utils{
         auto y_i              = position_cl["y_i"].get<int>();
         auto w_d              = position_cl["w_d"].get<int>();
         auto h_d              = position_cl["h_d"].get<int>();
+        summit::grid::log.info("{}:{}", __FILE__, __LINE__);
+        summit::grid::log.info("um2px_r: {}", um2px_r);
         auto w_dpx            = position["w_d"].get<int>() * um2px_r;
         auto h_dpx            = position["h_d"].get<int>() * um2px_r;
         auto [pats_cl, pats_px, pats_cl_mask, pats_px_mask]= get_single_marker_pattern(
@@ -360,6 +366,7 @@ struct Utils{
             const auto& fov_mk_num, 
             auto& marker_layout 
         ) {
+            summit::grid::log.info("{}:{}", __FILE__, __LINE__);
             marker_layout.set_reg_mat_dist(
                 fov_mk_num.y, fov_mk_num.x,
                 cv::Point(x_i, y_i),
@@ -367,9 +374,12 @@ struct Utils{
                 w_dpx, h_dpx,
                 space_px
             );
+            summit::grid::log.info("{}:{}", __FILE__, __LINE__);
             marker_layout.set_single_mk_pat(pats_cl, pats_px, 
                 pats_cl_mask, pats_px_mask);
+            summit::grid::log.info("{}:{}", __FILE__, __LINE__);
             res[fov_id] = marker_layout;
+            summit::grid::log.info("{}:{}", __FILE__, __LINE__);
         };
         if(fov_ec_id) {
             cv::Point fov_id(0,0); // TODO: fov_ec_id to fov_id
@@ -377,13 +387,15 @@ struct Utils{
             auto fov_mk_num = marker_num[fov_id];
             add_marker_layout_ ( fov_id, fov_mk_num, marker_layout );
         } else {
+            summit::grid::log.info("{}:{}", __FILE__, __LINE__);
             for(auto&& mkp : marker_num) {
                 chipimgproc::marker::Layout marker_layout;
                 auto& fov_mk_num = mkp.second;
                 add_marker_layout_(mkp.first, fov_mk_num, marker_layout );     
             }
+            summit::grid::log.info("{}:{}", __FILE__, __LINE__);
         }
-
+        summit::grid::log.info("{}:{}", __FILE__, __LINE__);
         return res;
     }
     static auto generate_stitch_points(
