@@ -6,7 +6,6 @@
 #include <Nucleona/sys/executable_dir.hpp>
 #include <boost/optional.hpp>
 #include <Nucleona/algo/split.hpp>
-#include <ChipImgProc/comb/single_general.hpp>
 #include <ChipImgProc/multi_tiled_mat.hpp>
 #include <Nucleona/proftool/timer.hpp>
 #include <summit/grid/version.hpp>
