@@ -34,7 +34,7 @@ struct Chip {
         namespace nr = nucleona::range;
         using namespace __alias;
         cmk::CellLayout         cell_layout             ;
-        cmk_det::ArucoRegMat    aruco_mk_detector       ;
+        cmk_det::ArucoRegMat2   aruco_mk_detector       ;
         auto& executor  = task.model().executor();
         auto& model     = task.model();
         
@@ -76,8 +76,11 @@ struct Chip {
         ) {
             auto fov_mk_num = fov_marker_num.at(fov_id);
             auto mk_regs = aruco_mk_detector(
-                static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
-                task.mk_w_px(um2px_r),     task.mk_h_px(um2px_r)
+                static_cast<const cv::Mat_<std::uint8_t>&>(mat),
+                task.tm_outer_width() * um2px_r,
+                task.tm_outer_width() * um2px_r
+                // task.mk_w_px(um2px_r),
+                // task.mk_h_px(um2px_r)
             );
             // __alias::cmk_det::filter_low_score_marker(mk_regs);
             return mk_regs;
