@@ -2,7 +2,8 @@
 
 ## 1.1.2-dev - 2020.1.22
 
-- Update: Use raw channel name as CEN file channel name, instead of channel-0/1
+- Update: Use raw channel name as CEN file channel name, instead of channel-0/1.
+- Feature: Add Kenai support.
 
 ## 1.1.1.1 - 2020.1.22
 
