@@ -134,7 +134,7 @@ constexpr struct FOVNAG {
             }
             fov_mod.set_tiled_mat(std::move(tiled_mat));
             fov_mod.set_stat_mats(std::move(margin_res.stat_mats));
-            fov_mod.set_bg_means(std::move(bg_value));
+            // fov_mod.set_bg_means(std::move(bg_value));
             f_grid_log["x0_px"] = in_grid_log.at("x0_px");
             f_grid_log["y0_px"] = in_grid_log.at("y0_px");
             f_grid_log["du_x"] = in_grid_log.at("du_x");

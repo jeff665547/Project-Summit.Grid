@@ -1,19 +1,19 @@
 #pragma once
-#include <summit/app/grid/model.hpp>
-#include <Nucleona/range.hpp>
 #include "channel.hpp"
-#include <ChipImgProc/marker/detection/aruco_reg_mat.hpp>
+#include <summit/app/grid/model.hpp>
+#include <summit/app/grid/aruco_setter.hpp>
+#include <summit/app/grid/model/marker_base.hpp>
+#include <summit/app/grid/white_mk_append.hpp>
+#include <summit/grid/version.hpp>
+#include <ChipImgProc/algo/um2px_auto_scale.hpp>
 #include <ChipImgProc/rotation/marker_vec.hpp>
 #include <ChipImgProc/rotation/iteration_cali.hpp>
+#include <ChipImgProc/marker/detection/aruco_reg_mat.hpp>
 #include <ChipImgProc/marker/reg_mat_um2px_r_det.hpp>
-#include <summit/app/grid/aruco_setter.hpp>
-#include <Nucleona/util/remove_const.hpp>
-#include <summit/app/grid/model/marker_base.hpp>
-#include <ChipImgProc/algo/um2px_auto_scale.hpp>
-#include <summit/app/grid/white_mk_append.hpp>
 #include <ChipImgProc/marker/cell_layout.hpp>
-#include <summit/grid/version.hpp>
-
+#include <ChipImgProc/marker/detection/reg_mat_infer.hpp>
+#include <Nucleona/range.hpp>
+#include <Nucleona/util/remove_const.hpp>
 namespace summit::app::grid::pipeline {
 namespace __alias {
 
