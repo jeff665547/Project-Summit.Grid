@@ -1,6 +1,6 @@
 # ChangeLog
 
-## 1.1.2-dev - 2020.3.19
+## 1.1.2 - 2020.3.19
 
 - Update: Use raw channel name as CEN file channel name, instead of channel-0/1.
 - Feature: Add Kenai support.
