@@ -76,6 +76,9 @@ struct Channel {
         else 
             return debug_img_view(r, c, "margin", false);
     }
+    auto pch_margin_view(int r, int c) const {
+        return debug_img_view(r, c, "margin", false);
+    }
     auto mk_append_view() const {
         return [this](const cv::Mat& view) {
             auto path = task().model().marker_append_path(

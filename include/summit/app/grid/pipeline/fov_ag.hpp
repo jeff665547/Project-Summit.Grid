@@ -1,7 +1,7 @@
 #pragma once
 #include <summit/app/grid/model.hpp>
-#include <limits>
 #include <summit/app/grid/model/type.hpp>
+#include <summit/app/grid/model/fov.hpp>
 #include <ChipImgProc/marker/detection/aruco_reg_mat.hpp>
 #include <ChipImgProc/marker/detection/reg_mat.hpp>
 #include <ChipImgProc/gridding/reg_mat.hpp>
@@ -9,7 +9,15 @@
 #include <ChipImgProc/rotation/calibrate.hpp>
 #include <ChipImgProc/rotation/marker_vec.hpp>
 #include <ChipImgProc/stitch/gridline_based.hpp>
-#include <summit/app/grid/model/fov.hpp>
+#include <ChipImgProc/bgb/chunk_local_mean.hpp>
+#include <ChipImgProc/bgb/bspline.hpp>
+#include <ChipImgProc/margin.hpp>
+#include <ChipImgProc/marker/detection/filter_low_score_marker.hpp>
+#include <ChipImgProc/marker/detection/reg_mat_no_rot.hpp>
+#include <ChipImgProc/marker/view.hpp>
+#include <ChipImgProc/marker/roi_append.hpp>
+#include <ChipImgProc/utils/mat_to_vec.hpp>
+#include <limits>
 namespace summit::app::grid::pipeline {
 
 namespace __alias {
@@ -56,6 +64,27 @@ constexpr struct FOVAG {
             std::move(min_theta_diff), 
             std::move(low_score_marker_idx)
         );
+    }
+    template<class StatMats, class GLID>
+    void set_bg(
+        StatMats&                   stat_mat, 
+        const chipimgproc::TiledMat<GLID>& tiled_mat, 
+        const cv::Mat_<double>&     bg
+    ) const {
+        auto x_org = tiled_mat.glx().at(0);
+        auto y_org = tiled_mat.gly().at(0);
+        const auto& tiles = tiled_mat.get_tiles();
+        const auto& first_tile = tiles.at(0);
+        const auto& last_tile = tiles.back();
+        for(int i = 0; i < tiled_mat.rows(); i ++ ) {
+            for(int j = 0; j < tiled_mat.cols(); j ++ ) {
+                cv::Rect tile = tiled_mat.tile_at(i, j);
+                tile.x -= x_org;
+                tile.y -= y_org;
+                cv::Mat_<double> sub_bg = bg(tile);
+                stat_mat.bg(i, j) = Utils::mean(sub_bg);
+            }
+        }
     }
     auto operator()(model::FOV& fov_mod) const {
         using namespace __alias;
@@ -169,42 +198,33 @@ constexpr struct FOVAG {
             cimp::GridRawImg<> grid_raw_img(
                 mat, grid_res.gl_x, grid_res.gl_y
             );
+            // auto tiles = tiled_mat.get_tiles();
 
-            auto tiles = tiled_mat.get_tiles();
+            // bgp
+            auto inty_region = tiled_mat.get_image_roi();
+            cv::Mat_<std::uint16_t> dmat = mat(inty_region);
+            auto surf = cimp::bgb::bspline(dmat, {3, 6}, 0.3);
+            if(!task.model().no_bgp()) {
+                dmat.forEach([&surf](std::uint16_t& v, const int* pos){
+                    const auto& r = pos[0];
+                    const auto& c = pos[1];
+                    v = std::round(std::max(0.0, v - surf(r, c))) + 1;
+                });
+            }
             auto margin_res = margin(
                 task.model().method(),
                 cimp::margin::Param<GridLineID> {
                     0.6,
                     &tiled_mat,
-                    task.model().no_bgp(),
-                    fov_mod.pch_margin_view_0(task.model().no_bgp())
+                    true,
+                    fov_mod.pch_margin_view()
                 }
             );
-            auto bg_value = cimp::bgb::chunk_local_mean(
-                margin_res.stat_mats.mean,
-                grid_raw_img,
-                3, 3, 0.05,
-                mk_layout,
-                !task.model().no_bgp(),
-                nucleona::stream::null_out
-            );
-            if(!task.model().no_bgp()) {
-                tiled_mat.get_cali_img() = grid_raw_img.mat();
-                tiled_mat.get_tiles() = tiles;
-                margin_res = margin(
-                    task.model().method(),
-                    cimp::margin::Param<GridLineID> {
-                        0.6,
-                        &tiled_mat,
-                        true,
-                        fov_mod.pch_margin_view_1(task.model().no_bgp())
-                    }
-                );
-            }
+            set_bg(margin_res.stat_mats, tiled_mat, surf);
             fov_mod.set_tiled_mat(std::move(tiled_mat));
             fov_mod.set_stat_mats(std::move(margin_res.stat_mats));
-            fov_mod.set_bg_means(std::move(bg_value));
-            // fov_mod.set_mk_regs(std::move(mk_regs));
+            fov_mod.set_bg_means(cimp::utils::mat__to_vec(surf));
+
             f_grid_log["x0_px"] = std::round(grid_res.gl_x[0] * 100) / 100;
             f_grid_log["y0_px"] = std::round(grid_res.gl_y[0] * 100) / 100;
             f_grid_log["du_x"] = Utils::du_um(grid_res.gl_x, task.um2px_r());

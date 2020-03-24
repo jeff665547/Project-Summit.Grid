@@ -56,6 +56,9 @@ struct FOV {
     auto pch_margin_view_1(bool no_bgp) const {
         return channel_->pch_margin_view_1(fov_id_.y, fov_id_.x, no_bgp);
     }
+    auto pch_margin_view() const {
+        return channel_->pch_margin_view(fov_id_.y, fov_id_.x);
+    }
     auto& take_tiled_mat() {
         return tiled_mat_;
     }
@@ -75,7 +78,7 @@ struct FOV {
     VAR_IO(bool,                                proc_done               );
     VAR_IO(chipimgproc::TiledMat<>,             tiled_mat               );
     VAR_IO(chipimgproc::stat::Mats<>,           stat_mats               );
-    VAR_IO(std::vector<float>,                  bg_means                );
+    VAR_IO(std::vector<double>,                 bg_means                );
     VAR_IO(nlohmann::json,                      grid_log                );
     VAR_IO(std::vector<CimpMKRegion>,           mk_regs                 );
     VAR_IO(std::vector<cv::Point>,              low_score_marker_idx    );

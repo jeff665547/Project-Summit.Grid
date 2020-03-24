@@ -2,7 +2,6 @@
 #include <boost/filesystem.hpp>
 #include <summit/config/chip.hpp>
 #include <summit/config/cell_fov.hpp>
-#include <ChipImgProc/comb/single_general.hpp>
 #include <summit/utils.h>
 #include <limits>
 #include <ChipImgProc/marker/loader.hpp>
@@ -13,6 +12,7 @@
 #include <summit/crypto/scan_image.hpp>
 #include <ChipImgProc/utils.h>
 #include <summit/format/rfid.hpp>
+#include <ChipImgProc/marker/detection/mk_region.hpp>
 #include "paths.hpp"
 #include "sup_improc_data.hpp"
 #include <optional>
