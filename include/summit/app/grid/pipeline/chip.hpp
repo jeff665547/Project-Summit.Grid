@@ -119,6 +119,7 @@ struct Chip {
                                         fov_id, task.um2px_r()
                                     )
                                   );
+                summit::grid::log.debug("white channel, fov id:({}, {}) theta: {}", fov_id.x, fov_id.y, theta);
                 // std::cout << "white channel detect theta " 
                 //     << fov_id << ": " << theta << std::endl;
                 cv::Mat mat_loc = mat.clone();
@@ -138,6 +139,7 @@ struct Chip {
                     task.mk_hd_um(),
                     nucleona::stream::null_out
                 );
+                summit::grid::log.debug("white channel, fov id:({}, {}) um2px_r: {}", fov_id.x, fov_id.y, um2px_r);
                 mk_regs = aruco_mk_det(mat_loc, fov_id, um2px_r);
                 mk_regs = __alias::cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
 
@@ -274,6 +276,7 @@ struct Chip {
                 auto du_ms = std::chrono::duration_cast<std::chrono::milliseconds>(du).count();
                 task.set_proc_time(du_ms / 1000.0);
             });
+            task.grid_log()["date"] = summit::utils::datetime("%Y/%m/%d %H:%M:%S", std::chrono::system_clock::now());
             auto& wh_ch_log = task.grid_log()["white_channel_proc"];
             if(task.model().auto_gridding()) {
                 if(!white_channel_proc(task)) {
