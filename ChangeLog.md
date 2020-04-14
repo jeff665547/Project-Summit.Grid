@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.4 - 2020.4.14
+
+- Feature: More stitched image.
+
 ## 1.1.3 - 2020.4.14
 
 - Feature: Add debug grid stiched image. All channel stacked into a multi-channel image(png).
