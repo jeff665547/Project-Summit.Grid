@@ -216,6 +216,14 @@ struct Paths {
         summit::grid::log.trace("{}:{}", __FILE__, __LINE__);
         return check_path(debug_dir / ss.str());
     }
+    boost::filesystem::path debug_stitch(
+        const std::string& task_id, 
+        const std::string& tag
+    ) const {
+        return check_path(grid_dir(task_id) / fmt::format("stitch-merged{}.png"
+            , tag.empty() ? "" : "-" + tag
+        ));
+    }
     boost::filesystem::path channel_grid_log(
         const std::string& task_id, 
         const std::string& channel
@@ -264,7 +272,6 @@ private:
         boost::filesystem::path viewable_tag("viewable_" + tag);
         std::string ext = (tag == "raw") ? ".tiff" : ".png";
         return ( viewable_tag / ("stitch-" + ch + ext )).string();
-
     }
     boost::filesystem::path general_prefix(
         const std::string& output,

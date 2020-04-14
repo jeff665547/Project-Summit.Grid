@@ -112,6 +112,7 @@ constexpr struct FOVAG {
             );
             auto& theta_diff = std::get<0>(td_lsmk);
             auto& ls_mk_idx  = std::get<1>(td_lsmk);
+            summit::grid::log.debug("{}: probe channel rotation: {}", log_prefix, task.rot_degree().value());
             rotate_calibrator(
                 mat, 
                 task.rot_degree().value(),

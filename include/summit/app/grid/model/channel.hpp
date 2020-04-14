@@ -122,8 +122,14 @@ struct Channel {
         for(auto&& [fov_id, fov] : fov_mods) {
             fovs.push_back(fov.grid_log());
         }
-        multi_tiled_mat_ = make_multi_tiled_mat(fov_mods, *task_);
+        nucleona::remove_const(*task_).set_multi_tiled_mat(ch_name_, make_multi_tiled_mat(fov_mods, *task_));
         collect_fovs_mk_append(fov_mods);
+    }
+    decltype(auto) multi_tiled_mat() { 
+        return nucleona::remove_const(*task_).multi_tiled_mat().at(ch_name_);
+    }
+    void set_stitched_img(GLRawImg&& grid_raw_img) {
+        nucleona::remove_const(*task_).set_stitched_img(ch_name_, std::move(grid_raw_img));
     }
     template<class GLID>
     void set_gridline(
@@ -158,7 +164,6 @@ struct Channel {
     
     VAR_GET(std::string,                            ch_name             )
     // VAR_GET(int,                                    id                  )
-    VAR_IO(OptMTMat,                                multi_tiled_mat     )
     VAR_IO(cv::Mat,                                 mk_append_mat       )
     VAR_IO(nlohmann::json,                          grid_log            )
 

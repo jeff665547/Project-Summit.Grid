@@ -99,6 +99,8 @@ constexpr struct Channel {
         Utils::write_gl(gl_file, grid_image);
         channel.set_gridline(grid_image.gl_x(), grid_image.gl_y());
 
+        channel.set_stitched_img(std::move(grid_image));
+
         // background
         Utils::FOVMap<float> bg_value;
         for(auto&& p : fov_mods) {

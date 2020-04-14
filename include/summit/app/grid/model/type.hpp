@@ -10,4 +10,5 @@ namespace summit::app::grid::model {
     using StatMats      = chipimgproc::stat::Mats<Float>;
     using MTMat         = chipimgproc::MultiTiledMat<Float, GLID>;
     using OptMTMat      = std::optional<MTMat>;
+    using GLRawImg      = chipimgproc::GridRawImg<GLID>;
 }

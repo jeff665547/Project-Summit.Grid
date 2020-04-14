@@ -16,7 +16,7 @@
 namespace summit::app::grid::model {
 struct Task {
     template<class T>
-    using ChannelMap = std::map<std::string, T>;
+    using ChnMap = std::map<std::string, T>;
     void set_model(const Model& _model) {
         model_ = &_model;
     }
@@ -209,6 +209,15 @@ struct Task {
     auto aruco_ch_mk_seg_view(int r, int c) const {
         return debug_img_view("aruco", r, c, "aruco_mkseg", false);
     }
+    void set_multi_tiled_mat(const std::string& chname, MTMat mat) {
+        multi_tiled_mat_[chname] = std::move(mat);
+    }
+    void set_stitched_img(const std::string& chname, GLRawImg glraw_img) {
+        stitched_img_[chname] = std::move(glraw_img);
+    }
+    auto debug_stitch(const std::string& tag = "") {
+        return model().debug_stitch(id().string(), tag);
+    }
 
     VAR_GET(nlohmann::json,                 chip_log            )
     VAR_GET(nlohmann::json,                 grid_log            )
@@ -273,6 +282,8 @@ struct Task {
 
     VAR_LOCAL_PTR_GET(nlohmann::json,       channel_log         )
 
+    VAR_GET(ChnMap<OptMTMat>,               multi_tiled_mat     )
+    VAR_GET(ChnMap<GLRawImg>,               stitched_img        )
 private:
 
     

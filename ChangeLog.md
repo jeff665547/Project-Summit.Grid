@@ -1,5 +1,14 @@
 # ChangeLog
 
+## 1.1.3 - 2020.4.14
+
+- Feature: Add debug grid stiched image. All channel stacked into a multi-channel image(png).
+  - Use option "-d 5" and the result will generate in "grid" directory.
+  - The color mapping is follow the channel filter:
+    - 0 -> blue
+    - 2 -> green
+    - 4 -> red
+
 ## 1.1.2 - 2020.3.19
 
 - Update: Use raw channel name as CEN file channel name, instead of channel-0/1.
