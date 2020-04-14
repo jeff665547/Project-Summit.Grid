@@ -267,6 +267,84 @@ struct Chip {
         task.set_um2px_r(best_um2px_r);
         return true;
     }
+    template<class T>
+    void draw_grid(
+        cv::Mat& mat, 
+        const std::vector<T>& gl_x, 
+        const std::vector<T>& gl_y, 
+        int line_value
+    ) const {
+        for(auto&& xl : gl_x) {
+            cv::line(mat,
+                cv::Point(xl, 0), 
+                cv::Point(xl, mat.rows),
+                line_value
+            );
+        }
+        for(auto&& yl : gl_y) {
+            cv::line(mat,
+                cv::Point(0, yl), 
+                cv::Point(mat.cols, yl),
+                line_value
+            );
+        }
+    }
+    template<class T>
+    cv::Mat view_grid_raw_img(const chipimgproc::GridRawImg<T>& grm, int line_color) const {
+        cv::Mat res = grm.mat().clone();
+        for(auto&& xl : grm.gl_x()) {
+            cv::line(res,
+                cv::Point(xl, 0), 
+                cv::Point(xl, grm.rows()),
+                cv::Scalar(line_color)
+            );
+        }
+        for(auto&& yl : grm.gl_y()) {
+            cv::line(res,
+                cv::Point(0, yl), 
+                cv::Point(grm.cols(), yl),
+                cv::Scalar(line_color)
+            );
+        }
+        return res;
+    }
+    void gridline_debug_image_proc(model::Task& task) const { 
+        /**
+         * generate additional debug grid line image
+         * 1. white channel stitch
+         *      1. rotate
+         * 2. each stitched image grid line draw
+         */
+        chipimgproc::stitch::GridlineBased gl_stitcher;
+        auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
+        for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
+            auto& [path, img] = img_data;
+            cv::Mat img_loc = img.clone();
+            rotate_calibrator(img_loc, task.rot_degree().value());
+            auto& tpl_gri = tpl_mtm.get_fov_img(fov_id.x, fov_id.y);
+            tpl_gri.mat() = img_loc;
+        }
+        auto gl_wh_stitch = gl_stitcher(tpl_mtm);
+        task.set_stitched_img("white", std::move(gl_wh_stitch));
+
+        std::vector<cv::Mat> channels;
+        channels.reserve(task.stitched_img().size());
+        for(auto& [chid, st_img] : task.stitched_img()) {
+            auto loc_st_img = st_img.mat().clone();
+            if(chid == "white") {
+                cv::Mat tmp;
+                loc_st_img.convertTo(tmp, CV_16UC1, 256);
+                loc_st_img = tmp;
+            } else {
+                loc_st_img = chipimgproc::viewable(loc_st_img, 5000);
+            }
+            draw_grid(loc_st_img, st_img.gl_x(), st_img.gl_y(), 32767);
+            channels.push_back(loc_st_img);
+        }
+        cv::Mat stitched_grid_all;
+        cv::merge(channels, stitched_grid_all);
+        cv::imwrite(task.debug_stitch().string(), stitched_grid_all);
+    }
     decltype(auto) operator()(model::Task& task) const {
         using namespace __alias;
         auto& model = task.model();
@@ -329,6 +407,10 @@ struct Chip {
             task.grid_log()["version"] = summit::grid::version().to_string();
             task.summary_channel_log();
             task.model().heatmap_writer().flush();
+            if(task.model().debug() >= 5) {
+                gridline_debug_image_proc(task);
+            }
+
         } catch( const std::exception& e ) {
             task.set_grid_done(false);
             task.grid_log()["grid_fail_reason"] = e.what();
