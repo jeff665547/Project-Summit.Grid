@@ -350,10 +350,11 @@ struct Chip {
             draw_grid(loc_st_img, st_img.gl_x(), st_img.gl_y(), 32767);
             auto ch_filter = channel_params.at(chid)->at("filter").get<int>();
             channels.at(filter_to_color.at(ch_filter)) = loc_st_img;
+            cv::imwrite(task.debug_stitch(chid).string(), loc_st_img);
         }
         cv::Mat stitched_grid_all;
         cv::merge(channels, stitched_grid_all);
-        cv::imwrite(task.debug_stitch().string(), stitched_grid_all);
+        cv::imwrite(task.debug_stitch("merged").string(), stitched_grid_all);
     }
     decltype(auto) operator()(model::Task& task) const {
         using namespace __alias;

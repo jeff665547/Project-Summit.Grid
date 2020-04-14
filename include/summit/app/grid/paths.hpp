@@ -220,7 +220,7 @@ struct Paths {
         const std::string& task_id, 
         const std::string& tag
     ) const {
-        return check_path(grid_dir(task_id) / fmt::format("stitch-merged{}.png"
+        return check_path(grid_dir(task_id) / fmt::format("stitch{}.png"
             , tag.empty() ? "" : "-" + tag
         ));
     }
