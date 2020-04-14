@@ -316,6 +316,15 @@ struct Chip {
          * 2. each stitched image grid line draw
          */
         chipimgproc::stitch::GridlineBased gl_stitcher;
+        std::map<std::string, const nlohmann::json*> channel_params;
+        std::string wh_name;
+        for(auto&& ch : task.channels()) {
+            channel_params[ch.at("name").get<std::string>()] = &ch;
+            if(ch.at("filter").get<int>() == 0) {
+                wh_name = ch.at("name").get<std::string>();
+            }
+        }
+        std::vector<int> filter_to_color({0, 0, 1, 0, 2, 0});
         auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
         for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
             auto& [path, img] = img_data;
@@ -325,13 +334,13 @@ struct Chip {
             tpl_gri.mat() = img_loc;
         }
         auto gl_wh_stitch = gl_stitcher(tpl_mtm);
-        task.set_stitched_img("white", std::move(gl_wh_stitch));
+        task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
 
         std::vector<cv::Mat> channels;
-        channels.reserve(task.stitched_img().size());
+        channels.resize(task.stitched_img().size());
         for(auto& [chid, st_img] : task.stitched_img()) {
             auto loc_st_img = st_img.mat().clone();
-            if(chid == "white") {
+            if(chid == wh_name) {
                 cv::Mat tmp;
                 loc_st_img.convertTo(tmp, CV_16UC1, 256);
                 loc_st_img = tmp;
@@ -339,7 +348,8 @@ struct Chip {
                 loc_st_img = chipimgproc::viewable(loc_st_img, 5000);
             }
             draw_grid(loc_st_img, st_img.gl_x(), st_img.gl_y(), 32767);
-            channels.push_back(loc_st_img);
+            auto ch_filter = channel_params.at(chid)->at("filter").get<int>();
+            channels.at(filter_to_color.at(ch_filter)) = loc_st_img;
         }
         cv::Mat stitched_grid_all;
         cv::merge(channels, stitched_grid_all);
