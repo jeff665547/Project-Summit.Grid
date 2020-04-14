@@ -1,6 +1,11 @@
 # ChangeLog
 
-## 1.1.2-dev - 2020.3.19
+## 1.1.3 - 2020.4.14
+
+- Feature: Add debug grid stiched image. All channel stacked into a multi-channel image.
+  - Use option "-d 5" and result will generate in "grid" directory.
+
+## 1.1.2 - 2020.3.19
 
 - Update: Use raw channel name as CEN file channel name, instead of channel-0/1.
 - Feature: Add Kenai support.
