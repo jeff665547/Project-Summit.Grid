@@ -1,9 +1,61 @@
 
-# Summit.Grid gridding result specification
+Output specification
+====================
 
-## grid log
+Overview
+========
 
-### location
+Summit.Grid generate grid log and variance grid result for different purposes of post processing, includes:
+
+* Probe intensity statistic in text(csv, tsv)
+* Probe intensity statistic in html
+* Probe Intensity matrix image
+* Probe Intensity matrix in csv
+* Centrillien genotyping chip sample (cen, h5)
+* Marker append image
+* several types of debug grid image
+
+User can use command line to configure the which format should be generated or not.
+
+There are mainly two modes of output structure:
+
+* in-place mode
+* normal mode
+
+In-place mode
+-------------
+
+Full directory structure
+
+* \<RFID dir\>/\<chip dir\>/
+  * chip_log.json
+  * chip_log.SFFX (not used in summit-app-grid)
+  * \<row\>-\<col\>-\<channel\>.tiff (fov image set)
+  * marker_append/
+    * \<RFID\>-\<chip id\>-\<channel\>.tiff (each channel marker append image)
+  * grid/
+    * chip_log.json (a copy of original chip log)
+    * grid_log.json (grid log)
+    * array.cen (Centrillion genotyping chip sample)
+    * stitch-\<channel name\>.png (by channel stitched and grid images)
+    * stitch-merged.png (all channel merged stitched and grid image)
+    * channels/\<channel name\>/
+      * heatmap.\<tsv/csv/html\> (Probe intensity statistic)
+      * heatmap-mat.\<csv/tiff\> (Probe intensity matrix)
+      * background.csv
+      * gridline.csv
+      * viewable_norm/ (contract normalized images)
+        * stitch-\<channel name\>.png (stitched image)
+      * viewable_raw/ (raw contract images)
+        * \<row\>-\<col\>.tiff (raw contract, rotation, ROI calibrated FOV image)
+      * debug/ (each step implemnetation defined images)
+        * \*.tiff
+
+Grid log
+========
+
+Location
+--------
 
 For Summit Grid run on Bamboolake, the grid log is in:
 
@@ -11,7 +63,8 @@ For Summit Grid run on Bamboolake, the grid log is in:
 <chip directory>/grid/grid_log.json
 ```
 
-### files
+files
+-----
 
 ```json
 {

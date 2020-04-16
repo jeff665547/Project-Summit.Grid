@@ -1,6 +1,8 @@
-# Modify marker type in exist chip log
 
-Before start this step, please read [basic chip log format](input-specification#chip-log-format) carefully.
+Modify marker type in exist chip log
+====================================
+
+Before start this step, please read [basic chip log format](@ref input-spec.md) carefully.
 
 ## Purpose
 

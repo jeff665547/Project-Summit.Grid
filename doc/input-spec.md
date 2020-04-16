@@ -1,16 +1,28 @@
 
-# Input directory specification
+Input specification
+===================
 
-## Input tree
+Input directory tree
+====================
+
+Summit.Grid considers a chip directory as a **task** each chip directory should at least one chip_log.json and several images which number should match the FOV specification(chip.fov.rows/cols) inside chip_log.json
 
 ```txt
 <chip directory>/
     chip_log.json
     chip_log.SFFX (not used in summit-app-grid)
-    <row>-<col>-<channel>.tiff (fov image set)
+    <row>-<col>-<channel>.<tiff/srl> (fov image set)
 ```
 
-## Chip log format
+The ```srl``` file is encripted image.
+
+Chip log format
+===============
+
+The chip log describe how the chip is scanned and chip type parameters.
+The detail description of each entry in chip log is show below.
+
+Note that the marker type of each **channels** entry is very sensitive for Summit.Grid algorithm, it must identical to chip images. In some case, the marker type may not set corrretly during scanning. To solve this problem, please see [this document](@ref doc/modify-markertype-in-exist-chiplog.md)
 
 ```json
 {
