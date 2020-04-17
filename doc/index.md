@@ -1,8 +1,8 @@
 
 # Online Document Entry {#mainpage}
 
+* [Command line](@ref doc/command-line.md)
 * [Input specification](@ref doc/input-spec.md)
 * [Output specification](@ref doc/output-spec.md)
-* [Command line](@ref doc/command-line.md)
-* [Algorithm]
-* [Troubleshooting]
+* [Algorithm](@ref doc/algorithm.md)
+* [Troubleshooting](@ref doc/trouble-shooting.md)

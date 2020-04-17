@@ -5,7 +5,7 @@ Output specification
 Overview
 ========
 
-Summit.Grid generate grid log and variance grid result for different purposes of post processing, includes:
+Summit.Grid generate grid log and variance grid result for different purposes of post-processing, includes:
 
 * Probe intensity statistic in text(csv, tsv)
 * Probe intensity statistic in html
@@ -15,7 +15,7 @@ Summit.Grid generate grid log and variance grid result for different purposes of
 * Marker append image
 * several types of debug grid image
 
-User can use command line to configure the which format should be generated or not.
+Users can use the command-line interface to configure which format should be generated or not.
 
 There are mainly two modes of output structure:
 
@@ -25,7 +25,11 @@ There are mainly two modes of output structure:
 In-place mode
 -------------
 
-Full directory structure
+This output mode is enabled when ```output``` path option is the same as ```input_path``` option or **relative secure output** path.
+
+The relative secure output is: ```<secure_dir>/<relative path from input_path to shared_dir>```
+
+The output tree and description
 
 * \<RFID dir\>/\<chip dir\>/
   * chip_log.json
@@ -37,19 +41,72 @@ Full directory structure
     * chip_log.json (a copy of original chip log)
     * grid_log.json (grid log)
     * array.cen (Centrillion genotyping chip sample)
-    * stitch-\<channel name\>.png (by channel stitched and grid images)
+    * stitch-\<channel\>.png (by channel, stitched and grid images)
     * stitch-merged.png (all channel merged stitched and grid image)
-    * channels/\<channel name\>/
-      * heatmap.\<tsv/csv/html\> (Probe intensity statistic)
-      * heatmap-mat.\<csv/tiff\> (Probe intensity matrix)
-      * background.csv
-      * gridline.csv
-      * viewable_norm/ (contract normalized images)
-        * stitch-\<channel name\>.png (stitched image)
-      * viewable_raw/ (raw contract images)
+    * channels/\<channel\>/
+      * heatmap.\<tsv/csv/html\> (probe intensity statistic)
+      * heatmap-mat.\<csv/tiff\> (probe intensity matrix)
+      * background.csv (image background values)
+      * gridline.csv (stitched image grid line position)
+      * viewable_norm/
+        * stitch-\<channel\>.png (stitched image)
+      * viewable_raw/
+        * \<row\>-\<col\>.tiff (rotation, ROI calibrated and raw contract FOV image)
+      * debug/ (each step implementation defined images)
+        * \*.tiff
+
+Normal mode
+-----------
+
+This output mode is enabled when the command option not enable In-place mode.
+
+The output tree and description
+
+* \<output\>/
+  * \<RFID\>_\<chip_id\>-grid_log.json (grid log)
+  * \<channel\>.\<tsv/csv/html\> (probe intensity statistic)
+  * \<channel\>-mat.\<csv/tiff\> (probe intensity matrix)
+  * \<channel\>_background.csv (image background values)
+  * marker_append/
+    * \<RFID\>_\<chip_id\>-\<channel\>.tiff (each channel marker append image)
+  * \<RFID\>_\<chip_id\>/
+    * chip_log.json (a copy of original chip log)
+    * array.cen (Centrillion genotyping chip sample)
+    * stitch-\<channel\>.png (by channel, stitched and grid images)
+    * stitch-merged.png (all channel merged stitched and grid image)
+    * channels/\<channel\>
+      * gridline.csv (stitched image grid line position)
+      * viewable_norm/
+        * stitch-\<channel\>.png (stitched image)
+      * viewable_raw/
         * \<row\>-\<col\>.tiff (raw contract, rotation, ROI calibrated FOV image)
       * debug/ (each step implemnetation defined images)
         * \*.tiff
+
+Generate constrain
+------------------
+
+Note that not all files in the output tree will be generated but decided by command-line options, only the following files are guarantee to be generated:
+
+* grid log
+* copy of original chip log
+* image background values
+* stiched image grid line position
+* stitched image
+* rotation, ROI calibrated and raw contract FOV image
+
+For option ```--output_formats (-r)```:
+
+* ```-r <tsv/csv/html>_probe_list```: probe intensity statitic
+* ```-r cen_file```: Centrillion genotyping chip sample
+* ```-r csv_matrix```: probe intensity matrix
+* ```-r mat_tiff```: probe intensity matrix (heatmap image)
+
+Debug result, for debug level >=5, ```--debug <5/6>``` following data will be generated:
+
+* each step implementation-defined images
+* by channel, stitched and grid images
+* all channel merged stitched and grid image
 
 Grid log
 ========
@@ -57,14 +114,14 @@ Grid log
 Location
 --------
 
-For Summit Grid run on Bamboolake, the grid log is in:
+For Summit.Grid run on Bamboolake, the grid log is at:
 
 ```sh
 <chip directory>/grid/grid_log.json
 ```
 
-files
------
+Description
+-----------
 
 ```json
 {
