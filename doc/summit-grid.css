@@ -1604,5 +1604,9 @@ th.markdownTableHeadCenter, td.markdownTableBodyCenter {
     text-align: center
 }
 
+img {
+    max-width: 980px;
+}
+
 
 /* @end */

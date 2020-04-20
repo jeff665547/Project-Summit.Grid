@@ -96,7 +96,40 @@ FOV level process
 -----------------
 
 @startuml
+start
+:probe channel marker detection;
+note right
+    assume regular matrix distribution with rotate
+end note
+:rotate detection;
+partition set-gridding-marker {
+    if(abs(probe channel - chip rotation degree) > 0.5) then (probe marker detection failed)
+        if(white markers exist) then
+            :set white channel;
+        else
+            :abort, grid failed;
+            end
+        endif;
+    else (probe marker detection success)
+        if(white markers exist) then
+            :compute pixel per grid cell;
+            :use 1/2 cell size as **threshold**;
+            if(abs(probe maker - white marker position) > **threshold** ) then (probe marker detection failed)
+                :set probe channel;
+            else(probe marker detection success)
+                :set white channel;
+            endif;
+        else
+            :set probe channel;
+        endif;
+    endif;
+}
+:marker based gridding;
+:generate raw FOV images;
+:compute background surface(BSpline algorithm);
+:subtract background value(if user required);
+:grid cell margin and do statistic;
+:set grid log and processed image;
 
-
-
+stop
 @enduml

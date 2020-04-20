@@ -2,15 +2,20 @@
 Modify marker type in exist chip log
 ====================================
 
+Before start
+============
+
 Before start this step, please read [basic chip log format](@ref input-spec.md) carefully.
 
-## Purpose
+Reason
+======
 
-The image process algorithm in Summit.Grid is marker type sensitive, but the marker type may be ignored by user becuase it doesn't cause problems in scanning.
+The image process algorithm in Summit.Grid is marker type sensitive, but the marker type may be ignored by the user, because it doesn't cause problems in scanning.
 
-Therefore, a post processing to chip log for marker type correctness may required for some cases.
+Therefore, a post-processing to chip log for marker type correctness may required for some cases.
 
-## Steps
+Steps
+=====
 
 Consider the channels in a chip log:
 
@@ -50,7 +55,7 @@ Consider the channels in a chip log:
 }
 ```
 
-In this case, we have marker type and filter with folloing mapping
+In this case, we have marker type and filter with following mapping
 
 * filter = 0, marker type = none
 * filter = 4, marker type = AM3
