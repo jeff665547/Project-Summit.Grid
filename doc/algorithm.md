@@ -94,7 +94,7 @@ Probe channel image process(parameter estimate)
 
 This step is similar to the white channel image process, except use probe channel marker detection instead of ArUco marker detection.
 
-Channel level process
+Channel level process {@channel-level-process}
 ---------------------
 
 In this level process, Summit.Grid assume each FOV has the same marker layout and doing the exactly same process to all FOVs.
@@ -120,7 +120,7 @@ stop
 
 @enduml
 
-FOV level process
+FOV level process {#fov-level-process}
 -----------------
 
 @startuml {fov-level-process.png}

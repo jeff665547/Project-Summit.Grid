@@ -1,3 +1,9 @@
+/**
+ * @file fov_ag.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::pipeline::FOVAG
+ * 
+ */
 #pragma once
 #include <summit/app/grid/model.hpp>
 #include <summit/app/grid/model/type.hpp>
@@ -30,7 +36,13 @@ namespace cimg      = chipimgproc::gridding;
 namespace cm_st     = chipimgproc::stitch;
 
 }
-
+/**
+ * @brief FOV level automatic gridding
+ * @details Doing marker detection and use marker 
+ *          position as anchor to grid FOV image.
+ *          See @ref fov-level-process "FOV level process" for more details.
+ * 
+ */
 constexpr struct FOVAG {
     using Float = summit::app::grid::model::Float;
     using GridLineID = summit::app::grid::model::GridLineID;
@@ -86,7 +98,14 @@ constexpr struct FOVAG {
             }
         }
     }
-    auto operator()(model::FOV& fov_mod) const {
+    /**
+     * @brief Run FOV level gridding process.
+     * 
+     * @param fov_mod FOV parameter model.
+     * @return true Gridding process is done.
+     * @return false Gridding process is failed, the fail reason will store in grid log.
+     */
+    bool operator()(model::FOV& fov_mod) const {
         using namespace __alias;
         auto& channel    = fov_mod.channel();
         auto& fov_id     = fov_mod.fov_id();

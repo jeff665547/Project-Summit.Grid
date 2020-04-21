@@ -52,7 +52,7 @@ struct Chip {
      * @details The workflow diagram
      *          @image html white-channel-image-process.png
      *          @image latex white-channel-image-process
-     * @param task chip data model.
+     * @param task chip parameter model.
      * @return true Process success
      * @return false Process failed, possible reason: 
      *  1. No white channel
@@ -234,7 +234,7 @@ struct Chip {
     /**
      * @brief Probe channel image process, 
      *        similar to white_channel_proc but use probe marker detection.
-     * @param task chip data model.
+     * @param task chip parameter model.
      * @return true Process finished normally.
      * @return false Current implementation won't return false.
      */
@@ -334,15 +334,17 @@ struct Chip {
             );
         }
     }
+    /**
+     * @brief Create debug grid line stitched images and write to filesystem.
+     * 
+     * @param task chip parameter model
+     */
     void gridline_debug_image_proc(model::Task& task) const { 
-        /**
-         * generate additional debug grid line image
-         * 1. white channel stitch
-         *      1. rotate
-         * 2. each stitched image grid line draw
-         */
         chipimgproc::stitch::GridlineBased gl_stitcher;
         std::map<std::string, const nlohmann::json*> channel_params;
+        /*
+         * Find white channel name
+         */
         std::string wh_name;
         for(auto&& ch : task.channels()) {
             channel_params[ch.at("name").get<std::string>()] = &ch;
@@ -350,7 +352,13 @@ struct Chip {
                 wh_name = ch.at("name").get<std::string>();
             }
         }
+        /*
+         * Filter id to color mapping, 0 = blue, 1 = green, 2 = red
+         */
         std::vector<int> filter_to_color({0, 0, 1, 0, 2, 0});
+        /*
+         * Create white channel stitched image.
+         */
         auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
         for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
             auto& [path, img] = img_data;
@@ -362,6 +370,10 @@ struct Chip {
         auto gl_wh_stitch = gl_stitcher(tpl_mtm);
         task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
 
+        /*
+         * Stitch each probe channel image and write to files.
+         * White channel convert 8 bit to 16 bit.
+         */
         std::vector<cv::Mat> channels;
         channels.resize(task.stitched_img().size());
         for(auto& [chid, st_img] : task.stitched_img()) {
@@ -378,10 +390,19 @@ struct Chip {
             channels.at(filter_to_color.at(ch_filter)) = loc_st_img;
             cv::imwrite(task.debug_stitch(chid).string(), loc_st_img);
         }
+        /*
+         * Merge all channel and write to file.
+         */
         cv::Mat stitched_grid_all;
         cv::merge(channels, stitched_grid_all);
         cv::imwrite(task.debug_stitch("merged").string(), stitched_grid_all);
     }
+    /**
+     * @brief Run chip level process.
+     * @details See @ref chip-level-process "Chip level process" for more details.
+     * @param task chip parameter model
+     * @return decltype(auto) exit code
+     */
     decltype(auto) operator()(model::Task& task) const {
         using namespace __alias;
         auto& model = task.model();
