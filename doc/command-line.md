@@ -2,6 +2,8 @@
 Command-line
 ============
 
+[TOC]
+
 Overview
 ========
 

@@ -2,10 +2,12 @@
 Modify marker type in exist chip log
 ====================================
 
+[TOC]
+
 Before start
 ============
 
-Before start this step, please read [basic chip log format](@ref input-spec.md) carefully.
+Before start this step, please read the [basic chip log format](@ref doc/input-spec.md) carefully.
 
 Reason
 ======

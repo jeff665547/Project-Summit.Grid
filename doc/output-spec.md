@@ -2,6 +2,8 @@
 Output specification
 ====================
 
+[TOC]
+
 Overview
 ========
 
@@ -31,29 +33,31 @@ The relative secure output is: ```<secure_dir>/<relative path from input_path to
 
 The output tree and description
 
-* \<RFID dir\>/\<chip dir\>/
-  * chip_log.json
-  * chip_log.SFFX (not used in summit-app-grid)
-  * \<row\>-\<col\>-\<channel\>.tiff (fov image set)
-  * marker_append/
-    * \<RFID\>-\<chip id\>-\<channel\>.tiff (each channel marker append image)
-  * grid/
-    * chip_log.json (a copy of original chip log)
-    * grid_log.json (grid log)
-    * array.cen (Centrillion genotyping chip sample)
-    * stitch-\<channel\>.png (by channel, stitched and grid images)
-    * stitch-merged.png (all channel merged stitched and grid image)
-    * channels/\<channel\>/
-      * heatmap.\<tsv/csv/html\> (probe intensity statistic)
-      * heatmap-mat.\<csv/tiff\> (probe intensity matrix)
-      * background.csv (image background values)
-      * gridline.csv (stitched image grid line position)
-      * viewable_norm/
-        * stitch-\<channel\>.png (stitched image)
-      * viewable_raw/
-        * \<row\>-\<col\>.tiff (rotation, ROI calibrated and raw contract FOV image)
-      * debug/ (each step implementation defined images)
-        * \*.tiff
+```bat
+<RFID dir>/<chip dir>/
+  chip_log.json
+  chip_log.SFFX                         (not used in summit-app-grid)
+  <row>-<col>-<channel>.tiff            (fov image set)
+  marker_append/
+    <RFID>-<chip id>-<channel>.tiff     (each channel marker append image)
+  grid/
+    chip_log.json                       (a copy of original chip log)
+    grid_log.json                       (grid log)
+    array.cen                           (Centrillion genotyping chip sample)
+    stitch-<channel>.png                (by channel, stitched and grid images)
+    stitch-merged.png                   (all channel merged stitched and grid image)
+    channels/<channel>/
+      heatmap.<tsv/csv/html>            (probe intensity statistic)
+      heatmap-mat.<csv/tiff>            (probe intensity matrix)
+      background.csv                    (image background values)
+      gridline.csv                      (stitched image grid line position)
+      viewable_norm/
+        stitch-<channel>.png            (stitched image)
+      viewable_raw/
+        <row>-<col>.tiff                (rotation, ROI calibrated and raw contract FOV image)
+      debug/                            (each step implementation defined images)
+        \*.tiff
+```
 
 Normal mode
 -----------
@@ -62,26 +66,28 @@ This output mode is enabled when the command option not enable In-place mode.
 
 The output tree and description
 
-* \<output\>/
-  * \<RFID\>_\<chip_id\>-grid_log.json (grid log)
-  * \<channel\>.\<tsv/csv/html\> (probe intensity statistic)
-  * \<channel\>-mat.\<csv/tiff\> (probe intensity matrix)
-  * \<channel\>_background.csv (image background values)
-  * marker_append/
-    * \<RFID\>_\<chip_id\>-\<channel\>.tiff (each channel marker append image)
-  * \<RFID\>_\<chip_id\>/
-    * chip_log.json (a copy of original chip log)
-    * array.cen (Centrillion genotyping chip sample)
-    * stitch-\<channel\>.png (by channel, stitched and grid images)
-    * stitch-merged.png (all channel merged stitched and grid image)
-    * channels/\<channel\>
-      * gridline.csv (stitched image grid line position)
-      * viewable_norm/
-        * stitch-\<channel\>.png (stitched image)
-      * viewable_raw/
-        * \<row\>-\<col\>.tiff (raw contract, rotation, ROI calibrated FOV image)
-      * debug/ (each step implemnetation defined images)
-        * \*.tiff
+```bat
+<output>/
+  <RFID>_<chip_id>-grid_log.json            (grid log)
+  <channel>.<tsv/csv/html>                  (probe intensity statistic)
+  <channel>-mat.<csv/tiff>                  (probe intensity matrix)
+  <channel>_background.csv                  (image background values)
+  marker_append/
+    <RFID>_<chip_id>-<channel>.tiff         (each channel marker append image)
+  <RFID>_<chip_id>/
+    chip_log.json                           (a copy of original chip log)
+    array.cen                               (Centrillion genotyping chip sample)
+    stitch-<channel>.png                    (by channel, stitched and grid images)
+    stitch-merged.png                       (all channel merged stitched and grid image)
+    channels/<channel>
+      gridline.csv                          (stitched image grid line position)
+      viewable_norm/
+        stitch-<channel>.png                (stitched image)
+      viewable_raw/
+        <row>-<col>.tiff                    (raw contract, rotation, ROI calibrated FOV image)
+      debug/                                (each step implemnetation defined images)
+        \*.tiff
+```
 
 Generate constrain
 ------------------

@@ -1,3 +1,9 @@
+/**
+ * @file main.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief The option parser and basic wrapper to main function
+ * 
+ */
 #pragma once
 #include <string>
 #include <Nucleona/app/cli/option_parser.hpp>
@@ -16,25 +22,72 @@
 
 namespace summit::app::grid{
 
+/**
+ * @brief The storage data structure of command-line parameters, 
+ *        basically 1 to 1 mapping to each option
+ * @details See @ref doc/command-line.md for more details.
+ */
 struct Parameters
 {
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     std::string input_path;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     std::vector<std::string> output_formats;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     std::string filter;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     std::string output;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     std::string method;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     int debug;
-    bool  no_bgp;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
+    bool no_bgp;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     std::string shared_dir;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     std::string secure_dir;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     int thread_num;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     bool marker_append;
 };
 
+/**
+ * @brief Option parser of Summit.Grid
+ */
 class OptionParser : public Parameters, public nucleona::app::cli::OptionParser
 {
     using Base = nucleona::app::cli::OptionParser;
 public:
+    /**
+     * @brief Construct a new Option Parser object from command-line argc and argv
+     * 
+     * @param argc command-line arguments count
+     * @param argv command-line arguments
+     */
     OptionParser(int argc, char* argv[])
     {
         namespace po = boost::program_options;
@@ -98,6 +151,14 @@ public:
         }
     }
 
+    /**
+     * @brief Parse list parameter
+     * 
+     * @tparam StringType deduced, string type
+     * @tparam ParType deduced, parse result storage type
+     * @param parameter_name Parameter name
+     * @param variable Target storage
+     */
     template< class StringType, class ParType >
     void get_parameter(
         StringType&& parameter_name, 
@@ -112,19 +173,37 @@ public:
     }
 };
 
+/**
+ * @brief Program start point wrapper
+ * 
+ * @tparam OPTION_PARSER parameter storage type
+ */
 template<class OPTION_PARSER>
 class Main
 {
-    // using OPTION_PARSER = OptionParser;
-
-
+    /**
+     * @brief command-line parameter storage
+     * 
+     */
     OPTION_PARSER args_;
 
   public:
+    /**
+     * @brief Construct a new Main object
+     * 
+     * @param args command-line parameter storage
+     */
     Main( OPTION_PARSER&& args )
     : args_( std::forward<OPTION_PARSER>( args ) )
     {}
 
+    /**
+     * @brief Detect the user requirement is auto gridding or not.
+     * 
+     * @param grid_log_path The user given check target, may not a valid grid log.
+     * @return true User require manual gridding
+     * @return false User require auto gridding
+     */
     bool is_not_auto_gridding(boost::filesystem::path& grid_log_path) {
         boost::filesystem::path path(args_.input_path);
         path = boost::filesystem::absolute(path);
@@ -136,19 +215,28 @@ class Main
             return false;
         }
     }
-    
+    /**
+     * @brief Summit.Grid start point.
+     * 
+     * @return int exit code, 0 is success, otherwise failed.
+     */
     int operator()() {
+        /*
+         *  set logger level
+         */
         summit::grid::log.set_level(std::min(args_.debug, 6));
         chipimgproc::log.set_level(std::max(args_.debug - 1, 0));
-
         Model model;
         model.set_executor(args_.thread_num - 1);
         model.set_debug(args_.debug);
 
         boost::filesystem::path grid_log_path; 
         std::vector<boost::filesystem::path> task_paths;
-
         if(is_not_auto_gridding(grid_log_path)) {
+            /*
+             * Prepare for a manual grid task
+             * start updating grid result images
+             */
             summit::grid::log.info("input require not to auto gridding");
             summit::grid::log.info("direct use gridding parameter in input grid log");
             model.set_method(args_.method);
@@ -158,7 +246,14 @@ class Main
             );
             model.add_formats(args_.output_formats);
         } else {
+            /*
+             * Prepare for an automatic gridding task
+             * See @ref doc/algorithm.md for more details.
+             */
             summit::grid::log.info("input require auto gridding, process everything");
+            /*
+             * set basic parameters
+             */
             model.set_paths(
                 args_.output, args_.input_path,
                 args_.shared_dir, args_.secure_dir
@@ -169,9 +264,20 @@ class Main
             model.set_no_bgp(args_.no_bgp);
             model.set_method(args_.method);
             model.set_auto_gridding(true);
+            /*
+             * collect tasks
+             */
             task_paths = Utils::task_paths(model.input());
         }
 
+        /*
+         * create task group data model, recognize task RFID, chip id.
+         * By implementation, the Summit.Grid actually 
+         * support RFID level batch prcoess, 
+         * but for the system complexity, 
+         * this feature doesn't specify in specification.
+         * 
+         */
         std::map<
             std::string, // rfid
             std::vector<TaskID>  // task_path
@@ -180,7 +286,9 @@ class Main
             auto&& task_id = Utils::to_task_id(task_path);
             task_groups[task_id.rfid()].push_back(task_id) ;
         }
-
+        /*
+         * start process pipeline
+         */
         task_groups
         | ranges::view::transform([&](auto&& tg_param){
             auto& rfid = tg_param.first;

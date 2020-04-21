@@ -2,6 +2,8 @@
 Trouble shooting
 ================
 
+[TOC]
+
 Gridding failed
 ===============
 

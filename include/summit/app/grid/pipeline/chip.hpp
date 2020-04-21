@@ -1,3 +1,8 @@
+/**
+ * @file chip.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::pipeline::Chip
+ */
 #pragma once
 #include "channel.hpp"
 #include <summit/app/grid/model.hpp>
@@ -23,13 +28,37 @@ namespace crot      = chipimgproc::rotation;
 namespace cmk_det   = chipimgproc::marker::detection;
 
 }
+/**
+ * @brief Chip level process, evaluate chip-wide parameters
+ *        (e.g. rotation degree and micron to pixel rate) and 
+ *        collect chip-wide result.
+ * @details The workflow diagram 
+ *          @image html chip-level-process.png
+ *          @image latex chip-level-process
+ *          See @ref chip-level-process "Chip level process" for more details
+ */
 struct Chip {
+    /**
+     * @brief Construct a new Chip object
+     */
     Chip() 
     : rotate_detector       () 
     , rotate_calibrator     () 
     , reg_mat_um2px_r_det   () 
     {}
-
+    /**
+     * @brief White channel image process, 
+     *        evaluate rotation degree and micron to pixel rate.
+     * @details The workflow diagram
+     *          @image html white-channel-image-process.png
+     *          @image latex white-channel-image-process
+     * @param task chip data model.
+     * @return true Process success
+     * @return false Process failed, possible reason: 
+     *  1. No white channel
+     *  2. Not ArUco marker
+     *  3. Bad image quality (process failed)
+     */
     bool white_channel_proc(model::Task& task) const {
         namespace nr = nucleona::range;
         using namespace __alias;
@@ -202,6 +231,13 @@ struct Chip {
         }
         return true;
     }
+    /**
+     * @brief Probe channel image process, 
+     *        similar to white_channel_proc but use probe marker detection.
+     * @param task chip data model.
+     * @return true Process finished normally.
+     * @return false Current implementation won't return false.
+     */
     bool probe_channel_proc(model::Task& task) const {
         using namespace __alias;
         cmk_det::RegMat probe_mk_detector       ;
@@ -267,6 +303,15 @@ struct Chip {
         task.set_um2px_r(best_um2px_r);
         return true;
     }
+    /**
+     * @brief Draw grid line on image
+     * 
+     * @tparam T Grid line position type
+     * @param mat Image
+     * @param gl_x Grid line position along x dimension
+     * @param gl_y Grid line position along y dimension
+     * @param line_value Line gray color value
+     */
     template<class T>
     void draw_grid(
         cv::Mat& mat, 
@@ -288,25 +333,6 @@ struct Chip {
                 line_value
             );
         }
-    }
-    template<class T>
-    cv::Mat view_grid_raw_img(const chipimgproc::GridRawImg<T>& grm, int line_color) const {
-        cv::Mat res = grm.mat().clone();
-        for(auto&& xl : grm.gl_x()) {
-            cv::line(res,
-                cv::Point(xl, 0), 
-                cv::Point(xl, grm.rows()),
-                cv::Scalar(line_color)
-            );
-        }
-        for(auto&& yl : grm.gl_y()) {
-            cv::line(res,
-                cv::Point(0, yl), 
-                cv::Point(grm.cols(), yl),
-                cv::Scalar(line_color)
-            );
-        }
-        return res;
     }
     void gridline_debug_image_proc(model::Task& task) const { 
         /**

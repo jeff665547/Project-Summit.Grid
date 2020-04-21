@@ -2,6 +2,8 @@
 Input specification
 ===================
 
+[TOC]
+
 Input directory tree
 ====================
 

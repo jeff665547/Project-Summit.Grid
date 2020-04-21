@@ -6,7 +6,7 @@
 
 ## 1.1.3 - 2020.4.14
 
-- Feature: Add debug grid stiched image. All channel stacked into a multi-channel image(png).
+- Feature: Add debug grid stiched image. All channels stacked into a multi-channel image(png).
   - Use option "-d 5" and the result will generate in "grid" directory.
   - The color mapping is follow the channel filter:
     - 0 -> blue
