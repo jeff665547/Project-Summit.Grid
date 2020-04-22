@@ -231,50 +231,57 @@ struct Chip {
         return true;
     }
     bool white_channel_proc_general(model::Task& task) const {
-        // namespace nr = nucleona::range;
-        // using namespace __alias;
-        // cmk_det::RegMat mk_detector;
-        // auto [ch_i, ch] = task.white_channel();
-        // auto& executor  = task.model().executor();
-        // auto& model     = task.model();
-        // auto& fov_marker_num     = task.fov_marker_num();
-        // auto& mks_pair           = task.get_marker_patterns(ch["marker_type"]);
-        // auto& markers            = mks_pair.marker;
-        // auto& masks              = mks_pair.mask;
-        // auto mk_layout           = cmk::make_single_pattern_reg_mat_layout(
-        //     markers.at(0), masks.at(0),
-        //     task.cell_h_um(), task.cell_w_um(),
-        //     task.space_um(),
-        //     fov_marker_num.y,
-        //     fov_marker_num.x,
-        //     task.mk_wd_cl(),
-        //     task.mk_hd_cl(),
-        //     task.um2px_r()
-        // );
+        namespace nr = nucleona::range;
+        using namespace __alias;
+        cmk_det::RegMat mk_detector;
+        int  sel_fov_row = task.fov_rows() / 2;
+        int  sel_fov_col = task.fov_cols() / 2;
+        auto [ch_i, ch] = task.white_channel();
+        auto& executor  = task.model().executor();
+        auto& model     = task.model();
+        auto& fov_marker_num     = task.get_fov_marker_num(sel_fov_row, sel_fov_col);
+        auto  mks                = task.get_marker_patterns(
+                                    "filter", 0
+                                   );
+        auto& marker             = mks.at(0)->marker;
+        auto& mask               = mks.at(0)->mask;
+        auto mk_layout           = cmk::make_single_pattern_reg_mat_layout(
+            marker, mask,
+            task.cell_h_um(), task.cell_w_um(),
+            task.space_um(),
+            fov_marker_num.y,
+            fov_marker_num.x,
+            task.mk_wd_cl(),
+            task.mk_hd_cl(),
+            task.um2px_r()
+        );
 
-        // std::vector<float> rot_degs (task.white_channel_imgs().size());
-        // std::vector<float> um2px_rs (task.white_channel_imgs().size());
-        // std::vector<bool>  success  (task.white_channel_imgs().size());
-        // Utils::FOVMarkerRegionMap fov_marker_regs;
-        // Utils::FOVMap<cv::Mat>    fov_mk_append;
-        // for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
-        //     fov_marker_regs[fov_id] = {};
-        //     fov_mk_append[fov_id] = cv::Mat();
-        // }
-        // auto mk_rot_cali = crot::make_iteration_cali(
-        //     [&, this](const cv::Mat& mat) {
-        //         auto mk_regs = mk_detector(
-        //             static_cast<const cv::Mat_<std::int8_t>&>(mat), 
-        //             probe_mk_layout, 
-        //             __alias::cimp::MatUnit::PX, 0,
-        //             nucleona::stream::null_out
-        //         );
-
-        //     },
-        //     [&, this](cv::Mat& mat, auto theta) {
-
-        //     }
-        // );
+        std::vector<float> rot_degs (task.white_channel_imgs().size());
+        std::vector<float> um2px_rs (task.white_channel_imgs().size());
+        std::vector<bool>  success  (task.white_channel_imgs().size());
+        Utils::FOVMarkerRegionMap fov_marker_regs;
+        Utils::FOVMap<cv::Mat>    fov_mk_append;
+        for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
+            fov_marker_regs[fov_id] = {};
+            fov_mk_append[fov_id] = cv::Mat();
+        }
+        std::vector<cv::Point>   low_score_marker_idx;
+        auto mk_rot_cali = crot::make_iteration_cali(
+            [&, this](const cv::Mat& mat) {
+                auto mk_regs = mk_detector(
+                    static_cast<const cv::Mat_<std::int8_t>&>(mat), 
+                    mk_layout, 
+                    __alias::cimp::MatUnit::PX, 0,
+                    nucleona::stream::null_out
+                );
+                low_score_marker_idx = cmk_det::filter_low_score_marker(mk_regs);
+                auto theta      = rotate_detector(mk_regs, nucleona::stream::null_out);
+                return theta;
+            },
+            [&, this](cv::Mat& mat, auto theta) {
+                rotate_calibrator(mat, theta /*debug viewer*/);
+            }
+        );
     }
     /**
      * @brief Probe channel image process, 

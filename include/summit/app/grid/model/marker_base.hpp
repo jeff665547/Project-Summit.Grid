@@ -18,7 +18,17 @@ struct ChipSpecMarkerBase {
     auto get_by_marker_type(const std::string& mk_type) const {
         return marker_type_index.at(mk_type);
     }
-    std::map<std::string, std::vector<MKPat*>> marker_type_index;
+    template<class T>
+    auto get(const std::string& query_key, T value) const {
+        std::vector<const MKPat*> res;
+        for(auto& mk_pat : data) {
+            if(mk_pat.meta.at(query_key).get<T>() == value) {
+                res.push_back(&mk_pat);
+            }
+        }
+        return res;
+    }
+    std::map<std::string, std::vector<const MKPat*>> marker_type_index;
 };
 using ChipRegMatMarkers = std::map<
     std::string, // chip spec name

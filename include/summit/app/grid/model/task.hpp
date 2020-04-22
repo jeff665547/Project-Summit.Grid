@@ -67,6 +67,10 @@ struct Task {
     auto get_marker_patterns_by_marker_type(const std::string& marker_type) {
         return marker_patterns_->get_by_marker_type(marker_type);
     }
+    template<class T>
+    auto get_marker_patterns(const std::string& query_key, T value) {
+        return marker_patterns_->get(query_key, value);
+    }
     const cv::Point& get_fov_marker_num(int r, int c) {
         return fov_marker_num_.at(cv::Point(c, r));
     }
