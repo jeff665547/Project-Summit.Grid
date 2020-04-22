@@ -237,14 +237,13 @@ struct Chip {
         int  sel_fov_row = task.fov_rows() / 2;
         int  sel_fov_col = task.fov_cols() / 2;
         auto [ch_i, ch] = task.white_channel();
-        auto& executor  = task.model().executor();
-        auto& model     = task.model();
-        auto& fov_marker_num     = task.get_fov_marker_num(sel_fov_row, sel_fov_col);
+        auto [img_path, mat] = task.white_channel_imgs().at(cv::Point(sel_fov_col, sel_fov_row));
         auto  mks                = task.get_marker_patterns(
                                     "filter", 0
                                    );
         auto& marker             = mks.at(0)->marker;
         auto& mask               = mks.at(0)->mask;
+        auto& fov_marker_num     = task.get_fov_marker_num(sel_fov_row, sel_fov_col);
         auto mk_layout           = cmk::make_single_pattern_reg_mat_layout(
             marker, mask,
             task.cell_h_um(), task.cell_w_um(),
@@ -255,16 +254,6 @@ struct Chip {
             task.mk_hd_cl(),
             task.um2px_r()
         );
-
-        std::vector<float> rot_degs (task.white_channel_imgs().size());
-        std::vector<float> um2px_rs (task.white_channel_imgs().size());
-        std::vector<bool>  success  (task.white_channel_imgs().size());
-        Utils::FOVMarkerRegionMap fov_marker_regs;
-        Utils::FOVMap<cv::Mat>    fov_mk_append;
-        for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
-            fov_marker_regs[fov_id] = {};
-            fov_mk_append[fov_id] = cv::Mat();
-        }
         std::vector<cv::Point>   low_score_marker_idx;
         auto mk_rot_cali = crot::make_iteration_cali(
             [&, this](const cv::Mat& mat) {
@@ -282,6 +271,26 @@ struct Chip {
                 rotate_calibrator(mat, theta /*debug viewer*/);
             }
         );
+        // * marker detection and rotate
+        auto theta      = mk_rot_cali(mat);
+        // std::cout << "probe channel detect theta: " << theta << std::endl;
+        cv::Mat mat_loc = mat.clone();
+        rotate_calibrator(mat_loc, theta);
+
+        // * um2px_r auto scaler
+        cimp::algo::Um2PxAutoScale auto_scaler(
+            mat_loc, 
+            task.cell_w_um(), task.cell_h_um(),
+            task.space_um()
+        );
+        auto [best_um2px_r, score_mat] = auto_scaler.linear_steps(
+            mk_layout, task.um2px_r(), 0.002, 7,
+            low_score_marker_idx, nucleona::stream::null_out
+        );
+        task.set_rot_degree(theta);
+        task.set_um2px_r(best_um2px_r);
+        return true;
+
     }
     /**
      * @brief Probe channel image process, 
