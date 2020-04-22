@@ -55,8 +55,17 @@ struct Task {
         }
         throw std::runtime_error("the chip log doesn't include any probe channel");
     }
-    const MarkersPair& get_marker_patterns(const std::string& marker_type) {
-        return marker_patterns_->at(marker_type);
+    auto white_channel() {
+        for(int i = 0; i < channels_.size(); i ++){
+            auto& ch = channels_.at(i);
+            if(ch["filter"].get<int>() == 0) {
+                return nucleona::make_tuple(std::move(i), ch);
+            }
+        }
+        throw std::runtime_error("the chip log doesn't include any white channel");
+    }
+    auto get_marker_patterns_by_marker_type(const std::string& marker_type) {
+        return marker_patterns_->get_by_marker_type(marker_type);
     }
     const cv::Point& get_fov_marker_num(int r, int c) {
         return fov_marker_num_.at(cv::Point(c, r));
@@ -278,7 +287,8 @@ struct Task {
     VAR_PTR_GET(nlohmann::json,             shooting_marker     )
     VAR_PTR_GET(nlohmann::json,             sh_mk_pats_cl       )
     VAR_PTR_GET(nlohmann::json,             sh_mk_pos_cl        )
-    VAR_PTR_GET(MarkerPatterns,             marker_patterns     )
+    VAR_PTR_GET(nlohmann::json,             sh_mk_pats          )
+    VAR_PTR_GET(ChipSpecMarkerBase,         marker_patterns     )
 
     VAR_LOCAL_PTR_GET(nlohmann::json,       channel_log         )
 
@@ -362,6 +372,8 @@ private:
         sh_mk_pats_cl_    = &shooting_marker_->at("mk_pats_cl");
         sh_mk_pos_cl_     = &shooting_marker_->at("position_cl");
 
+        sh_mk_pats_       = &shooting_marker_->at("mk_pats");
+
         mk_wd_cl_         = sh_mk_pos_cl_->at("w_d");
         mk_hd_cl_         = sh_mk_pos_cl_->at("h_d");
         mk_w_cl_          = sh_mk_pos_cl_->at("w");
@@ -379,7 +391,7 @@ private:
         );
 
         marker_patterns_  = &MarkerBase::get().reg_mat_chip_mks(
-            chip_spec_name_, sh_mk_pats_cl()
+            chip_spec_name_, sh_mk_pats_cl(), sh_mk_pats()
         );
 
         for(auto&& [fov_id, _num] : fov_marker_num_ ) {

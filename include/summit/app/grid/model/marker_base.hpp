@@ -7,24 +7,30 @@
 #include <summit/utils.h>
 namespace summit::app::grid::model {
 
-struct MarkersPair {
-    std::vector<cv::Mat_<std::uint8_t>> marker;
-    std::vector<cv::Mat_<std::uint8_t>> mask;
+struct MKPat {
+    nlohmann::json meta;
+    cv::Mat_<std::uint8_t> marker;
+    cv::Mat_<std::uint8_t> mask;
 };
-using MarkerPatterns = std::map<
-    std::string, // marker type (AM1/AM3)
-    MarkersPair
->;
+using MarkerPatterns = std::vector<MKPat>;
+struct ChipSpecMarkerBase {
+    MarkerPatterns data;
+    auto get_by_marker_type(const std::string& mk_type) const {
+        return marker_type_index.at(mk_type);
+    }
+    std::map<std::string, std::vector<MKPat*>> marker_type_index;
+};
 using ChipRegMatMarkers = std::map<
     std::string, // chip spec name
-    MarkerPatterns // Cell level marker types
+    ChipSpecMarkerBase
 >;
 
 struct MarkerBase {
     
-    MarkerPatterns& reg_mat_chip_mks(
+    const ChipSpecMarkerBase& reg_mat_chip_mks(
         const std::string& spec_name, 
-        const nlohmann::json& sh_mk_pats_cl
+        const nlohmann::json& sh_mk_pats_cl,
+        const nlohmann::json& sh_mk_pats
     ) {
         auto itr = chip_reg_mat_markers_.find(spec_name);
         if(itr == chip_reg_mat_markers_.end()) {
@@ -33,15 +39,30 @@ struct MarkerBase {
                 itr2 != chip_reg_mat_markers_.end()
             ) return itr2->second;
             auto& mk_pats = chip_reg_mat_markers_[spec_name];
-            for(auto&& jmk_pat : sh_mk_pats_cl) {
-                std::string mk_type_name = jmk_pat.at("marker_type");
+            for(auto jmk_pat : sh_mk_pats_cl) {
+                jmk_pat["cl"] = true;
                 std::string mk_path = jmk_pat.at("path");
                 auto path = summit::install_path() / mk_path;
                 std::ifstream fin(path.string());
                 auto [mk_cl, mask_cl] = chipimgproc::marker::Loader::from_txt(fin);
-                auto& mk_pat = mk_pats[mk_type_name];
-                mk_pat.marker.push_back(mk_cl);
-                mk_pat.mask.push_back(mask_cl);
+                MKPat mk_pat {jmk_pat, mk_cl, mask_cl};
+                mk_pats.data.emplace_back(std::move(mk_pat));
+            }
+            for(auto jmk_pat : sh_mk_pats) {
+                jmk_pat["cl"] = false;
+                std::string mk_path = jmk_pat.at("path");
+                auto path = summit::install_path() / mk_path;
+                auto mk_img = chipimgproc::imread(path);
+                MKPat mk_pat {jmk_pat, mk_img, cv::Mat_<std::uint8_t>()};
+                mk_pats.data.emplace_back(std::move(mk_pat));
+            }
+            auto& marker_type_index = mk_pats.marker_type_index;
+            for(auto&& mk_pat : mk_pats.data) {
+                auto& meta = mk_pat.meta;
+                auto itr = meta.find("marker_type");
+                if(itr == meta.end()) continue;
+                auto pat_mk_type = itr->get<std::string>();
+                marker_type_index[pat_mk_type].push_back(&mk_pat);
             }
             return mk_pats;
         } else {

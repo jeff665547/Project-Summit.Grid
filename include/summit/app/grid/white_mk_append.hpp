@@ -15,7 +15,8 @@ constexpr struct WhiteMKAppend {
         float                           um2px_r
     ) const {
         auto& marker_patterns = task.marker_patterns();
-        auto& mk_cell = marker_patterns.begin()->second.marker.at(0);
+        // auto& mk_cell = marker_patterns.begin()->second.marker.at(0);
+        auto& mk_cell = marker_patterns.marker_type_index.begin()->second.at(0)->marker;
         auto mk_h_px = mk_cell.rows * task.cell_h_um() * um2px_r;
         auto mk_w_px = mk_cell.cols * task.cell_w_um() * um2px_r;
         auto loc_mk_regs = mk_regs;

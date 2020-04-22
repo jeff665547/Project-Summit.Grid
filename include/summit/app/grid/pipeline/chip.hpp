@@ -62,10 +62,6 @@ struct Chip {
     bool white_channel_proc(model::Task& task) const {
         namespace nr = nucleona::range;
         using namespace __alias;
-        cmk::CellLayout         cell_layout             ;
-        cmk_det::ArucoRegMat    aruco_mk_detector       ;
-        auto& executor  = task.model().executor();
-        auto& model     = task.model();
         
         task.set_white_channel_imgs(Utils::read_white_channel(
             task.channels(),
@@ -76,17 +72,20 @@ struct Chip {
             task.model()
         ));
         if(task.white_channel_imgs().size() == 0) return false;
+        if(!white_channel_proc_aruco(task)) {
+            return white_channel_proc_general(task);
+        } else {
+            return true;
+        }
+    }
+    bool white_channel_proc_aruco(model::Task& task) const {
+        namespace nr = nucleona::range;
+        using namespace __alias;
+        cmk_det::ArucoRegMat    aruco_mk_detector       ;
+        auto& executor  = task.model().executor();
+        auto& model     = task.model();
+        
         if(!aruco_setter(aruco_mk_detector, task)) return false;
-
-        cell_layout.reset(
-            task.fov_rows(),    task.fov_cols(),
-            task.fov_w(),       task.fov_h(),
-            task.fov_wd(),      task.fov_hd(),
-            task.mk_row_cl(),   task.mk_col_cl(),
-            task.mk_xi_cl(),    task.mk_yi_cl(),
-            task.mk_w_cl(),     task.mk_h_cl(),
-            task.mk_wd_cl(),    task.mk_hd_cl()
-        );
 
         auto& fov_marker_num = task.fov_marker_num();
         std::vector<float> rot_degs (task.white_channel_imgs().size());
@@ -231,6 +230,52 @@ struct Chip {
         }
         return true;
     }
+    bool white_channel_proc_general(model::Task& task) const {
+        // namespace nr = nucleona::range;
+        // using namespace __alias;
+        // cmk_det::RegMat mk_detector;
+        // auto [ch_i, ch] = task.white_channel();
+        // auto& executor  = task.model().executor();
+        // auto& model     = task.model();
+        // auto& fov_marker_num     = task.fov_marker_num();
+        // auto& mks_pair           = task.get_marker_patterns(ch["marker_type"]);
+        // auto& markers            = mks_pair.marker;
+        // auto& masks              = mks_pair.mask;
+        // auto mk_layout           = cmk::make_single_pattern_reg_mat_layout(
+        //     markers.at(0), masks.at(0),
+        //     task.cell_h_um(), task.cell_w_um(),
+        //     task.space_um(),
+        //     fov_marker_num.y,
+        //     fov_marker_num.x,
+        //     task.mk_wd_cl(),
+        //     task.mk_hd_cl(),
+        //     task.um2px_r()
+        // );
+
+        // std::vector<float> rot_degs (task.white_channel_imgs().size());
+        // std::vector<float> um2px_rs (task.white_channel_imgs().size());
+        // std::vector<bool>  success  (task.white_channel_imgs().size());
+        // Utils::FOVMarkerRegionMap fov_marker_regs;
+        // Utils::FOVMap<cv::Mat>    fov_mk_append;
+        // for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
+        //     fov_marker_regs[fov_id] = {};
+        //     fov_mk_append[fov_id] = cv::Mat();
+        // }
+        // auto mk_rot_cali = crot::make_iteration_cali(
+        //     [&, this](const cv::Mat& mat) {
+        //         auto mk_regs = mk_detector(
+        //             static_cast<const cv::Mat_<std::int8_t>&>(mat), 
+        //             probe_mk_layout, 
+        //             __alias::cimp::MatUnit::PX, 0,
+        //             nucleona::stream::null_out
+        //         );
+
+        //     },
+        //     [&, this](cv::Mat& mat, auto theta) {
+
+        //     }
+        // );
+    }
     /**
      * @brief Probe channel image process, 
      *        similar to white_channel_proc but use probe marker detection.
@@ -251,12 +296,12 @@ struct Chip {
             task.is_img_enc(),
             task.model()
         );
-        auto& mks_pair           = task.get_marker_patterns(ch["marker_type"]);
-        auto& markers            = mks_pair.marker;
-        auto& masks              = mks_pair.mask;
+        auto& mks                = task.get_marker_patterns_by_marker_type(ch.at("marker_type"));
+        auto& marker             = mks.at(0)->marker;
+        auto& mask               = mks.at(0)->mask;
         auto& fov_marker_num     = task.get_fov_marker_num(sel_fov_row, sel_fov_col);
         auto  probe_mk_layout    = cmk::make_single_pattern_reg_mat_layout(
-            markers.at(0), masks.at(0),
+            marker, mask,
             task.cell_h_um(), task.cell_w_um(),
             task.space_um(),
             fov_marker_num.y,
