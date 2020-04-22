@@ -77,6 +77,15 @@ constexpr struct FOVAG {
             std::move(low_score_marker_idx)
         );
     }
+    /**
+     * @brief Set the background value to statistic matrix.
+     * 
+     * @tparam StatMats statistic matrix type
+     * @tparam GLID grid line type
+     * @param stat_mat statistic matrix, result storage
+     * @param tiled_mat FOV image represented in tiled matrix
+     * @param bg background value 
+     */
     template<class StatMats, class GLID>
     void set_bg(
         StatMats&                   stat_mat, 
@@ -273,10 +282,25 @@ constexpr struct FOVAG {
         f_grid_log["grid_bad"] = grid_bad;
         return grid_done;
     }
+    /**
+     * @brief Functor doing image rotation.
+     */
     __alias::crot::Calibrate                    rotate_calibrator       ;
+    /**
+     * @brief Functor doing probe channel marker detection.
+     */
     __alias::cmk_det::RegMat                    probe_mk_detector       ;
+    /**
+     * @brief Functor doing marker detection based rotation degree detection.
+     */
     __alias::crot::MarkerVec<float>             rotate_detector         ;
+    /**
+     * @brief Functor doing marker based gridding.
+     */
     __alias::cimg::RegMat                       gridder                 ;
+    /**
+     * @brief Functor doing grid cell margin and cell statistics.
+     */
     __alias::cimp::Margin<Float, GridLineID>    margin                  ;
 
 } fov_ag;
