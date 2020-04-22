@@ -296,7 +296,7 @@ struct Chip {
             task.is_img_enc(),
             task.model()
         );
-        auto& mks                = task.get_marker_patterns_by_marker_type(ch.at("marker_type"));
+        auto mks                 = task.get_marker_patterns_by_marker_type(ch.at("marker_type"));
         auto& marker             = mks.at(0)->marker;
         auto& mask               = mks.at(0)->mask;
         auto& fov_marker_num     = task.get_fov_marker_num(sel_fov_row, sel_fov_col);
