@@ -640,7 +640,7 @@ struct Chip {
             task.grid_log()["version"] = summit::grid::version().to_string();
             task.summary_channel_log();
             task.model().heatmap_writer().flush();
-            if(task.model().debug() >= 5) {
+            if(task.model().debug() >= 4) {
                 gridline_debug_image_proc(task);
             }
 
