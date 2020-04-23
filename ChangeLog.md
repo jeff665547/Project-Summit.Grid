@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 1.1.5 - 2020.4.23
+
+- Feature: Kenai able to use white channel gridding.
+- Bugfix: Image process failed exit without error message.
+
 ## 1.1.4 - 2020.4.14
 
 - Feature: More stitched image.
