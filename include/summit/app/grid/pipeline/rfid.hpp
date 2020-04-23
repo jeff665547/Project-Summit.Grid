@@ -51,11 +51,9 @@ constexpr struct RFID {
             }
         })
         /*
-         * pipe chip pipeline to parallel engine
+         * run each chip sequencially
          */
-        | nucleona::range::p_endp( // TODO: careful the memory limitation
-            task_group.model().executor()
-        )
+        | nucleona::range::endp
         ;
         return 0;
     }

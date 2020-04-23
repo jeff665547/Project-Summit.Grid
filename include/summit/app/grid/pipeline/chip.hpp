@@ -406,7 +406,7 @@ struct Chip {
         /*
          * Find white channel name
          */
-        std::string wh_name;
+        std::string wh_name = "";
         for(auto&& ch : task.channels()) {
             channel_params[ch.at("name").get<std::string>()] = &ch;
             if(ch.at("filter").get<int>() == 0) {
@@ -420,16 +420,18 @@ struct Chip {
         /*
          * Create white channel stitched image.
          */
-        auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
-        for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
-            auto& [path, img] = img_data;
-            cv::Mat img_loc = img.clone();
-            rotate_calibrator(img_loc, task.rot_degree().value());
-            auto& tpl_gri = tpl_mtm.get_fov_img(fov_id.x, fov_id.y);
-            tpl_gri.mat() = img_loc;
+        if(!wh_name.empty()) {
+            auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
+            for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
+                auto& [path, img] = img_data;
+                cv::Mat img_loc = img.clone();
+                rotate_calibrator(img_loc, task.rot_degree().value());
+                auto& tpl_gri = tpl_mtm.get_fov_img(fov_id.x, fov_id.y);
+                tpl_gri.mat() = img_loc;
+            }
+            auto gl_wh_stitch = gl_stitcher(tpl_mtm);
+            task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
         }
-        auto gl_wh_stitch = gl_stitcher(tpl_mtm);
-        task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
 
         /*
          * Stitch each probe channel image and write to files.
@@ -531,6 +533,7 @@ struct Chip {
             }
 
         } catch( const std::exception& e ) {
+            summit::grid::log.error("grid failed with reason: {}", e.what());
             task.set_grid_done(false);
             task.grid_log()["grid_fail_reason"] = e.what();
         }
