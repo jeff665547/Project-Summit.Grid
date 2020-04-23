@@ -230,6 +230,102 @@ struct Chip {
         }
         return true;
     }
+    auto make_marker_layout_from_raw_img(
+        cv::Mat src_marker, 
+        cv::Mat src_mask,
+        int mk_w_um,
+        int mk_h_um,
+        float cell_r_um,
+        float cell_c_um,
+        float border_um,
+        int rows, 
+        int cols,
+        std::uint32_t invl_x_cl, 
+        std::uint32_t invl_y_cl,
+        float um2px_r
+    ) const {
+        using namespace __alias;
+        cmk::Layout mk_layout;
+        std::uint32_t invl_x_px = std::round(invl_x_cl * (cell_c_um + border_um) * um2px_r); // can get this value from micron to pixel
+        std::uint32_t invl_y_px = std::round(invl_y_cl * (cell_r_um + border_um) * um2px_r);
+        std::uint32_t border_px = std::ceil(border_um * um2px_r);
+        cv::Mat tgt_marker(
+            std::round(mk_h_um * um2px_r),
+            std::round(mk_w_um * um2px_r),
+            src_marker.type()
+        );
+        cv::Mat tgt_mask(
+            std::round(mk_h_um * um2px_r),
+            std::round(mk_w_um * um2px_r),
+            src_mask.type()
+        );
+        cv::resize(src_marker, tgt_marker, cv::Size(tgt_marker.cols, tgt_marker.rows));
+        cv::resize(src_mask, tgt_mask, cv::Size(tgt_mask.cols, tgt_mask.rows));
+        mk_layout.set_reg_mat_dist(
+            rows, cols, {0,0},
+            invl_x_cl, invl_y_cl,
+            invl_x_px, invl_y_px,
+            border_px
+        );
+        mk_layout.set_single_mk_pat(
+            {},
+            {tgt_marker},
+            {},
+            {tgt_mask}
+        );
+        return mk_layout;
+    }
+    auto um_to_px_autoscale(
+        const cv::Mat& image,
+        const cv::Mat& marker,
+        const cv::Mat& mask,
+        int mk_w_um,
+        int mk_h_um,
+        const float cell_r_um,
+        const float cell_c_um,
+        const float border_um,
+        int rows, 
+        int cols,
+        std::uint32_t invl_x_cl, 
+        std::uint32_t invl_y_cl,
+        float mid, float step, int num,
+        const std::vector<cv::Point>& ignore_mk_regs = {}
+    ) const {
+        using namespace __alias;
+        double max_score = 0;
+        float max_um2px_r = 0;
+        cv::Mat_<float> max_score_sum;
+        auto cur_r = mid - (num * step);
+        cmk::Layout mk_layout;
+        for(int i = 0; i < 2 * num; i ++ ) {
+            auto layout = make_marker_layout_from_raw_img(
+                marker, mask, mk_w_um, mk_h_um, cell_r_um, cell_c_um,
+                border_um, rows, cols, invl_x_cl, invl_y_cl, cur_r
+            );
+            auto score_sum = cmk_det::reg_mat_no_rot.score_mat(
+                image, layout, cimp::MatUnit::PX, ignore_mk_regs
+            );
+            // {
+            //     auto score_view = norm_u8(score_sum, 0, 0);
+            //     cv::imwrite("score_" + std::to_string(cur_r) + ".tiff", score_view);
+            // }
+            double cur_max;
+            cv::Point max_loc;
+            cv::minMaxLoc(score_sum, 0, &cur_max, 0, &max_loc);
+            if( cur_max > max_score ) {
+                max_score = cur_max;
+                max_um2px_r = cur_r;
+                mk_layout = layout;
+                max_score_sum = score_sum.clone();
+            }
+            cur_r += step;
+        }
+        return std::make_tuple(
+            max_um2px_r, 
+            max_score_sum.clone(),
+            mk_layout
+        );
+    }
     bool white_channel_proc_general(model::Task& task) const {
         namespace nr = nucleona::range;
         using namespace __alias;
@@ -241,11 +337,14 @@ struct Chip {
         auto  mks                = task.get_marker_patterns(
                                     "filter", 0
                                    );
-        auto& marker             = mks.at(0)->marker;
-        auto& mask               = mks.at(0)->mask;
+        auto& mk                 = mks.at(0);
+        auto& marker             = mk->marker;
+        auto& mask               = mk->mask;
         auto& fov_marker_num     = task.get_fov_marker_num(sel_fov_row, sel_fov_col);
-        auto mk_layout           = cmk::make_single_pattern_reg_mat_layout(
+        auto mk_layout           = make_marker_layout_from_raw_img(
             marker, mask,
+            mk->meta.at("w_um").get<int>(),
+            mk->meta.at("h_um").get<int>(),
             task.cell_h_um(), task.cell_w_um(),
             task.space_um(),
             fov_marker_num.y,
@@ -278,14 +377,16 @@ struct Chip {
         rotate_calibrator(mat_loc, theta);
 
         // * um2px_r auto scaler
-        cimp::algo::Um2PxAutoScale auto_scaler(
-            mat_loc, 
-            task.cell_w_um(), task.cell_h_um(),
-            task.space_um()
-        );
-        auto [best_um2px_r, score_mat] = auto_scaler.linear_steps(
-            mk_layout, task.um2px_r(), 0.002, 7,
-            low_score_marker_idx, nucleona::stream::null_out
+        auto [best_um2px_r, score_mat, best_mk_layout] = um_to_px_autoscale(mat_loc, marker, mask,
+            mk->meta.at("w_um").get<int>(),
+            mk->meta.at("h_um").get<int>(),
+            task.cell_h_um(), task.cell_w_um(),
+            task.space_um(),
+            fov_marker_num.y,
+            fov_marker_num.x,
+            task.mk_wd_cl(),
+            task.mk_hd_cl(),
+            task.um2px_r(), 0.002, 7, low_score_marker_idx
         );
         task.set_rot_degree(theta);
         task.set_um2px_r(best_um2px_r);
@@ -438,7 +539,7 @@ struct Chip {
          * White channel convert 8 bit to 16 bit.
          */
         std::vector<cv::Mat> channels;
-        channels.resize(task.stitched_img().size());
+        channels.resize(3);
         for(auto& [chid, st_img] : task.stitched_img()) {
             auto loc_st_img = st_img.mat().clone();
             if(chid == wh_name) {
@@ -452,6 +553,16 @@ struct Chip {
             auto ch_filter = channel_params.at(chid)->at("filter").get<int>();
             channels.at(filter_to_color.at(ch_filter)) = loc_st_img;
             cv::imwrite(task.debug_stitch(chid).string(), loc_st_img);
+        }
+        /* channel may empty, because user may only scan one channel, 
+         we need to fill empty channel for merge */
+        for(auto& ch : channels) {
+            if(ch.empty()) {
+                ch = cv::Mat::zeros(
+                    cv::Size(channels.at(0).cols, channels.at(0).rows),
+                    channels.at(0).type()
+                );
+            }
         }
         /*
          * Merge all channel and write to file.

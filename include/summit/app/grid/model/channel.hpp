@@ -107,7 +107,6 @@ struct Channel {
         for(auto&& [fov_id, mod] : fov_mods) {
             fov_mats[fov_id] = mod.mk_append();
         }
-        summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
         mk_append_mat_ = Utils::make_fovs_mk_append(fov_mats, 
             task_->fov_rows(), task_->fov_cols(),
             [](auto&& mat) {
