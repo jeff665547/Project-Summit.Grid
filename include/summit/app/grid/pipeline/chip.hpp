@@ -470,6 +470,7 @@ struct Chip {
             }
 
         } catch( const std::exception& e ) {
+            summit::grid::log.error("grid failed with reason: {}", e.what());
             task.set_grid_done(false);
             task.grid_log()["grid_fail_reason"] = e.what();
         }
