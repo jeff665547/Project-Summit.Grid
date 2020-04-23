@@ -53,9 +53,7 @@ constexpr struct RFID {
         /*
          * run each chip sequencially
          */
-        | nucleona::range::endp(
-            task_group.model().executor()
-        )
+        | nucleona::range::endp
         ;
         return 0;
     }
