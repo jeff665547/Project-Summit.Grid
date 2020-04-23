@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.6 - 2020.4.23
+
+- Bugfix: Give channel merge failed case an error message.
+
 ## 1.1.5 - 2020.4.23
 
 - Feature: Kenai able to use white channel gridding.
