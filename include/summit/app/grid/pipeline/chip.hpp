@@ -330,13 +330,14 @@ struct Chip {
         namespace nr = nucleona::range;
         using namespace __alias;
         cmk_det::RegMat mk_detector;
-        int  sel_fov_row = task.fov_rows() / 2;
-        int  sel_fov_col = task.fov_cols() / 2;
-        auto [ch_i, ch] = task.white_channel();
-        auto [img_path, mat] = task.white_channel_imgs().at(cv::Point(sel_fov_col, sel_fov_row));
+        int  sel_fov_row         = task.fov_rows() / 2;
+        int  sel_fov_col         = task.fov_cols() / 2;
+        auto [ch_i, ch]          = task.white_channel();
+        auto [img_path, mat]     = task.white_channel_imgs().at(cv::Point(sel_fov_col, sel_fov_row));
         auto  mks                = task.get_marker_patterns(
                                     "filter", 0
                                    );
+        if(mks.empty()) return false;
         auto& mk                 = mks.at(0);
         auto& marker             = mk->marker;
         auto& mask               = mk->mask;
