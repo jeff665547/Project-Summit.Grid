@@ -564,13 +564,23 @@ struct Chip {
                     channels.at(0).type()
                 );
             }
+            summit::grid::log.info("{},{},{}", ch.rows, ch.cols, ch.type());
         }
-        /*
-         * Merge all channel and write to file.
-         */
-        cv::Mat stitched_grid_all;
-        cv::merge(channels, stitched_grid_all);
-        cv::imwrite(task.debug_stitch("merged").string(), stitched_grid_all);
+        try {
+            /*
+             * Merge all channel and write to file.
+             */
+            cv::Mat stitched_grid_all;
+            cv::merge(channels, stitched_grid_all);
+            cv::imwrite(task.debug_stitch("merged").string(), stitched_grid_all);
+        } catch(...) {
+            summit::grid::log.error("Stitched and channel merged image generate failed\n"
+                "This is because the each channel may not use the same gridding source and when the source is different,\n"
+                "the image size will not exactly same.\n"
+                "In this case, each channel image is logically unmerge able.\n"
+                "This is current algorithm limitation."
+            );
+        }
     }
     /**
      * @brief Run chip level process.

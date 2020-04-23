@@ -67,3 +67,7 @@ version.h
 ms-build/
 ms-stage/
 output/
+test/
+*.log
+release/
+.vscode/
