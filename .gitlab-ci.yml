@@ -23,7 +23,6 @@ Win_CI:
     only:
         - 1.0.x
         - 1.1.x
-        - add-ci
     tags:
         - WIN
 
@@ -53,7 +52,5 @@ CentOS_CI:
     only:
         - 1.0.x
         - 1.1.x
-        - add-ci
-        - new-marker-base
     tags:
         - CENTOS
