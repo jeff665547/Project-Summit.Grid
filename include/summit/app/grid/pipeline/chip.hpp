@@ -50,8 +50,8 @@ struct Chip {
      * @brief White channel image process, 
      *        evaluate rotation degree and micron to pixel rate.
      * @details The workflow diagram
-     *          @image html white-channel-image-process.png
-     *          @image latex white-channel-image-process
+     *          @image html bf-channel-image-process.png
+     *          @image latex bf-channel-image-process
      * @param task chip parameter model.
      * @return true Process success
      * @return false Process failed, possible reason: 
