@@ -1,3 +1,8 @@
+/**
+ * @file task.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::model::Task
+ */
 #pragma once
 #include "macro.hpp"
 #include <boost/filesystem.hpp>
@@ -14,6 +19,10 @@
 #include "model.hpp"
 
 namespace summit::app::grid::model {
+/**
+ * @brief Chip level parameter model
+ * 
+ */
 struct Task {
     template<class T>
     using ChnMap = std::map<std::string, T>;
@@ -231,7 +240,6 @@ struct Task {
     auto debug_stitch(const std::string& tag = "") {
         return model().debug_stitch(id().string(), tag);
     }
-
     VAR_GET(nlohmann::json,                 chip_log            )
     VAR_GET(nlohmann::json,                 grid_log            )
     VAR_GET(std::vector<nlohmann::json>,    channels            )

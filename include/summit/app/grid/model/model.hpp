@@ -1,3 +1,8 @@
+/**
+ * @file model.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::model::Model
+ */
 #pragma once
 #include <nlohmann/json.hpp>
 #include "../paths.hpp"
@@ -17,6 +22,12 @@
 
 namespace summit::app::grid::model {
 
+/**
+ * @brief Global data model
+ * @details Initialized by command-line options and Summit.Grid feature specification,
+ * includes heatmap format writer and output file paths.
+ * 
+ */
 struct Model 
 : public Paths
 , public FormatDecoder

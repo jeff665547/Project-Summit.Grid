@@ -722,9 +722,20 @@ struct Chip {
         return 0;
     }
 private:
-
+    /**
+     * @brief Functor, marker detection based rotation degree detection.
+     * 
+     */
     __alias::crot::MarkerVec<float>             rotate_detector         ;
+    /**
+     * @brief Functor, rotation calibration
+     * 
+     */
     __alias::crot::Calibrate                    rotate_calibrator       ;
+    /**
+     * @brief Functor, marker based micron-to-pixel rate estimiation
+     * 
+     */
     __alias::cmk::RegMatUm2PxRDet               reg_mat_um2px_r_det     ;
     
 };

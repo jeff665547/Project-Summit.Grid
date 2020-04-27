@@ -143,6 +143,10 @@ constexpr struct Channel {
         return channel.grid_log().at("grid_done").get<bool>();
     }
 private:
+    /**
+     * @brief Functor, channel FOVs stitch, grid line based algorithm.
+     * 
+     */
     __alias::cm_st::GridlineBased               image_stitcher          ;
 } channel;
 

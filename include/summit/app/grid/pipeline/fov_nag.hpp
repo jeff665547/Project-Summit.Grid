@@ -170,10 +170,20 @@ constexpr struct FOVNAG {
         f_grid_log["grid_done"] = grid_done;
         return grid_done;
     }
+    /**
+     * @brief Functor, rotation calibration
+     * 
+     */
     __alias::crot::Calibrate                    rotate_calibrator       ;
-    __alias::cmk_det::RegMat                    probe_mk_detector       ;
-    __alias::crot::MarkerVec<float>             rotate_detector         ;
+    /**
+     * @brief Functor, grid line re-generation
+     * 
+     */
     __alias::cimg::Pseudo                       gridder                 ;
+    /**
+     * @brief Functor, the grid cell margin and cell statistics
+     * 
+     */
     __alias::cimp::Margin<Float, GridLineID>    margin                  ;
 
 } fov_nag;

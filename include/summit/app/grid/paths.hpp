@@ -1,3 +1,8 @@
+/**
+ * @file paths.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::Paths
+ */
 #pragma once
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -7,10 +12,29 @@
 #include <fmt/format.h>
 namespace summit::app::grid {
 
+/**
+ * @brief The output file path specification
+ * @details The output path specification includes 2 modes in-place and normal, see
+ *    @ref output-in-place-mode "in-place mode specification" and 
+ *    @ref output-normal-mode "normal mode specification" for details
+ * 
+ */
 struct Paths {
+    /**
+     * @brief Mode tags
+     * 
+     */
     enum Mode {
         inplace, normal
     };
+    /**
+     * @brief Initialize the output paths, normalize the parameter to the full path.
+     * 
+     * @param output Output path specified by command-line options
+     * @param input Input path specified by command-line options 
+     * @param shared_dir Shared directory specified by command-line options
+     * @param secure_dir Secure directory specified by command-line options
+     */
     void set(
         const std::string& output, 
         const boost::filesystem::path& input,
@@ -50,24 +74,58 @@ struct Paths {
         output_ = abs_output;
         input_  = abs_input;
     }
+    /**
+     * @brief Get shared directory path
+     * 
+     * @return auto Shared directory path
+     */
     auto shared_dir_path() const {
         return shared_dir_;
     }
+    /**
+     * @brief Get secure directory path
+     * 
+     * @return auto Secure directory path
+     */
     auto secure_dir_path() const {
         return secure_dir_;
     }
+    /**
+     * @brief Get check the secure output is enabled or not
+     * 
+     * @return true Enabled
+     * @return false Not enable
+     */
     bool secure_output_enabled() const {
         return enable_secure_output_;
     }
+    /**
+     * @brief Get the chip log path in secure path
+     * 
+     * @return auto The chip log path in secure path
+     */
     auto sc_chip_log() const {
         summit::grid::log.trace("enable_secure_output_: {}", enable_secure_output_);
         if(!enable_secure_output_) throw std::runtime_error("secure output not enable");
         auto chip_log = secure_output_ / "chip_log.json";
         return check_path(chip_log);
     }
+    /**
+     * @brief Get the chip log path in grid directory
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @return auto The chip log path in grid directory
+     */
     auto grid_chip_log(const std::string& task_id) const {
         return grid_dir(task_id) / "chip_log.json";
     }
+    /**
+     * @brief Get the marker append image path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param ch Channeld name
+     * @return boost::filesystem::path The marker append image path
+     */
     boost::filesystem::path marker_append_path(
         const std::string& task_id,
         const std::string& ch
@@ -82,22 +140,51 @@ struct Paths {
         auto res = check_path(odir / "marker_append" / file_name);
         return res;
     }
+    /**
+     * @brief Get the input path
+     * 
+     * @return boost::filesystem::path The input path
+     */
     boost::filesystem::path input() const {
         return input_;
     }
+    /**
+     * @brief Get the output path
+     * 
+     * @return boost::filesystem::path The output path
+     */
     boost::filesystem::path output() const {
         return output_;
     }
+    /**
+     * @brief Get the raw image path in secure directory
+     * 
+     * @return boost::filesystem::path The raw image path in secure directory
+     */
     boost::filesystem::path sc_raw_img_dir() const {
         if(!enable_secure_output_) throw std::runtime_error("secure output not enable");
         check_path(secure_output_ / "tmp");
         return secure_output_;
     }
+    /**
+     * @brief Get the array.cen path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @return boost::filesystem::path The array.cen path
+     */
     boost::filesystem::path array_cen(
         const std::string& task_id
     ) const {
         return grid_dir(task_id) / "array.cen";
     }
+    /**
+     * @brief Get the output heatmap format data path(exclude array.cen)
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param ch Channel name
+     * @param ofm Output format label
+     * @return boost::filesystem::path The output heatmap format data path
+     */
     boost::filesystem::path heatmap(
         const std::string& task_id,
         const std::string& ch,
@@ -117,26 +204,59 @@ struct Paths {
                 throw std::runtime_error("unsupport mode");
         }
     }
+    /**
+     * @brief Get the FOV image path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param tag Viewable directory postfix
+     * @param r FOV row position
+     * @param c FOV column position
+     * @param ch Channel name
+     * @return boost::filesystem::path The FOV image path
+     */
     boost::filesystem::path fov_image(
         const std::string& task_id,
         const std::string& tag,
         int r, int c, const std::string& ch
     ) const {
-        return check_path(general_prefix(output_.string(), task_id, ch) / fov_image_posfix(tag, r, c, ch));
+        return check_path(general_prefix(output_.string(), task_id, ch) / fov_image_postfix(tag, r, c, ch));
     }
+    /**
+     * @brief Get the stitched image path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param tag Viewable directory postfix
+     * @param ch Channel name
+     * @return boost::filesystem::path The stitched image path
+     */
     boost::filesystem::path stitch_image(
         const std::string& task_id,
         const std::string& tag,
         const std::string& ch
     ) const {
-        return check_path(general_prefix(output_.string(), task_id, ch) / stitch_image_posfix(tag, ch));
+        return check_path(general_prefix(output_.string(), task_id, ch) / stitch_image_postfix(tag, ch));
     }
+    /**
+     * @brief Get the gridline.csv file path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param channel Channel name
+     * @return boost::filesystem::path The gridline.csv file path
+     */
     boost::filesystem::path gridline(
         const std::string& task_id,
         const std::string& channel
     ) const {
         return check_path(general_prefix(output_.string(), task_id, channel) / "gridline.csv");
     }
+    /**
+     * @brief Get the complete file path. 
+     *      This file is not in specification, because it is only used by Bamboo-lake and no informations in this file
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param path The prefix of the file
+     * @return boost::filesystem::path The complete file path
+     */
     boost::filesystem::path complete_file(
         const std::string& task_id, 
         const std::string& path
@@ -156,6 +276,11 @@ struct Paths {
         }
         return check_path(path_p);
     }
+    /**
+     * @brief Create the complete file.
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     */
     void create_complete_file(
         const std::string& task_id
     ) const {
@@ -165,6 +290,13 @@ struct Paths {
             fout.close();
         }
     }
+    /**
+     * @brief Get the background file path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param channel Channel name
+     * @return boost::filesystem::path The background file path
+     */
     boost::filesystem::path background(
         const std::string& task_id,
         const std::string& channel
@@ -181,6 +313,13 @@ struct Paths {
                 throw std::runtime_error("unsupport mode");
         }
     }
+    /**
+     * @brief Get the debug path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param channel Channel name
+     * @return boost::filesystem::path The debug path
+     */
     boost::filesystem::path debug(
         const std::string& task_id, 
         const std::string& channel
@@ -188,21 +327,38 @@ struct Paths {
         auto dir = check_path(general_prefix(output_.string(), task_id, channel) / "debug");
         return dir;
     }
+    /**
+     * @brief Get debug image path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param channel Channel name
+     * @param fov_r The FOV position in row
+     * @param fov_c The FOV position in column
+     * @param tag A string add to postfix of file name
+     * @return boost::filesystem::path Debug image path
+     */
     boost::filesystem::path debug_img(
         const std::string& task_id, 
         const std::string& channel,
-        int fov_r, int fov_h,
+        int fov_r, int fov_c,
         const std::string& tag
     ) const {
         auto debug_dir = debug(task_id, channel);
         std::stringstream ss;
-        ss << fov_r << '-' << fov_h;
+        ss << fov_r << '-' << fov_c;
         if(!tag.empty()) {
             ss << '-' << tag;
         }
         ss << ".tiff";
         return check_path(debug_dir / ss.str());
     }
+    /**
+     * @brief Get debug stitched image
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param tag A string add to postfix of file name
+     * @return boost::filesystem::path Debug stitched image path
+     */
     boost::filesystem::path debug_stitch(
         const std::string& task_id, 
         const std::string& tag
@@ -211,12 +367,26 @@ struct Paths {
             , tag.empty() ? "" : "-" + tag
         ));
     }
+    /**
+     * @deprecated Channel level grid log is not generated anymore.
+     * @brief Get channel level grid log path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param channel Channel name
+     * @return boost::filesystem::path Channel leve grid log path
+     */
     boost::filesystem::path channel_grid_log(
         const std::string& task_id, 
         const std::string& channel
     ) const {
         return check_path(general_prefix(output_.string(), task_id, channel) / "grid_log.json");
     }
+    /**
+     * @brief Get grid log path
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @return boost::filesystem::path Chip level grid log path
+     */
     boost::filesystem::path task_grid_log(
         const std::string& task_id
     ) const {
@@ -230,6 +400,12 @@ struct Paths {
         }
     }
 private:
+    /**
+     * @brief Check the parent path of input path is exist. Create if not exist.
+     * 
+     * @param p Check target
+     * @return boost::filesystem::path The same path with p, but normalized.
+     */
     boost::filesystem::path check_path( const boost::filesystem::path& p ) const {
         auto tmp = p;
         tmp.make_preferred();
@@ -240,7 +416,16 @@ private:
         }
         return tmp;
     }
-    std::string fov_image_posfix(
+    /**
+     * @brief Generate FOV image postfix.
+     * 
+     * @param tag Viewable directory postfix.
+     * @param r FOV row position
+     * @param c FOV column position
+     * @param ch Channel name
+     * @return std::string The FOV image postfix
+     */
+    std::string fov_image_postfix(
         const std::string& tag,
         int r, int c, const std::string& ch
     ) const {
@@ -249,7 +434,14 @@ private:
             (std::to_string(r) + "-" +
             std::to_string(c) + ".tiff") ).string();
     }
-    std::string stitch_image_posfix(
+    /**
+     * @brief Generate stitched image postfix
+     * 
+     * @param tag Viewable directory postfix.
+     * @param ch Channel name
+     * @return std::string The stitched image postfix
+     */
+    std::string stitch_image_postfix(
         const std::string& tag,
         const std::string& ch
     ) const {
@@ -257,6 +449,14 @@ private:
         std::string ext = (tag == "raw") ? ".tiff" : ".png";
         return ( viewable_tag / ("stitch-" + ch + ext )).string();
     }
+    /**
+     * @brief Get the general prefix path of most paths.
+     * 
+     * @param output The output path
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @param channel Channel name
+     * @return boost::filesystem::path The general prefix path of most paths.
+     */
     boost::filesystem::path general_prefix(
         const std::string& output,
         const std::string& task_id,
@@ -264,6 +464,12 @@ private:
     ) const {
         return grid_dir(task_id) / "channels" / channel;
     }
+    /**
+     * @brief Get the grid directory
+     * 
+     * @param task_id The task ID generate by summit::app::grid::TaskID
+     * @return boost::filesystem::path The general grid directory.
+     */
     boost::filesystem::path grid_dir(
         const std::string& task_id
     ) const {
@@ -280,12 +486,40 @@ private:
         }
         return check_path(output_p);
     }
+    /**
+     * @brief Output path specification mode.
+     * 
+     */
     Mode mode_;
+    /**
+     * @brief Is secure output enabled.
+     * 
+     */
     bool enable_secure_output_;
+    /**
+     * @brief The secure output path
+     * 
+     */
     boost::filesystem::path secure_output_;
+    /**
+     * @brief The output path
+     * 
+     */
     boost::filesystem::path output_;
+    /**
+     * @brief The input path
+     * 
+     */
     boost::filesystem::path input_;
+    /**
+     * @brief The shared directory
+     * 
+     */
     boost::filesystem::path shared_dir_;
+    /**
+     * @brief The secure directory
+     * 
+     */
     boost::filesystem::path secure_dir_;
 };
 

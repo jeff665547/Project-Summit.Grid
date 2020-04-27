@@ -24,7 +24,7 @@ There are mainly two modes of output structure:
 * in-place mode
 * normal mode
 
-In-place mode
+In-place mode {#output-in-place-mode}
 -------------
 
 This output mode is enabled when ```output``` path option is the same as ```input_path``` option or **relative secure output** path.
@@ -59,7 +59,7 @@ The output tree and description
         \*.tiff
 ```
 
-Normal mode
+Normal mode {#output-normal-mode}
 -----------
 
 This output mode is enabled when the command option not enable In-place mode.

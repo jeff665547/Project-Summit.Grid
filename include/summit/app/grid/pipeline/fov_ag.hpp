@@ -283,23 +283,23 @@ constexpr struct FOVAG {
         return grid_done;
     }
     /**
-     * @brief Functor doing image rotation.
+     * @brief Functor, image rotation
      */
     __alias::crot::Calibrate                    rotate_calibrator       ;
     /**
-     * @brief Functor doing probe channel marker detection.
+     * @brief Functor, probe channel marker detection
      */
     __alias::cmk_det::RegMat                    probe_mk_detector       ;
     /**
-     * @brief Functor doing marker detection based rotation degree detection.
+     * @brief Functor, marker detection based rotation degree detection
      */
     __alias::crot::MarkerVec<float>             rotate_detector         ;
     /**
-     * @brief Functor doing marker based gridding.
+     * @brief Functor, the marker based gridding
      */
     __alias::cimg::RegMat                       gridder                 ;
     /**
-     * @brief Functor doing grid cell margin and cell statistics.
+     * @brief Functor, the grid cell margin and cell statistics
      */
     __alias::cimp::Margin<Float, GridLineID>    margin                  ;
 
