@@ -114,7 +114,7 @@ Debug result, for debug level >=5, ```--debug <5/6>``` following data will be ge
 * by channel, stitched and grid images
 * all channel merged stitched and grid image
 
-Grid log
+Grid log {#grid-log}
 ========
 
 Location

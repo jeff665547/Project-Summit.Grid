@@ -30,7 +30,7 @@ This description can viewed by call ```summit-app-grid --help```
 input_path details
 ------------------
 
-If the input path is a directory then the directory will be recognized as a scanned chip directory and Summit.Grid will run the auto gridding mode, while if the input path is a file then the file will be recognized as a grid log, and Summit.Grid run the manually re-gridding process.
+If the input path is a directory then the directory will be recognized as a scanned chip directory and Summit.Grid will run the auto gridding mode, while if the input path is a file then the file will be recognized as a grid log, and Summit.Grid run the [manually re-gridding](@ref doc/manual-gridding.md) process.
 
 filter details
 --------------

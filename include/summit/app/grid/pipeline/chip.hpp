@@ -56,7 +56,7 @@ struct Chip {
      * @return true Process success
      * @return false Process failed, possible reason: 
      *  1. No white channel
-     *  2. Not ArUco marker
+     *  2. Chip type not support ArUco marker and no specific bright field marker found
      *  3. Bad image quality (process failed)
      */
     bool white_channel_proc(model::Task& task) const {
@@ -78,6 +78,15 @@ struct Chip {
             return true;
         }
     }
+    /**
+     * @brief Bright-field ArUco marker process, a sub-part of white_channel_proc
+     * 
+     * @param task chip parameter model
+     * @return true Proccess success
+     * @return false Process failed
+     *  1. Chip type not support ArUco marker
+     *  2. Bad image quality
+     */
     bool white_channel_proc_aruco(model::Task& task) const {
         namespace nr = nucleona::range;
         using namespace __alias;
@@ -230,6 +239,23 @@ struct Chip {
         }
         return true;
     }
+    /**
+     * @brief generate marker layout from marker in raw image format.
+     * 
+     * @param src_marker marker image
+     * @param src_mask  marker mask image
+     * @param mk_w_um marker width in micron
+     * @param mk_h_um marker hight in micron
+     * @param cell_r_um cell height in micron
+     * @param cell_c_um cell width in micron
+     * @param border_um space size between cells in micron
+     * @param rows marker numbers in row
+     * @param cols marker numbers in column
+     * @param invl_x_cl The cell numbers between neighboring markers along x direction 
+     * @param invl_y_cl The cell numbers between neighboring markers along y direction
+     * @param um2px_r micron to pixel rate
+     * @return auto the result marker layout
+     */
     auto make_marker_layout_from_raw_img(
         cv::Mat src_marker, 
         cv::Mat src_mask,
@@ -275,6 +301,28 @@ struct Chip {
         );
         return mk_layout;
     }
+    /**
+     * @brief An iterative algorithm of micron to pixel search
+     * 
+     * @param image target image
+     * @param marker marker in raw image
+     * @param mask mask in raw image
+     * @param mk_w_um marker width in micron
+     * @param mk_h_um marker hight in micron
+     * @param cell_r_um cell height in micron
+     * @param cell_c_um cell width in micron
+     * @param border_um space size between cells in micron
+     * @param rows marker numbers in row
+     * @param cols marker numbers in column
+     * @param invl_x_cl The cell numbers between neighboring markers along x direction 
+     * @param invl_y_cl The cell numbers between neighboring markers along y direction
+     * @param mid initial micron to pixel rate
+     * @param step iteration step size
+     * @param num iteration step numbers
+     * @param ignore_mk_regs ignored marker position of marker layout, 
+     *                       probably because the marker quality is bad
+     * @return auto optimized micron to pixel rate
+     */
     auto um_to_px_autoscale(
         const cv::Mat& image,
         const cv::Mat& marker,
@@ -326,6 +374,15 @@ struct Chip {
             mk_layout
         );
     }
+    /**
+     * @brief Bright-field general marker process, a sub-part of white_channel_proc
+     * 
+     * @param task chip parameter model
+     * @return true Proccess success
+     * @return false Process failed
+     *  1. Chip type not support general marker
+     *  2. Bad image quality
+     */
     bool white_channel_proc_general(model::Task& task) const {
         namespace nr = nucleona::range;
         using namespace __alias;

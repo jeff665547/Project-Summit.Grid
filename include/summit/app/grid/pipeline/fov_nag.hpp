@@ -1,3 +1,8 @@
+/**
+ * @file fov_nag.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::pipeline::FOVNAG
+ */
 #pragma once
 #include <summit/app/grid/model.hpp>
 #include <limits>
@@ -25,10 +30,21 @@ namespace cm_st     = chipimgproc::stitch;
 
 }
 
+/**
+ * @brief FOV manual gridding data generate
+ * @details Re-generate grid data by user modified grid log
+ */
 constexpr struct FOVNAG {
     using Float = summit::app::grid::model::Float;
     using GridLineID = summit::app::grid::model::GridLineID;
-    auto operator()(model::FOV& fov_mod) const {
+    /**
+     * @brief Run the manual gridding.
+     * 
+     * @param fov_mod FOV parameter model.
+     * @return true  grid done
+     * @return false grid failed
+     */
+    bool operator()(model::FOV& fov_mod) const {
         using namespace __alias;
         auto& channel     = fov_mod.channel();
         auto& fov_id      = fov_mod.fov_id();

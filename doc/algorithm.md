@@ -63,7 +63,7 @@ endif
 stop
 @enduml
 
-Each detail part:
+References:
 
 * [BF channel image process](@ref bf-channel-image-process)
 * [probe channel image process](@ref probe-channel-image-process)
@@ -113,20 +113,37 @@ endif;
 
 @enduml
 
-Each detail part:
+References:
 
 * [iterative rotation search](@ref iterative-rotation-search)
 * [micron to pixel auto-scale](@ref micron-to-pixel-auto-scale)
 
 See ChipImgProc:
 
-* regular matrix marker detection
-* ArUco marker detector
+* Fluorescence Marker Detection
+* Bright-Field Marker Detection
 
 Probe channel image process(parameter estimate) {#probe-channel-image-process}
 -----------------------------------------------
 
-This step is similar to the white channel image process, except use probe channel marker detection instead of ArUco marker detection.
+@startuml {probe-channel-image-process.png}
+start
+:select middle(or near middle) FOV;
+:iterative rotation search;
+:micron to pixel rate auto-scale;
+:collect micron to pixel rate and rotation degree;
+:return success;
+stop
+@enduml
+
+References:
+
+* [iterative rotation search](@ref iterative-rotation-search)
+* [micron to pixel auto-scale](@ref micron-to-pixel-auto-scale)
+
+See ChipImgProc:
+
+* Fluorescence Marker Detection
 
 Iterative rotation search {#iterative-rotation-search}
 -------------------------
@@ -164,6 +181,10 @@ else (convergence)
 endif;
 
 @enduml
+
+See ChipImgProc:
+
+* Image Rotation Angle Estimation and Calibration
 
 Micron to pixel auto-scale {#micron-to-pixel-auto-scale}
 --------------------------
@@ -204,8 +225,8 @@ fork
     end note
 endfork
 :collect FOV result;
-:generate user specified heatmap format data;
-:generate raw-stitched image;
+:generate user-specified heatmap format data;
+:generate the raw stitched image;
 :generate gridline and background data;
 if (marker append option) then (is ON)
     :generate marker append images;
@@ -213,6 +234,15 @@ endif;
 stop
 
 @enduml
+
+Reference:
+
+* [FOV image gridding](#fov-level-process)
+
+See ChipImgProc:
+
+* chipimgproc::marker::Layout
+* Image Stitching
 
 FOV level process {#fov-level-process}
 -----------------
@@ -247,7 +277,7 @@ partition set-gridding-marker {
     endif;
 }
 :marker based gridding;
-:generate raw FOV images;
+:generate the raw FOV images;
 :compute background surface(BSpline algorithm);
 if(background process) then (is ON)
     :subtract background value;
@@ -257,3 +287,8 @@ endif;
 
 stop
 @enduml
+
+See ChipImgProc:
+
+* Fluorescence Marker Detection
+* Image Rotation Angle Estimation and Calibrationn
