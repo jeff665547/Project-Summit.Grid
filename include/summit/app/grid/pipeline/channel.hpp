@@ -1,5 +1,5 @@
 /**
- * @file channel.hpp
+ * @file summit/app/grid/pipeline/channel.hpp
  * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
  * @brief @copybrief summit::app::grid::pipeline::Channel
  * 

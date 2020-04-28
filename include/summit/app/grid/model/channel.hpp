@@ -1,3 +1,9 @@
+/**
+ * @file summit/app/grid/model/channel.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::model::Channel
+ * 
+ */
 #pragma once
 #include "macro.hpp"
 #include <boost/filesystem.hpp>
@@ -11,7 +17,12 @@
 #include <ChipImgProc/utils.h>
 
 namespace summit::app::grid::model {
-
+/**
+ * @brief The channel level parameter model, 
+ *    provide and integrate the parameters used 
+ *    in the channel level and the level lower than the channel.
+ * 
+ */
 struct Channel {
 
     void init(const Task& _task, const nlohmann::json& jch) {

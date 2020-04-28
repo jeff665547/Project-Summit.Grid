@@ -20,7 +20,9 @@
 
 namespace summit::app::grid::model {
 /**
- * @brief Chip level parameter model
+ * @brief Chip level parameter model,
+ *    provide and integrate the parameters used 
+ *    in the chip level and the level lower than the chip.
  * 
  */
 struct Task {

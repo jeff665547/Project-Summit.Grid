@@ -1,3 +1,9 @@
+/**
+ * @file heatmap_writer.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::HeatmapWriter
+ * 
+ */
 #pragma once
 #include <summit/grid/reg_mat_mk_index.hpp>
 #include "heatmap_writer/cell_info.hpp"
@@ -20,12 +26,22 @@ namespace summit::app::grid {
 namespace model {
     struct Task;
 }
-
-// using Float = float;
-// using GLID = int;
+/**
+ * @brief The Integrated heatmap writer.
+ * 
+ * @tparam Float The float point type used in HeatmapWriter, 
+ *      may effect intensity or other cell info representation.
+ * @tparam GLID The grid lines position integer type.
+ */
 template<class Float, class GLID>
 struct HeatmapWriter {
     using CellInfoWriterType = heatmap_writer::CellInfoWriter<Float, GLID>;
+    /**
+     * @brief Construct a new Heatmap Writer object
+     * 
+     * @param dp Current path specification.
+     * @param ofs User identified output formats.
+     */
     HeatmapWriter(
         const Paths&                                dp, 
         const std::vector<OutputFormat::Labels>&    ofs
@@ -34,6 +50,14 @@ struct HeatmapWriter {
     , output_formats_(ofs)
     {}
 private:
+    /**
+     * @brief Create the polymorphic output writer.
+     * 
+     * @param format The output format.
+     * @param out The output path.
+     * @param task The task parameter model.
+     * @return auto The polymorphic output writer.
+     */
     auto create_output_writer(const OutputFormat::Labels& format, const std::string& out, const model::Task& task) {
         std::unique_ptr<CellInfoWriterType> res(nullptr);
         switch(format) {
@@ -57,8 +81,13 @@ private:
 
         }
         return res;
-
     }
+    /**
+     * @deprecated This function is no function any more.
+     * @brief Normalize all FOV using same scaling parameters.
+     * 
+     * @param mat The input multi-tiled matrix.
+     */
     void raw_image_norm( 
         chipimgproc::MultiTiledMat<
             Float, GLID
@@ -125,6 +154,15 @@ private:
             }
         }
     }
+    /**
+     * @brief Write multi-tiled matrix to specific format file.
+     * 
+     * @param writer The heatmap writer.
+     * @param task_id The task ID generate by summit::app::grid::TaskID.
+     * @param mat The multi-tiled matrix generate from each FOV level image process.
+     * @param ch_name The channel name.
+     * @param filter_type The filter type, usually "all".
+     */
     void write_output( 
         CellInfoWriterType&         writer,
         const std::string&          task_id, 
@@ -166,6 +204,17 @@ private:
         }
     }
 public:
+    /**
+     * @brief Write multi-tiled matrix into all formats request by client code.
+     * 
+     * @tparam Task This is a workaround of recursive dependency.
+     * 
+     * @param task The task parameter model.
+     * @param ch The channel name.
+     * @param ch_id The channel sequencial ID in chip log.
+     * @param filter The filter string, usually "all".
+     * @param mat The multi-tiled matrix.
+     */
     template<class Task>
     void write(
         const Task& task,
@@ -204,16 +253,28 @@ public:
         }
         
     }
+    /**
+     * @brief Flush the data to filesystem.
+     * 
+     */
     void flush() {
         for( auto& [task_id, writer] : writer_map_) {
             writer->flush();
         }
     }
+    /**
+     * @brief Close the writer.
+     * 
+     */
     void close() {
         for( auto& [task_id, writer] : writer_map_) {
             writer->close();
         }
     }
+    /**
+     * @brief Destroy the Heatmap Writer object
+     * 
+     */
     ~HeatmapWriter() {
         close();
     }

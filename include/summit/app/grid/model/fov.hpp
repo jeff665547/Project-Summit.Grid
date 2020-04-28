@@ -1,3 +1,9 @@
+/**
+ * @file fov.hpp
+ * @author Chia-Hua Chang (johnidfet@centrilliontech.com.tw)
+ * @brief @copybrief summit::app::grid::model::FOV
+ * 
+ */
 #pragma once
 #include "macro.hpp"
 #include "type.hpp"
@@ -11,7 +17,12 @@
 #include "channel.hpp"
 
 namespace summit::app::grid::model {
-
+/**
+ * @brief FOV level parameter model,
+ *  provide and integrate the parameters used
+ *  in the FOV level and the level lower than the FOV.
+ * 
+ */
 struct FOV {
     using CimpMKRegion = chipimgproc::marker::detection::MKRegion;
 
