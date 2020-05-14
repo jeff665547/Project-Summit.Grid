@@ -239,7 +239,7 @@ struct Task {
     VAR_GET(std::int32_t,                   nms_count           )
     VAR_GET(std::int32_t,                   nms_tolerance       )
     VAR_GET(std::int32_t,                   nms_radius          )
-    VAR_GET(std::int32_t,                   ext_width           )
+    VAR_GET(double,                         ext_width           )
     VAR_GET(std::int32_t,                   cell_size_px        )
     VAR_GET(std::string,                    db_key              )
     VAR_GET(std::optional<float>,           rot_degree          )
@@ -346,10 +346,7 @@ private:
 
         // load chipspec > location marker
         location_marker_   = &chipspec_->at("location_marker");
-        tm_outer_width_    = location_marker_->at("outer_width");
-        tm_inner_width_    = location_marker_->at("inner_width");
-        tm_padding_        = location_marker_->at("padding");
-        tm_margin_         = location_marker_->at("margin");
+        
 
         // load chipspec > shooting marker
         shooting_marker_   = &chipspec_->at("shooting_marker");
@@ -375,9 +372,12 @@ private:
             aruco_marker_   = &chipspec_->at("aruco_marker");
             // db_key_         = aruco_marker_->at("db_key");
             db_key_         = origin_infer_->at("db_key");
-            
             id_map_         = &aruco_marker_->at("id_map");
             aruco_width_    = aruco_marker_->at("aruco_width");
+            tm_outer_width_ = aruco_marker_->at("outer_width");
+            tm_inner_width_ = aruco_marker_->at("inner_width");
+            tm_padding_     = aruco_marker_->at("padding");
+            tm_margin_      = aruco_marker_->at("margin");
  
             // detection parameters
             nms_count_      = (fov_wd_ / mk_wd_cl_ + 1) * (fov_hd_ / mk_hd_cl_ + 1);
