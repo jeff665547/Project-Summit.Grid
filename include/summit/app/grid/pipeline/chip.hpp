@@ -74,7 +74,7 @@ struct Chip {
             const cv::Point& fov_id, 
             double um2px_r
         ) {
-            summit::grid::log.debug("{}", __LINE__);
+            summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
             auto fov_mk_num = fov_marker_num.at(fov_id);
             auto mk_regs = aruco_mk_detector(
                 static_cast<const cv::Mat_<std::uint8_t>&>(mat),
@@ -123,11 +123,11 @@ struct Chip {
                 const cv::Point& fov_id, 
                 double um2px_r
             ) {
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 auto mk_regs = aruco_mk_det(mat, fov_id, um2px_r);
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 auto theta   = rotate_detector(mk_regs, nucleona::stream::null_out);
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 summit::grid::log.debug("theta: {}", theta);
                 return theta;
             },
@@ -149,7 +149,7 @@ struct Chip {
             summit::grid::log.debug("white channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
             try {
                 auto& mk_num    = fov_marker_num.at(fov_id);
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // * count theta
                 auto theta      = aruco_iter_rot_cali(
                                     mat, 
@@ -157,13 +157,13 @@ struct Chip {
                                         fov_id, task.um2px_r()
                                     )
                                   );
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // std::cout << "white channel detect theta " 
                 //     << fov_id << ": " << theta << std::endl;
                 cv::Mat mat_loc = mat.clone();
                 rotate_calibrator(mat_loc, theta);
 
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // * detect marker regions
                 auto mk_regs = aruco_mk_det(mat_loc, fov_id, task.um2px_r());
                 auto aruco_ch_mk_seg_view = task.aruco_ch_mk_seg_view(fov_id.y, fov_id.x);
@@ -171,7 +171,7 @@ struct Chip {
                     aruco_ch_mk_seg_view(chipimgproc::marker::view(mat_loc, mk_regs));
                 mk_regs = __alias::cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
 
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // * detect um2px_r
                 auto um2px_r = reg_mat_um2px_r_det(
                     mk_regs, 
@@ -182,9 +182,9 @@ struct Chip {
                 mk_regs = aruco_mk_det(mat_loc, fov_id, um2px_r);
                 mk_regs = __alias::cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
 
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 if(model.marker_append()) {
-                    summit::grid::log.debug("{}", __LINE__);
+                    summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                     auto fov_wh_mk_append = white_mk_append(
                         mat_loc, mk_regs, task, um2px_r
                     );
@@ -197,7 +197,7 @@ struct Chip {
                 // std::cout << "white channel detect um2px rate " 
                 //     << fov_id << ": " << um2px_r << std::endl;
 
-                summit::grid::log.debug("{}", __LINE__);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // std_reg_mat(mk_regs);
                 fov_marker_regs.at(fov_id) = std::move(mk_regs);
                 rot_degs.at(i) = theta;
