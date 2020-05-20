@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 1.1.7 - 2020.5.20
+
+- Feature: lassen support (BF still not work)
+- Feature: yz01 1/4 suppor
+
 ## 1.1.6 - 2020.4.23
 
 - Bugfix: Give channel merge failed case an error message.
