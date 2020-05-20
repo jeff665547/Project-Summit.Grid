@@ -62,6 +62,7 @@ struct Chip {
     bool white_channel_proc(model::Task& task) const {
         namespace nr = nucleona::range;
         using namespace __alias;
+        cmk_det::ArucoRegMat2   aruco_mk_detector       ;
         
         task.set_white_channel_imgs(Utils::read_white_channel(
             task.channels(),
@@ -111,11 +112,46 @@ struct Chip {
             const cv::Point& fov_id, 
             double um2px_r
         ) {
+            summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
             auto fov_mk_num = fov_marker_num.at(fov_id);
             auto mk_regs = aruco_mk_detector(
-                static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
-                task.mk_w_px(um2px_r),     task.mk_h_px(um2px_r)
+                static_cast<const cv::Mat_<std::uint8_t>&>(mat),
+                task.tm_outer_width() * um2px_r,
+                task.tm_outer_width() * um2px_r
+                // task.mk_w_px(um2px_r),
+                // task.mk_h_px(um2px_r)
             );
+
+            summit::grid::log.debug("FOV: x = {}, y = {}", fov_id.x, fov_id.y);
+            // for (auto&& mk: mk_regs) {
+            //     summit::grid::log.debug("c: {}", mk.x_i);
+            //     summit::grid::log.debug("r: {}", mk.y_i);
+            //     summit::grid::log.debug("x: {}", mk.x);
+            //     summit::grid::log.debug("y: {}", mk.y);
+            //     summit::grid::log.debug("w: {}", mk.width);
+            //     summit::grid::log.debug("h: {}", mk.height);
+            //     summit::grid::log.debug("s: {}", mk.score);
+            // }
+
+            auto dx = task.fov_wd() / task.mk_wd_cl();
+            auto dy = task.fov_hd() / task.mk_hd_cl();
+            cv::Rect range(dx * fov_id.x, dy * fov_id.y, dx + 1, dy + 1);
+            mk_regs.erase(
+                std::remove_if(mk_regs.begin(), mk_regs.end(), [&range](auto&& mk_reg) {
+                    return !range.contains(cv::Point(mk_reg.x_i, mk_reg.y_i));
+                }),
+                mk_regs.end()
+            );
+
+            summit::grid::log.debug("marker # = {}", mk_regs.size());
+            summit::grid::log.debug(
+                "range: x = {}, y = {}, w = {}, h = {}"
+              , range.x
+              , range.y
+              , range.width
+              , range.height
+            );
+            
             // __alias::cmk_det::filter_low_score_marker(mk_regs);
             return mk_regs;
         };
@@ -125,8 +161,11 @@ struct Chip {
                 const cv::Point& fov_id, 
                 double um2px_r
             ) {
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 auto mk_regs = aruco_mk_det(mat, fov_id, um2px_r);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 auto theta   = rotate_detector(mk_regs, nucleona::stream::null_out);
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 summit::grid::log.debug("theta: {}", theta);
                 return theta;
             },
@@ -148,7 +187,7 @@ struct Chip {
             summit::grid::log.debug("white channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
             try {
                 auto& mk_num    = fov_marker_num.at(fov_id);
-
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // * count theta
                 auto theta      = aruco_iter_rot_cali(
                                     mat, 
@@ -162,6 +201,7 @@ struct Chip {
                 cv::Mat mat_loc = mat.clone();
                 rotate_calibrator(mat_loc, theta);
 
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // * detect marker regions
                 auto mk_regs = aruco_mk_det(mat_loc, fov_id, task.um2px_r());
                 auto aruco_ch_mk_seg_view = task.aruco_ch_mk_seg_view(fov_id.y, fov_id.x);
@@ -169,6 +209,7 @@ struct Chip {
                     aruco_ch_mk_seg_view(chipimgproc::marker::view(mat_loc, mk_regs));
                 mk_regs = __alias::cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
 
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // * detect um2px_r
                 auto um2px_r = reg_mat_um2px_r_det(
                     mk_regs, 
@@ -180,7 +221,9 @@ struct Chip {
                 mk_regs = aruco_mk_det(mat_loc, fov_id, um2px_r);
                 mk_regs = __alias::cmk_det::reg_mat_infer(mk_regs, mk_num.y, mk_num.x);
 
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 if(model.marker_append()) {
+                    summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                     auto fov_wh_mk_append = white_mk_append(
                         mat_loc, mk_regs, task, um2px_r
                     );
@@ -193,13 +236,15 @@ struct Chip {
                 // std::cout << "white channel detect um2px rate " 
                 //     << fov_id << ": " << um2px_r << std::endl;
 
+                summit::grid::log.debug("{}:{}", __FILE__, __LINE__);
                 // std_reg_mat(mk_regs);
                 fov_marker_regs.at(fov_id) = std::move(mk_regs);
                 rot_degs.at(i) = theta;
                 um2px_rs.at(i) = um2px_r;
                 success.at(i)  = true;
 
-            } catch (...) {
+            } catch (const std::exception& e) {
+                summit::grid::log.debug(e.what());
                 success.at(i) = false;
             }
             summit::grid::log.debug("white channel, fov id:({}, {}) end process", fov_id.x, fov_id.y);

@@ -66,3 +66,7 @@ hunter_config(ChipImgProc
     CMAKE_ARGS
         ENABLE_LOG=ON
 )
+# hunter_config(ChipImgProc GIT_SUBMODULE "lib/ChipImgProc"
+#     CMAKE_ARGS
+#         ENABLE_LOG=ON
+# )

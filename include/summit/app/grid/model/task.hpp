@@ -269,7 +269,9 @@ struct Task {
     VAR_GET(boost::filesystem::path,        frame_template      )
     VAR_GET(boost::filesystem::path,        frame_mask          )
     VAR_GET(std::int32_t,                   nms_count           )
+    VAR_GET(std::int32_t,                   nms_tolerance       )
     VAR_GET(std::int32_t,                   nms_radius          )
+    VAR_GET(double,                         ext_width           )
     VAR_GET(std::int32_t,                   cell_size_px        )
     VAR_GET(std::string,                    db_key              )
     VAR_GET(std::optional<float>,           rot_degree          )
@@ -291,6 +293,12 @@ struct Task {
     VAR_GET(std::string,                    origin_infer_algo   )
     VAR_GET(summit::app::grid::TaskID,      id                  )
 
+    VAR_GET(std::uint32_t,                  aruco_width         )
+    VAR_GET(std::uint32_t,                  tm_outer_width      )
+    VAR_GET(std::uint32_t,                  tm_inner_width      )
+    VAR_GET(std::uint32_t,                  tm_padding          )
+    VAR_GET(std::uint32_t,                  tm_margin           )
+
     VAR_PTR_GET(Model,                      model               )
     VAR_PTR_GET(nlohmann::json,             chipinfo            )
     VAR_PTR_GET(nlohmann::json,             chipspec            )
@@ -298,6 +306,7 @@ struct Task {
     VAR_PTR_GET(nlohmann::json,             aruco_marker        )
     VAR_PTR_GET(nlohmann::json,             id_map              )
     VAR_PTR_GET(nlohmann::json,             origin_infer        )
+    VAR_PTR_GET(nlohmann::json,             location_marker     )
     VAR_PTR_GET(nlohmann::json,             shooting_marker     )
     VAR_PTR_GET(nlohmann::json,             sh_mk_pats_cl       )
     VAR_PTR_GET(nlohmann::json,             sh_mk_pos_cl        )
@@ -340,63 +349,88 @@ private:
             }
         }
 
-        chipinfo_         = &chip_log_["chip"];
-        is_img_enc_       = chip_log_.at("img_encrypted");
-        um2px_r_          = chip_log_.value<double>("um_to_px_coef", -1);
-        chip_info_name_   = chipinfo_->at("name");
-        chip_spec_name_   = chipinfo_->at("spec").at("name");
-        origin_infer_     = &chipinfo_->at("origin_infer");
-        origin_infer_algo_= origin_infer_->at("algo");
-        chipspec_         = &summit::config::chip().get_spec(chip_spec_name_);
+        // load chipinfo
+        chipinfo_          = &chip_log_["chip"];
+        is_img_enc_        = chip_log_.at("img_encrypted");
+        um2px_r_           = chip_log_.value<double>("um_to_px_coef", -1);
+        chip_info_name_    = chipinfo_->at("name");
+        chip_spec_name_    = chipinfo_->at("spec").at("name");
+
+        // load chipinfo > origin_infer
+        origin_infer_      = &chipinfo_->at("origin_infer");
+        origin_infer_algo_ = origin_infer_->at("algo");
+        pyramid_level_     = origin_infer_->at("pyramid_level");
+
+        // load cell_fov
+        fov_               = &summit::config::cell_fov().get_fov_type(chip_info_name_);
+        auto& tmp_fov      = fov_->at("fov");
+        fov_rows_          = tmp_fov.at("rows");
+        fov_cols_          = tmp_fov.at("cols");
+        fov_wd_            = tmp_fov.at("w_d");
+        fov_hd_            = tmp_fov.at("h_d");
+        fov_w_             = tmp_fov.at("w");
+        fov_h_             = tmp_fov.at("h");
+
+        // load chipspec
+        chipspec_          = &summit::config::chip().get_spec(chip_spec_name_);
+        cell_h_um_         = chipspec_->at("cell_w_um");
+        cell_w_um_         = chipspec_->at("cell_h_um");
+        space_um_          = chipspec_->at("space_um");
+        spec_h_cl_         = chipspec_->at("h_cl");
+        spec_w_cl_         = chipspec_->at("w_cl");
+
+        // load chipspec > location marker
+        location_marker_   = &chipspec_->at("location_marker");
+        
+
+        // load chipspec > shooting marker
+        shooting_marker_   = &chipspec_->at("shooting_marker");
+        
+        // load chipspec > shooting marker > mk_pats_cl
+        sh_mk_pats_cl_     = &shooting_marker_->at("mk_pats_cl");
+        sh_mk_pats_        = &shooting_marker_->at("mk_pats");
+        
+        // load chipspec > shooting marker > position_cl
+        sh_mk_pos_cl_      = &shooting_marker_->at("position_cl");
+        mk_wd_cl_          = sh_mk_pos_cl_->at("w_d");
+        mk_hd_cl_          = sh_mk_pos_cl_->at("h_d");
+        mk_w_cl_           = sh_mk_pos_cl_->at("w");
+        mk_h_cl_           = sh_mk_pos_cl_->at("h");
+        mk_xi_cl_          = sh_mk_pos_cl_->at("x_i");
+        mk_yi_cl_          = sh_mk_pos_cl_->at("y_i");
+        mk_col_cl_         = sh_mk_pos_cl_->at("col");
+        mk_row_cl_         = sh_mk_pos_cl_->at("row");
+        // load chipspec > aruco marker
         if(support_aruco()) {
-            db_key_           = origin_infer_->at("db_key");
-            // pyramid_level_    = origin_infer_->at("pyramid_level");
-            pyramid_level_    = 1;
-            nms_count_        = origin_infer_->at("nms_count");
-            cell_size_px_     = origin_infer_->at("cell_size_px");
-            aruco_marker_     = &chipspec_->at("aruco_marker");
-            id_map_           = &aruco_marker_->at("id_map");
-            border_bits_      = aruco_marker_->at("border_bits");
-            fringe_bits_      = aruco_marker_->at("fringe_bits");
-            bit_w_            = aruco_marker_->at("bit_w");
-            margin_size_      = aruco_marker_->at("margin_size");
-            nms_radius_       = aruco_marker_->at("nms_radius");
-            frame_template_   = (summit::install_path() / aruco_marker_->at("frame_template").get<std::string>()).make_preferred();
-            frame_mask_       = (summit::install_path() / aruco_marker_->at("frame_mask").get<std::string>()).make_preferred();
+
+            // obtain ArUco patterns
+            aruco_marker_   = &chipspec_->at("aruco_marker");
+            // db_key_         = aruco_marker_->at("db_key");
+            db_key_         = origin_infer_->at("db_key");
+            id_map_         = &aruco_marker_->at("id_map");
+            aruco_width_    = aruco_marker_->at("aruco_width");
+            tm_outer_width_ = aruco_marker_->at("outer_width");
+            tm_inner_width_ = aruco_marker_->at("inner_width");
+            tm_padding_     = aruco_marker_->at("padding");
+            tm_margin_      = aruco_marker_->at("margin");
+ 
+            // detection parameters
+            nms_count_      = (fov_wd_ / mk_wd_cl_ + 1) * (fov_hd_ / mk_hd_cl_ + 1);
+            nms_radius_     = aruco_marker_->at("nms_radius");
+            nms_tolerance_  = aruco_marker_->at("nms_tolerance");
+            ext_width_      = aruco_marker_->at("ext_width");
+
+            // legacy
+            cell_size_px_   = origin_infer_->at("cell_size_px");
+            border_bits_    = aruco_marker_->at("border_bits");
+            fringe_bits_    = aruco_marker_->at("fringe_bits");
+            bit_w_          = aruco_marker_->at("bit_w");
+            margin_size_    = aruco_marker_->at("margin_size");
+            frame_template_ = (summit::install_path() / aruco_marker_->at("frame_template").get<std::string>()).make_preferred();
+            frame_mask_     = (summit::install_path() / aruco_marker_->at("frame_mask").get<std::string>()).make_preferred();
         }
 
         // chipinfo_->erase("spec");
-
-        fov_              = &summit::config::cell_fov().get_fov_type(chip_info_name_);
-        auto& tmp_fov     = fov_->at("fov");
-        fov_rows_         = tmp_fov.at("rows");
-        fov_cols_         = tmp_fov.at("cols");
-        fov_wd_           = tmp_fov.at("w_d");
-        fov_hd_           = tmp_fov.at("h_d");
-        fov_w_            = tmp_fov.at("w");
-        fov_h_            = tmp_fov.at("h");
-
-        cell_h_um_        = chipspec_->at("cell_w_um");
-        cell_w_um_        = chipspec_->at("cell_h_um");
-        space_um_         = chipspec_->at("space_um");
-        shooting_marker_  = &chipspec_->at("shooting_marker");
-        spec_h_cl_        = chipspec_->at("h_cl");
-        spec_w_cl_        = chipspec_->at("w_cl");
-
-        sh_mk_pats_cl_    = &shooting_marker_->at("mk_pats_cl");
-        sh_mk_pos_cl_     = &shooting_marker_->at("position_cl");
-
-        sh_mk_pats_       = &shooting_marker_->at("mk_pats");
-
-        mk_wd_cl_         = sh_mk_pos_cl_->at("w_d");
-        mk_hd_cl_         = sh_mk_pos_cl_->at("h_d");
-        mk_w_cl_          = sh_mk_pos_cl_->at("w");
-        mk_h_cl_          = sh_mk_pos_cl_->at("h");
-        mk_xi_cl_         = sh_mk_pos_cl_->at("x_i");
-        mk_yi_cl_         = sh_mk_pos_cl_->at("y_i");
-        mk_col_cl_        = sh_mk_pos_cl_->at("col");
-        mk_row_cl_        = sh_mk_pos_cl_->at("row");
-
 
 
         // TODO: all use cache
