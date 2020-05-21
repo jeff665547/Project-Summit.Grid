@@ -9,6 +9,7 @@
 #include <summit/app/grid/aruco_setter.hpp>
 #include <summit/app/grid/model/marker_base.hpp>
 #include <summit/app/grid/white_mk_append.hpp>
+#include <summit/app/grid/fov_mkid_rel.hpp>
 #include <summit/grid/version.hpp>
 #include <ChipImgProc/algo/um2px_auto_scale.hpp>
 #include <ChipImgProc/rotation/marker_vec.hpp>
@@ -102,6 +103,8 @@ struct Chip {
         std::vector<bool>  success  (task.white_channel_imgs().size());
         Utils::FOVMarkerRegionMap fov_marker_regs;
         Utils::FOVMap<cv::Mat>    fov_mk_append;
+
+        auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
             fov_marker_regs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
@@ -116,6 +119,7 @@ struct Chip {
                 static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
                 task.mk_w_px(um2px_r),     task.mk_h_px(um2px_r)
             );
+            auto& mk_ids = 
             // __alias::cmk_det::filter_low_score_marker(mk_regs);
             return mk_regs;
         };
