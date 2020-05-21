@@ -1,5 +1,13 @@
 # ChangeLog
 
+## 1.1.9 - 2020.5.21
+
+- Feature: Lassen full support.
+
+## 1.1.8 - 2020.5.21
+
+- Bugfix: lassen spec missing parameter.
+
 ## 1.1.7 - 2020.5.20
 
 - Feature: lassen support (BF still not work)
