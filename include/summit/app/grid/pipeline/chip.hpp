@@ -119,8 +119,14 @@ struct Chip {
                 static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
                 task.mk_w_px(um2px_r),     task.mk_h_px(um2px_r)
             );
-            auto& mk_ids = 
-            // __alias::cmk_det::filter_low_score_marker(mk_regs);
+            auto& mk_ids = fov_mk_rel.at(fov_id);
+            std::vector<cmk_det::MKRegion> tmp;
+            for(auto&& mk : mk_regs) {
+                if(mk_ids.count(cv::Point(mk.x_i, mk.y_i)) > 0) {
+                    tmp.push_back(mk);
+                }
+            }
+            mk_regs.swap(tmp);
             return mk_regs;
         };
         auto aruco_iter_rot_cali = crot::make_iteration_cali(

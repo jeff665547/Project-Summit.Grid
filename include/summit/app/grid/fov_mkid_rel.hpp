@@ -1,4 +1,5 @@
 #include "./utils.hpp"
+#include <ChipImgProc/utils/less.hpp>
 
 namespace summit::app::grid {
 
@@ -25,7 +26,7 @@ constexpr struct FovMKIDRel {
         int ini, 
         int len, 
         typename EndP::Tag tag
-    ) {
+    ) const {
         points.push_back(
             EndP {
                 id,
@@ -56,7 +57,7 @@ constexpr struct FovMKIDRel {
                     res.push_back({});
                     curr_fov.insert(p.id);
                 } else if( p.type == EndP::end ) {
-                    auto& fov = res[p.id]
+                    auto& fov = res[p.id];
                     fov.insert(fov.end(), curr_mk_ids.begin(), curr_mk_ids.end());
                     curr_fov.erase(p.id);
                 } else {
@@ -79,7 +80,8 @@ constexpr struct FovMKIDRel {
         }
         return res;
     }
-    using FOVMarkerRel = FOVMap<std::set<cv::Point>>;
+    using PointSet = std::set<cv::Point, chipimgproc::PointLess>;
+    using FOVMarkerRel = Utils::FOVMap<PointSet>;
     FOVMarkerRel operator()(
         const nlohmann::json& chip_spec,
         const nlohmann::json& cell_fov
@@ -131,7 +133,7 @@ constexpr struct FovMKIDRel {
             auto& fov_contain_mk_id_h = fov_mk_overlap_h.at(i);
             for(size_t j = 0; j < fov_mk_overlap_w.size(); j ++) {
                 auto& fov_contain_mk_id_w = fov_mk_overlap_w.at(j);
-                std::set<cv::Point> fov_contain_mk_ids;
+                PointSet fov_contain_mk_ids;
                 for(auto mkid_h : fov_contain_mk_id_h) {
                     for(auto mkid_w : fov_contain_mk_id_w) {
                         fov_contain_mk_ids.emplace(cv::Point(mkid_w, mkid_h));
