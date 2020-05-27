@@ -312,6 +312,7 @@ private:
 
     
     void set_chip_dir(const boost::filesystem::path& path) {
+        grid_log_["channels"] = nlohmann::json::array();
         channel_log_ = &grid_log_["channels"];
         chip_dir_ = path;
         {

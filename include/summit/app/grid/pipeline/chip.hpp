@@ -589,7 +589,7 @@ struct Chip {
         /*
          * Create white channel stitched image.
          */
-        if(!wh_name.empty()) {
+        if(!wh_name.empty() && channel_params.size() > 1) {
             auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
             for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
                 auto& [path, img] = img_data;
@@ -600,6 +600,10 @@ struct Chip {
             }
             auto gl_wh_stitch = gl_stitcher(tpl_mtm);
             task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
+        }
+        if(channel_params.size() <= 1) {
+            summit::grid::log.warn("no probe channel images provided, unable to generate stitched grid images");
+            return ;
         }
 
         /*
