@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.11-dev - 2020.5.27
+
+- Bugfix: Image gridding failed when no probe image.
+
 ## 1.1.10 - 2020.5.22
 
 - Feature: L2C support.
