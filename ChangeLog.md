@@ -1,17 +1,21 @@
 # ChangeLog
 
+## 1.1.10 - 2020.5.22
+
+- Feature: L2C support.
+
 ## 1.1.9 - 2020.5.21
 
-- Feature: Lassen full support.
+- Feature: L1B full support.
 
 ## 1.1.8 - 2020.5.21
 
-- Bugfix: lassen spec missing parameter.
+- Bugfix: Lassen spec missing parameter.
 
 ## 1.1.7 - 2020.5.20
 
-- Feature: lassen support (BF still not work)
-- Feature: yz01 1/4 suppor
+- Feature: Lassen support (BF still not work)
+- Feature: yz01 1/4 support
 
 ## 1.1.6 - 2020.4.23
 
@@ -20,7 +24,7 @@
 ## 1.1.5 - 2020.4.23
 
 - Feature: Kenai able to use white channel gridding.
-- Bugfix: Image process failed exit without error message.
+- Bugfix: Image processing failed exit without error message.
 
 ## 1.1.4 - 2020.4.14
 
