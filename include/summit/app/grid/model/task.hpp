@@ -350,12 +350,17 @@ private:
         origin_infer_algo_= origin_infer_->at("algo");
         chipspec_         = &summit::config::chip().get_spec(chip_spec_name_);
         if(support_aruco()) {
-            db_key_           = origin_infer_->at("db_key");
             // pyramid_level_    = origin_infer_->at("pyramid_level");
             pyramid_level_    = 1;
             nms_count_        = origin_infer_->at("nms_count");
             cell_size_px_     = origin_infer_->at("cell_size_px");
             aruco_marker_     = &chipspec_->at("aruco_marker");
+            if(auto iter = origin_infer_->find("db_key"); iter == origin_infer_->end()) {
+                db_key_ =  aruco_marker_->value("db_key", "");
+            } else {
+                db_key_ = iter.value();
+            }
+            db_key_           = origin_infer_->at("db_key");
             id_map_           = &aruco_marker_->at("id_map");
             border_bits_      = aruco_marker_->at("border_bits");
             fringe_bits_      = aruco_marker_->at("fringe_bits");
