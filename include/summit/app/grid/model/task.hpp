@@ -321,6 +321,7 @@ private:
 
     
     void set_chip_dir(const boost::filesystem::path& path) {
+        grid_log_["channels"] = nlohmann::json::array();
         channel_log_ = &grid_log_["channels"];
         chip_dir_ = path;
         {
@@ -405,8 +406,11 @@ private:
 
             // obtain ArUco patterns
             aruco_marker_   = &chipspec_->at("aruco_marker");
-            // db_key_         = aruco_marker_->at("db_key");
-            db_key_         = origin_infer_->at("db_key");
+            if(auto iter = origin_infer_->find("db_key"); iter == origin_infer_->end()) {
+                db_key_ =  aruco_marker_->value("db_key", "");
+            } else {
+                db_key_ = iter.value();
+            }
             id_map_         = &aruco_marker_->at("id_map");
             aruco_width_    = aruco_marker_->at("aruco_width");
             tm_outer_width_ = aruco_marker_->at("outer_width");

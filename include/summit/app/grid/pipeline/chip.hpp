@@ -9,6 +9,7 @@
 #include <summit/app/grid/aruco_setter.hpp>
 #include <summit/app/grid/model/marker_base.hpp>
 #include <summit/app/grid/white_mk_append.hpp>
+#include <summit/app/grid/fov_mkid_rel.hpp>
 #include <summit/grid/version.hpp>
 #include <ChipImgProc/algo/um2px_auto_scale.hpp>
 #include <ChipImgProc/rotation/marker_vec.hpp>
@@ -103,6 +104,8 @@ struct Chip {
         std::vector<bool>  success  (task.white_channel_imgs().size());
         Utils::FOVMarkerRegionMap fov_marker_regs;
         Utils::FOVMap<cv::Mat>    fov_mk_append;
+
+        auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
             fov_marker_regs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
@@ -121,38 +124,15 @@ struct Chip {
                 // task.mk_w_px(um2px_r),
                 // task.mk_h_px(um2px_r)
             );
-
-            summit::grid::log.debug("FOV: x = {}, y = {}", fov_id.x, fov_id.y);
-            // for (auto&& mk: mk_regs) {
-            //     summit::grid::log.debug("c: {}", mk.x_i);
-            //     summit::grid::log.debug("r: {}", mk.y_i);
-            //     summit::grid::log.debug("x: {}", mk.x);
-            //     summit::grid::log.debug("y: {}", mk.y);
-            //     summit::grid::log.debug("w: {}", mk.width);
-            //     summit::grid::log.debug("h: {}", mk.height);
-            //     summit::grid::log.debug("s: {}", mk.score);
-            // }
-
-            auto dx = task.fov_wd() / task.mk_wd_cl();
-            auto dy = task.fov_hd() / task.mk_hd_cl();
-            cv::Rect range(dx * fov_id.x, dy * fov_id.y, dx + 1, dy + 1);
-            mk_regs.erase(
-                std::remove_if(mk_regs.begin(), mk_regs.end(), [&range](auto&& mk_reg) {
-                    return !range.contains(cv::Point(mk_reg.x_i, mk_reg.y_i));
-                }),
-                mk_regs.end()
-            );
-
+            auto& mk_ids = fov_mk_rel.at(fov_id);
+            std::vector<cmk_det::MKRegion> tmp;
+            for(auto&& mk : mk_regs) {
+                if(mk_ids.count(cv::Point(mk.x_i, mk.y_i)) > 0) {
+                    tmp.push_back(mk);
+                }
+            }
+            mk_regs.swap(tmp);
             summit::grid::log.debug("marker # = {}", mk_regs.size());
-            summit::grid::log.debug(
-                "range: x = {}, y = {}, w = {}, h = {}"
-              , range.x
-              , range.y
-              , range.width
-              , range.height
-            );
-            
-            // __alias::cmk_det::filter_low_score_marker(mk_regs);
             return mk_regs;
         };
         auto aruco_iter_rot_cali = crot::make_iteration_cali(
@@ -624,7 +604,7 @@ struct Chip {
         /*
          * Create white channel stitched image.
          */
-        if(!wh_name.empty()) {
+        if(!wh_name.empty() && channel_params.size() > 1) {
             auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
             for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
                 auto& [path, img] = img_data;
@@ -635,6 +615,10 @@ struct Chip {
             }
             auto gl_wh_stitch = gl_stitcher(tpl_mtm);
             task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
+        }
+        if(channel_params.size() <= 1) {
+            summit::grid::log.warn("no probe channel images provided, unable to generate stitched grid images");
+            return ;
         }
 
         /*
