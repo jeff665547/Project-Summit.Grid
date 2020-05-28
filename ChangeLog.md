@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.12 - 2020.5.28
+
+- Bugfix: db_key move.
+
 ## 1.1.11 - 2020.5.27
 
 - Bugfix: Image gridding failed when no probe image.
