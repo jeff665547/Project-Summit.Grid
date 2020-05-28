@@ -23,6 +23,7 @@ Win_CI:
     only:
         - 1.0.x
         - 1.1.x
+        - 1.2.x
     tags:
         - WIN
 
@@ -52,5 +53,6 @@ CentOS_CI:
     only:
         - 1.0.x
         - 1.1.x
+        - 1.2.x
     tags:
         - CENTOS
