@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.2.0 - 2020.5.28
+
+- Feature: ArUco2 support.
+
 ## 1.1.12 - 2020.5.28
 
 - Bugfix: db_key move.
