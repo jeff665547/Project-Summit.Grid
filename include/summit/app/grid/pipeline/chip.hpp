@@ -63,8 +63,6 @@ struct Chip {
     bool white_channel_proc(model::Task& task) const {
         namespace nr = nucleona::range;
         using namespace __alias;
-        cmk_det::ArucoRegMat2   aruco_mk_detector       ;
-        
         task.set_white_channel_imgs(Utils::read_white_channel(
             task.channels(),
             task.chip_dir(),
@@ -92,7 +90,7 @@ struct Chip {
     bool white_channel_proc_aruco(model::Task& task) const {
         namespace nr = nucleona::range;
         using namespace __alias;
-        cmk_det::ArucoRegMat    aruco_mk_detector       ;
+        cmk_det::ArucoRegMat2    aruco_mk_detector       ;
         auto& executor  = task.model().executor();
         auto& model     = task.model();
         
