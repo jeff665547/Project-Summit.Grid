@@ -1,6 +1,6 @@
 # ChangeLog
 
-## 1.1.11-dev - 2020.5.27
+## 1.1.11 - 2020.5.27
 
 - Bugfix: Image gridding failed when no probe image.
 
