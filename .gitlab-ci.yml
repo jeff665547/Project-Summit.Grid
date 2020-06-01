@@ -20,6 +20,8 @@ Win_CI:
         - stage\bin\summit-app-grid.exe -d 4 -i lib\Summit.Grid-CI-data\banff\25_20171218123658 -o test\secure\banff\25_20171218123658 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
         - stage\bin\summit-app-grid.exe -d 4 -i lib\Summit.Grid-CI-data\yz01\877-09_without96 -o test\secure\yz01\877-09_without96 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
         - stage\bin\summit-app-grid.exe -d 4 -i lib\Summit.Grid-CI-data\kenai\77_20200325152351 -o test\secure\kenai\77_20200325152351 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - stage\bin\summit-app-grid.exe -d 4 -i lib\Summit.Grid-CI-data\yz01-41\185_20200520130056 -o test\secure\yz01-41\185_20200520130056 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - stage\bin\summit-app-grid.exe -d 4 -i lib\Summit.Grid-CI-data\lassen\60_C20200528134935 -o test\secure\lassen\60_C20200528134935 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
     only:
         - 1.0.x
         - 1.1.x
@@ -50,6 +52,8 @@ CentOS_CI:
         - ./stage/bin/summit-app-grid -d 4 -i lib/Summit.Grid-CI-data/banff/25_20171218123658 -o test/secure/banff/25_20171218123658 -a lib/Summit.Grid-CI-data -e test/secure -m -r cen_file,tsv_probe_list,mat_tiff
         - ./stage/bin/summit-app-grid -d 4 -i lib/Summit.Grid-CI-data/yz01/877-09_without96 -o test/secure/yz01/877-09_without96 -a lib/Summit.Grid-CI-data -e test/secure -m -r cen_file,tsv_probe_list,mat_tiff
         - ./stage/bin/summit-app-grid -d 4 -i lib/Summit.Grid-CI-data/kenai/77_20200325152351 -o test/secure/kenai/77_20200325152351 -a lib/Summit.Grid-CI-data -e test/secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - ./stage/bin/summit-app-grid -d 4 -i lib/Summit.Grid-CI-data/yz01-41/185_20200520130056 -o test/secure/yz01-41/185_20200520130056 -a lib/Summit.Grid-CI-data -e test/secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - ./stage/bin/summit-app-grid -d 4 -i lib/Summit.Grid-CI-data/lassen/60_C20200528134935 -o test/secure/lassen/60_C20200528134935 -a lib/Summit.Grid-CI-data -e test/secure -m -r cen_file,tsv_probe_list,mat_tiff
     only:
         - 1.0.x
         - 1.1.x
