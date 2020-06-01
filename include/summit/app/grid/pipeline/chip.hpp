@@ -733,7 +733,11 @@ struct Chip {
         task.write_log();
         task.copy_chip_log();
         task.create_complete_file();
-        return 0;
+        if(task.grid_done()) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 private:
     /**
