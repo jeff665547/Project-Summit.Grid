@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.13 - 2020.6.3
+
+- Bugfix: White channel general marker detection failed.
+
 ## 1.1.12 - 2020.5.28
 
 - Bugfix: db_key move.
