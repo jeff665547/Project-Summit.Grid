@@ -438,7 +438,7 @@ struct Chip {
         auto mk_rot_cali = crot::make_iteration_cali(
             [&, this](const cv::Mat& mat) {
                 auto mk_regs = mk_detector(
-                    static_cast<const cv::Mat_<std::int8_t>&>(mat), 
+                    static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
                     mk_layout, 
                     __alias::cimp::MatUnit::PX, 0,
                     nucleona::stream::null_out
@@ -746,7 +746,11 @@ struct Chip {
         task.write_log();
         task.copy_chip_log();
         task.create_complete_file();
-        return 0;
+        if(task.grid_done()) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 private:
     /**

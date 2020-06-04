@@ -1,5 +1,17 @@
 # ChangeLog
 
+## 1.2.1 - 2020.6.4
+
+- Merge 1.1.x updates.
+
+## 1.1.14 - 2020.6.4
+
+- Bugfix: K1B marker size error, grid result doesn't fit spec.
+
+## 1.1.13 - 2020.6.3
+
+- Bugfix: White channel general marker detection failed.
+
 ## 1.2.0 - 2020.5.28
 
 - Feature: ArUco2 support.
