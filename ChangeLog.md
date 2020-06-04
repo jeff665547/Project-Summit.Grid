@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.14 - 2020.6.4
+
+- Bugfix: K1B marker size error, grid result doesn't fit spec.
+
 ## 1.1.13 - 2020.6.3
 
 - Bugfix: White channel general marker detection failed.
