@@ -66,7 +66,7 @@ def fix_if_banff_marker_error(jchip_log):
     return True
     
 def fix_if_yz01_marker_error(jchip_log):
-    if jchip_log['chip']['name'] != 'yz0177':
+    if jchip_log['chip']['name'] != 'yz0177' and jchip_log['chip']['name'] != 'yz01-4122':
         return False
     
     for chn in jchip_log['channels']:
