@@ -76,6 +76,17 @@ def fix_if_yz01_marker_error(jchip_log):
             chn['marker_type'] = 'AM5B'
     return True
 
+def fix_if_kenai_marker_error(jchip_log):
+    if jchip_log['chip']['name'] != 'kenai77':
+        return False
+    
+    for chn in jchip_log['channels']:
+        if chn['marker_type'] == 'AM1':
+            chn['marker_type'] = 'AM5B'
+        elif chn['marker_type'] == 'AM3':
+            chn['marker_type'] = 'AM1E'
+    return True
+
 def fix_if_lassen_marker_error(jchip_log):
     if jchip_log['chip']['name'] != 'lassen-comp33':
         return False
@@ -132,6 +143,9 @@ def process_chip_log_path(path):
         hasfix = True
     elif fix_if_yz01_marker_error(jchip_log):
         print('yz01 marker fix done')
+        hasfix = True
+    elif fix_if_kenai_marker_error(jchip_log):
+        print('kenai marker fix done')
         hasfix = True
     elif fix_if_lassen_marker_error(jchip_log):
         print('lassen marker fix done')
