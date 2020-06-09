@@ -5,7 +5,7 @@ from pathlib import Path
 import copy
 import traceback
 
-inst_path = Path(__file__).parent.parent.parent
+inst_path = Path(os.path.abspath(__file__)).parent.parent.parent
 chipspec_path = inst_path / 'etc' / 'private' / 'chip.json'
 chipspec = json.load(open(chipspec_path, 'r'))
 
@@ -72,7 +72,7 @@ def fix_if_yz01_marker_error(jchip_log):
     for chn in jchip_log['channels']:
         if chn['marker_type'] == 'AM1':
             chn['marker_type'] = 'AM1E'
-        if chn['marker_type'] == 'AM3':
+        elif chn['marker_type'] == 'AM3':
             chn['marker_type'] = 'AM5B'
     return True
 
@@ -81,10 +81,14 @@ def fix_if_lassen_marker_error(jchip_log):
         return False
     
     for chn in jchip_log['channels']:
-        if chn['marker_type'] == 'AM1':
-            chn['marker_type'] = 'AM1E'
-        elif chn['marker_type'] == 'AM3':
+        if chn['marker_type'] == 'AM1E':
             chn['marker_type'] = 'AM5B'
+        elif chn['marker_type'] == 'AM5B':
+            chn['marker_type'] = 'AM1E'
+        elif chn['marker_type'] == 'AM1':
+            chn['marker_type'] = 'AM5B'
+        elif chn['marker_type'] == 'AM3':
+            chn['marker_type'] = 'AM1E'
     return True
 
 def process_chip_log_path(path):
@@ -137,7 +141,7 @@ def process_chip_log_path(path):
 
     if hasfix:
         backup_chip_log_file = open(backup_chip_log_path, 'w')
-        json.dump(backup_chip_log, backup_chip_log_file)
+        json.dump(backup_chip_log, backup_chip_log_file, indent=2)
         chip_log_file.close()
         chip_log_file = open(chip_log_path, 'w')
         json.dump(jchip_log, chip_log_file, indent=2)

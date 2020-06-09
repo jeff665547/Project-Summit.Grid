@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.15 - 2020.6.9
+
+- Feature: All chip type use formal marker.
+
 ## 1.1.14 - 2020.6.4
 
 - Bugfix: K1B marker size error, grid result doesn't fit spec.
