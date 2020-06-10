@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.16 - 2020.6.10
+
+- Bugfix: Chip log fixer not work in several cases.
+
 ## 1.1.15 - 2020.6.9
 
 - Feature: All chip type use formal marker.

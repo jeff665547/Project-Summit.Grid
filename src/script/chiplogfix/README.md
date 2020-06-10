@@ -22,5 +22,5 @@ Feature
 -------
 
 * Convert L1B SP to current Summit.Grid processable format.
-* Normalize Lassen, Banff, YZ01 chip marker type name.
+* Normalize Lassen, Banff, YZ01, Kenai chip marker type name.
 * Fix early bad design of L2C chip log.
