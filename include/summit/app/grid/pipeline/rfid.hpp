@@ -34,21 +34,24 @@ constexpr struct RFID {
          * pipe tasks to chip process pipeline
          */
         | ranges::view::transform([&](auto&& task_id){
+            int exit_code = 0;
+            model::Task task;
             try {
                 /*
                  * create task data model, prepare data
                  */
-                model::Task task;
                 task.set_model(task_group.model());
                 task.set_task_id(task_id);
                 /*
                  * run chip process pipeline
                  */
-                return chip(task);
+                exit_code = chip(task);
             } catch(const std::exception& e) {
                 summit::grid::log.error("BUG: {}", e.what());
-                return 1;
+                exit_code = 1;
             }
+            task.create_complete_file();
+            return exit_code;
         })
         /*
          * run each chip sequencially

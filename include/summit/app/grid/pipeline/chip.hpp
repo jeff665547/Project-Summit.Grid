@@ -732,7 +732,6 @@ struct Chip {
         }
         task.write_log();
         task.copy_chip_log();
-        task.create_complete_file();
         if(task.grid_done()) {
             return 0;
         } else {
