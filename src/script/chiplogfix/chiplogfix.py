@@ -16,10 +16,9 @@ l1b_shift_map = {
     'D': [0, 2480]
 }
 
-def fix_if_L1Bsp(jchip_log):
+def fix_if_L1Bsp(jchip_log, chip_log_path):
     if jchip_log['chip']['name'] == 'lassen33':
         print('L1B sp chip log found: {}'.format(chip_log_path))
-        jchip_log = process_l1bsp_chip_log(jchip_log, chip_log_path)
         # TODO: shift
         # TODO: comp
         jchip_log['chip']['name'] = 'lassen-comp33'
@@ -37,7 +36,7 @@ def fix_if_L1Bsp(jchip_log):
                 print('not expected RFID name, use "A" as default component name')
         comp = trayt_at[1]
         jchip_log['chip']['comp'] = comp
-        jchip_log['chip']['spec']['shift'] = shift_map[comp]
+        jchip_log['chip']['spec']['shift'] = l1b_shift_map[comp]
         return True
     return False
 
@@ -127,7 +126,7 @@ def process_chip_log_path(path):
 
     hasfix = False
     print('chip type issue fix')
-    if fix_if_L1Bsp(jchip_log): 
+    if fix_if_L1Bsp(jchip_log, chip_log_path): 
         print('L1B SP chip process done')
         hasfix = True
     elif fix_if_L2C_banff(jchip_log, chip_log_path):

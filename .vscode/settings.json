@@ -13,5 +13,8 @@
         "INSTALL_DEPS": "ON",
         "SCREW_DEBUG": "OFF"
     },
-    "cmake.installPrefix": "${workspaceRoot}/stage"
+    "cmake.installPrefix": "${workspaceRoot}/stage",
+    "grammarly.userWords": [
+        "ArUco"
+    ]
 }
