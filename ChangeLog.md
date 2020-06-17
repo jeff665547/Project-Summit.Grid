@@ -1,5 +1,11 @@
 # ChangeLog
 
+## 1.1.18 - 2020.6.17
+
+- Bugfix: Fix COMPLETE file not generated after image gridding problem in sveral cases.
+- Feature: Logger add flush.
+- Dev: Show whether the log is enabled in build message.
+
 ## 1.1.17 - 2020.6.16
 
 - Bugfix: Chip log fixer unable to process L1B SP.
