@@ -1,8 +1,12 @@
 # ChangeLog
 
+## 1.1.19 - 2020.6.22
+
+- Bugfix: Fix COMPLETE file not generated after image gridding problem in several cases.
+
 ## 1.1.18 - 2020.6.17
 
-- Bugfix: Fix COMPLETE file not generated after image gridding problem in sveral cases.
+- Bugfix: Fix COMPLETE file not generated after image gridding problem in several cases.
 - Feature: Logger add flush.
 - Dev: Show whether the log is enabled in build message.
 
