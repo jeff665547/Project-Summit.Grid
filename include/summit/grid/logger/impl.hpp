@@ -41,21 +41,25 @@ public:
     template<class... Args>
     void info(Args&&... args) const {
         core().info(FWD(args)...);
+        file_sink()->flush();
     }
     
     template<class... Args>
     void warn(Args&&... args) const {
         core().warn(FWD(args)...);
+        file_sink()->flush();
     }
     
     template<class... Args>
     void error(Args&&... args) const {
         core().error(FWD(args)...);
+        file_sink()->flush();
     }
 
     template<class... Args>
     void critical(Args&&... args) const {
         core().critical(FWD(args)...);
+        file_sink()->flush();
     }
     
     void set_level(int n)const {

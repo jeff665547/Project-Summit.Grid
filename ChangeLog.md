@@ -1,12 +1,39 @@
 # ChangeLog
 
+## 1.2.2 - 2020.6.23
+
+- Merge 1.1.x updates.
+
 ## 1.2.1 - 2020.6.4
 
 - Merge 1.1.x updates.
 
+## 1.1.19 - 2020.6.22
+
+- Bugfix: Fix COMPLETE file not generated after image gridding problem in several cases.
+
+## 1.1.18 - 2020.6.17
+
+- Bugfix: Fix COMPLETE file not generated after image gridding problem in several cases.
+- Feature: Logger add flush.
+- Dev: Show whether the log is enabled in build message.
+
+## 1.1.17 - 2020.6.16
+
+- Bugfix: Chip log fixer unable to process L1B SP.
+- Feature: Convenience batch runner for chip log fixer.
+
+## 1.1.16 - 2020.6.10
+
+- Bugfix: Chip log fixer not work in several cases.
+
+## 1.1.15 - 2020.6.9
+
+- Feature: All chip types use the formal marker.
+
 ## 1.1.14 - 2020.6.4
 
-- Bugfix: K1B marker size error, grid result doesn't fit spec.
+- Bugfix: K1B marker size error, grid result doesn't fit the spec.
 
 ## 1.1.13 - 2020.6.3
 
@@ -89,11 +116,11 @@
 
 - Bugfix: debug flag effect the image process behavior
   - ArUco marker detection failed when debug level <= 1
-- Bugfix: CEN file Channel ID not match specification
+- Bugfix: CEN file Channel ID not match the specification
 
 ## 1.0.10 - 2019.9.17
 
-- Update: light mean application output detail probe informations.
+- Update: light mean application output detail probe information.
 
 ## 1.0.9 - 2019.9.11
 
@@ -105,7 +132,7 @@
 
 ## 1.0.7 - 2019.9.11
 
-- Bugfix: no backgroud process workflow cell margin twice
+- Bugfix: no background process workflow cell margin twice
 - Feature: debug mode add margin view
 - Feature: add raw stitch image output
 - Feature: new ArUco matching algorithm import
@@ -139,9 +166,9 @@
 
 ## 1.0.0 - 2019.7.1
 
-- Feature: Formal grid log, include fov, channel and many parameters
+- Feature: Formal grid log, include FOV, channel and many parameters
 - Feature: None auto grid mode, use modified grid log as input, summit.grid will re-generate all output
-- Feature: Raw image generate in secure directory and grid/channels/*/viewable_raw
+- Feature: Raw image generate in the secure directory and grid/channels/*/viewable_raw
 - Feature: debug mode remake, thread supported log
 - Feature: Marker append image from 2x9x(3x3) => 2x9x9
 - Feature: Remove FOV image generate in grid/channels/*/viewable_norm, only preserve the stitched image
@@ -153,7 +180,7 @@
 
 ## 0.9.5 - 2019.5.30
 
-- Bugfix: Avoid one task fail, abort all tasks in mutli-task mode
+- Bugfix: Avoid one task fail, abort all tasks in multi-task mode
 - Bugfix: Avoid ArUco detector crash
 
 ## 0.9.4 - deprecated
@@ -162,11 +189,11 @@
 
 ## 0.9.2 - 2019.5.27
 
-- ArUco support grdding algorithm: grid location
+- ArUco support gridding algorithm: grid location
 
 ## 0.9.0 - 2019.5.27
 
-- ArUco support grdding algorithm: rotation estimation, micron to pixel compute
+- ArUco support gridding algorithm: rotation estimation, micron to pixel compute
 
 ## 0.8.6 - 2019.5.15
 

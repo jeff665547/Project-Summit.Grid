@@ -139,6 +139,7 @@ constexpr struct Channel {
             summit::grid::log.error(
                 "channel: {} process failed, reason: {}", channel.ch_name(), e.what()
             );
+            throw;
         }
         return channel.grid_log().at("grid_done").get<bool>();
     }
