@@ -137,6 +137,11 @@ struct Task {
         for(auto&& ch : *channel_log_) {
             grid_done_ = grid_done_ && ch.at("grid_done").get<bool>();
         }
+
+        grid_bad_ = false;
+        for(auto&& ch : *channel_log_) {
+            grid_bad_ = grid_bad_ || ch.at("grid_bad").get<bool>();
+        }
     }
     void write_log() {
         grid_log_["proc_time"] = proc_time_;
@@ -288,6 +293,7 @@ struct Task {
     VAR_GET(std::uint32_t,                  spec_w_cl           )
     VAR_GET(float,                          proc_time           )
     VAR_GET(bool,                           grid_done           )
+    VAR_GET(bool,                           grid_bad            )
     VAR_GET(std::string,                    origin_infer_algo   )
     VAR_GET(summit::app::grid::TaskID,      id                  )
 

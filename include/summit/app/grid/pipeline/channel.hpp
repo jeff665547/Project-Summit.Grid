@@ -96,6 +96,10 @@ constexpr struct Channel {
                 return 0;
             })
             | nucleona::range::p_endp(executor);
+            channel.summary_fov_log(fov_mods);
+            if(channel.grid_log().at("grid_bad").get<bool>()) {
+                debug_throw(std::runtime_error("bad process FOV exist, channel process stop collect result"));
+            }
             channel.collect_fovs(fov_mods);
 
             // write heatmap
@@ -132,16 +136,13 @@ constexpr struct Channel {
             if(model.marker_append()) {
                 channel.mk_append_view()(channel.mk_append_mat());
             }
-            channel.update_grid_done();
-            channel.update_grid_bad();
         } catch (const std::exception& e) {
             channel.set_grid_failed(e.what());
             summit::grid::log.error(
                 "channel: {} process failed, reason: {}", channel.ch_name(), e.what()
             );
-            throw;
         }
-        return channel.grid_log().at("grid_done").get<bool>();
+        return !channel.grid_log().at("grid_bad").get<bool>();
     }
 private:
     /**

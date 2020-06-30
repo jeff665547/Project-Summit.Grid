@@ -127,13 +127,18 @@ struct Channel {
     }
     template<class FOVMod>
     void collect_fovs(Utils::FOVMap<FOVMod>& fov_mods) {
+        nucleona::remove_const(*task_).set_multi_tiled_mat(ch_name_, make_multi_tiled_mat(fov_mods, *task_));
+        collect_fovs_mk_append(fov_mods);
+    }
+    template<class FOVMod>
+    void summary_fov_log(Utils::FOVMap<FOVMod>& fov_mods) {
         auto& fovs = grid_log_["fovs"];
         fovs = nlohmann::json::array();
         for(auto&& [fov_id, fov] : fov_mods) {
             fovs.push_back(fov.grid_log());
         }
-        nucleona::remove_const(*task_).set_multi_tiled_mat(ch_name_, make_multi_tiled_mat(fov_mods, *task_));
-        collect_fovs_mk_append(fov_mods);
+        update_grid_done();
+        update_grid_bad();
     }
     decltype(auto) multi_tiled_mat() { 
         return nucleona::remove_const(*task_).multi_tiled_mat().at(ch_name_);
