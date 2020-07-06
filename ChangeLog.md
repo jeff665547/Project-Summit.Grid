@@ -1,16 +1,20 @@
 # ChangeLog
 
+## 1.2.4 - 2020.7.6
+
+- Merge 1.1.20 updates.
+
 ## 1.2.3 - 2020.7.1
 
 - Bugfix: Chip spec configure error.
 
 ## 1.2.2 - 2020.6.23
 
-- Merge 1.1.x updates.
+- Merge 1.1.18 updates.
 
 ## 1.2.1 - 2020.6.4
 
-- Merge 1.1.x updates.
+- Merge 1.1.16 updates.
 
 ## 1.1.20 - 2020.6.30
 
