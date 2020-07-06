@@ -12,6 +12,10 @@
 
 - Merge 1.1.x updates.
 
+## 1.1.20 - 2020.6.30
+
+- Bugfix: Fix runtime crash.
+
 ## 1.1.19 - 2020.6.22
 
 - Bugfix: Fix COMPLETE file not generated after image gridding problem in several cases.

@@ -220,9 +220,11 @@ struct Chip {
                 rot_degs.at(i) = theta;
                 um2px_rs.at(i) = um2px_r;
                 success.at(i)  = true;
-
-            } catch (const std::exception& e) {
-                summit::grid::log.debug(e.what());
+            } catch (...) {
+                summit::grid::log.error(
+                    "white channel, fov id:({}, {}) process failed", 
+                    fov_id.x, fov_id.y
+                );
                 success.at(i) = false;
             }
             summit::grid::log.debug("white channel, fov id:({}, {}) end process", fov_id.x, fov_id.y);
@@ -734,6 +736,13 @@ struct Chip {
             task.grid_log()["version"] = summit::grid::version().to_string();
             task.summary_channel_log();
             task.model().heatmap_writer().flush();
+            if(task.grid_bad()) {
+                debug_throw(
+                    std::runtime_error(
+                        "several channel gridding failed, stop process(gridline image not generated)"
+                    )
+                );
+            }
             if(task.model().debug() >= 4) {
                 gridline_debug_image_proc(task);
             }
