@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.21 - 2020.7.8
+
+- Bugfix: L1B ArUco detection failed.
+
 ## 1.1.20 - 2020.6.30
 
 - Bugfix: Fix runtime crash.
