@@ -23,7 +23,7 @@ constexpr struct ArUcoSetter {
             task.margin_size() * task.um2px_r(),
             task.frame_template().string(),
             task.frame_mask().string(),
-            task.nms_count(),
+            task.nms_count() + 3,
             task.nms_radius() * task.um2px_r(),
             task.cell_size_px(),
             chipimgproc::aruco::Utils::aruco_ids(task.id_map()),
