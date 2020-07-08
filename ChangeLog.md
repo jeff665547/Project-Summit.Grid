@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.2.5 - 2020.7.8
+
+- Merge 1.1.21 updates.
+
 ## 1.2.4 - 2020.7.6
 
 - Merge 1.1.20 updates.
@@ -15,6 +19,10 @@
 ## 1.2.1 - 2020.6.4
 
 - Merge 1.1.16 updates.
+
+## 1.1.21 - 2020.7.8
+
+- Bugfix: L1B ArUco detection failed.
 
 ## 1.1.20 - 2020.6.30
 
