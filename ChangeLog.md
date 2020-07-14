@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.1.22 - 2020.7.14
+
+- Bugfix: light mean crash and naming.
+
 ## 1.1.21 - 2020.7.8
 
 - Bugfix: L1B ArUco detection failed.
