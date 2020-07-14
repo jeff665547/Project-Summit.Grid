@@ -16,11 +16,11 @@ using HeatmapParserTrait = nucleona::format::CsvEntryTrait<
     nucleona::format::PMT<1,  int>,
     nucleona::format::PMT<2,  int>,
     nucleona::format::PMT<4,  float>,
-    nucleona::format::PMT<7,  std::string>,
-    nucleona::format::PMT<8,  int>,
+    nucleona::format::PMT<8,  std::string>,
     nucleona::format::PMT<9,  int>,
-    nucleona::format::PMT<10, int>,
-    nucleona::format::PMT<11, int>
+    nucleona::format::PMT<10,  int>,
+    nucleona::format::PMT<11, int>,
+    nucleona::format::PMT<12, int>
 >;
 using HeatmapParser = nucleona::format::CsvParser<HeatmapParserTrait>;
 

@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.2.6 - 2020.7.14
+
+- Merge 1.1.22 update.
+
 ## 1.2.5 - 2020.7.8
 
 - Merge 1.1.21 updates.
@@ -19,6 +23,10 @@
 ## 1.2.1 - 2020.6.4
 
 - Merge 1.1.16 updates.
+
+## 1.1.22 - 2020.7.14
+
+- Bugfix: light mean crash and naming.
 
 ## 1.1.21 - 2020.7.8
 
