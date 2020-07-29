@@ -23,4 +23,8 @@ ArucoDB& arucodb(void) {
     return *ArucoDBHelper::p_data_;
 }
 
+boost::filesystem::path arucodb_path(void) {
+    return private_dir() / ARUCODB_FILEPATH;
+}
+
 }

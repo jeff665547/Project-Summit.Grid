@@ -43,5 +43,6 @@ struct ArucoDB : public nlohmann::json {
 
 void reload_arucodb(void);
 ArucoDB& arucodb(void);
+boost::filesystem::path arucodb_path(void);
 
 } // namespace config

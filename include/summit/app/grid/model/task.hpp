@@ -299,6 +299,8 @@ struct Task {
     VAR_GET(std::string,                    origin_infer_algo   )
     VAR_GET(summit::app::grid::TaskID,      id                  )
 
+    VAR_GET(double,                         rescale             )
+
     VAR_GET(std::uint32_t,                  aruco_width         )
     VAR_GET(std::uint32_t,                  tm_outer_width      )
     VAR_GET(std::uint32_t,                  tm_inner_width      )
@@ -323,6 +325,7 @@ struct Task {
 
     VAR_GET(ChnMap<OptMTMat>,               multi_tiled_mat     )
     VAR_GET(ChnMap<GLRawImg>,               stitched_img        )
+    VAR_IO(Utils::FOVMap<cv::Mat>,          white_warp_mat      )
 private:
 
     
@@ -455,6 +458,8 @@ private:
         for(auto&& [fov_id, _num] : fov_marker_num_ ) {
             fov_mk_regs_[fov_id] = {};
         }
+
+        rescale_ = 2;
     }
 };
 using TaskMap = std::map<

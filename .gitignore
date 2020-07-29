@@ -71,3 +71,4 @@ test/
 *.log
 release/
 .vscode/
+venv/
