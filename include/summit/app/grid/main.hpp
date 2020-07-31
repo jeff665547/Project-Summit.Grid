@@ -73,6 +73,9 @@ struct Parameters
      * @brief See @ref doc/command-line.md for more details. 
      */
     bool marker_append;
+
+
+    bool force_inplace;
 };
 
 /**
@@ -117,6 +120,7 @@ public:
             ("method,s"         ,       po::value<std::string>()->required()
                                                         ->default_value("auto_min_cv"),        "The signal extraction method")
             ("marker_append,m"  ,       "Show marker append")
+            ("force_inplace,f"  ,       "Force to use inplace output mode")
             ("version,v"        ,       "Show version info")
         ;
         po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -140,6 +144,7 @@ public:
         Base::get_parameter( "secure_dir"        , secure_dir        );
         Base::get_parameter( "thread_num"        , thread_num        );
         Base::get_parameter( "marker_append"     , marker_append     );
+        Base::get_parameter( "force_inplace"     , force_inplace     );
         Base::get_parameter( "method"            , method            );
         auto input_path_  = boost::filesystem::absolute(input_path);
         auto output_      = boost::filesystem::absolute(output);
@@ -256,7 +261,8 @@ class Main
              */
             model.set_paths(
                 args_.output, args_.input_path,
-                args_.shared_dir, args_.secure_dir
+                args_.shared_dir, args_.secure_dir,
+                args_.force_inplace
             );
             model.set_formats(args_.output_formats);
             model.set_marker_append(args_.marker_append);

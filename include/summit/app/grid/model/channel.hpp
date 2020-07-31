@@ -49,7 +49,7 @@ struct Channel {
     auto background_writer() {
         return [this](const Utils::FOVMap<float>& bg_vs){
             task_->model().background_writer().write(
-                task_->id().string(),
+                task_->id(),
                 ch_name_,
                 bg_vs
             );
@@ -93,7 +93,7 @@ struct Channel {
     auto mk_append_view() const {
         return [this](const cv::Mat& view) {
             auto path = task().model().marker_append_path(
-                task_id(), ch_name_
+                task().id(), ch_name_
             );
             cv::imwrite(path.string(), view);
         };

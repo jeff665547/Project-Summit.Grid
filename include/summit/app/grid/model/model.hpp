@@ -158,7 +158,8 @@ struct Model
             in_grid_log_.at("output"),
             in_grid_log_.at("input").get<std::string>(),
             in_grid_log_.at("shared_dir").get<std::string>(),
-            in_grid_log_.at("secure_dir").get<std::string>()
+            in_grid_log_.at("secure_dir").get<std::string>(),
+            false
         );
         set_formats(in_grid_log_.at("output_formats").get<std::vector<std::string>>());
         set_marker_append(in_grid_log_.at("marker_append"));
