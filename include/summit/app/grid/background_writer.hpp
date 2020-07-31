@@ -22,7 +22,7 @@ struct BackgroundWriter {
     {}
 
     void write(
-        const std::string& task_id,
+        const TaskID& task_id,
         const std::string& ch,
         const Utils::FOVMap<float>& bg_data
     ) {

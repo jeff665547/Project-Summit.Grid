@@ -10,6 +10,8 @@
 #include "output_format.hpp"
 #include <summit/grid/logger.hpp>
 #include <fmt/format.h>
+#include "task_id.hpp"
+#include "is_chip_dir.hpp"
 namespace summit::app::grid {
 
 /**
@@ -39,7 +41,8 @@ struct Paths {
         const std::string& output, 
         const boost::filesystem::path& input,
         const boost::filesystem::path& shared_dir,
-        const boost::filesystem::path& secure_dir
+        const boost::filesystem::path& secure_dir,
+        bool  force_inplace
     ) 
     {
         shared_dir_ = shared_dir;
@@ -68,12 +71,30 @@ struct Paths {
             summit::grid::log.info("use inplace mode paths");
             mode_ = inplace;
         } else {
-            summit::grid::log.info("use normal mode paths");
-            mode_ = normal;
+            if(force_inplace) {
+                mode_ = inplace;
+            } else {
+                summit::grid::log.info("use normal mode paths");
+                mode_ = normal;
+            }
         }
         output_ = abs_output;
         input_  = abs_input;
+        is_group_input_ = !is_chip_dir(input_);
     }
+    
+    boost::filesystem::path task_output(const TaskID& task_id) const {
+        if(mode_ == inplace) {
+            if(is_group_input_) {
+                return task_id.path();
+            } else {
+                return output_;
+            }
+        } else {
+            return output_;
+        }
+    }
+
     /**
      * @brief Get shared directory path
      * 
@@ -116,7 +137,7 @@ struct Paths {
      * @param task_id The task ID generate by summit::app::grid::TaskID
      * @return auto The chip log path in grid directory
      */
-    auto grid_chip_log(const std::string& task_id) const {
+    auto grid_chip_log(const TaskID& task_id) const {
         return grid_dir(task_id) / "chip_log.json";
     }
     /**
@@ -127,10 +148,10 @@ struct Paths {
      * @return boost::filesystem::path The marker append image path
      */
     boost::filesystem::path marker_append_path(
-        const std::string& task_id,
+        const TaskID& task_id,
         const std::string& ch
     ) const {
-        boost::filesystem::path odir(output_);
+        boost::filesystem::path odir = task_output(task_id);
         std::string file_name;
         if(ch.empty()) {
             file_name = fmt::format("{}.tiff", task_id);
@@ -173,7 +194,7 @@ struct Paths {
      * @return boost::filesystem::path The array.cen path
      */
     boost::filesystem::path array_cen(
-        const std::string& task_id
+        const TaskID& task_id
     ) const {
         return grid_dir(task_id) / "array.cen";
     }
@@ -186,7 +207,7 @@ struct Paths {
      * @return boost::filesystem::path The output heatmap format data path
      */
     boost::filesystem::path heatmap(
-        const std::string& task_id,
+        const TaskID& task_id,
         const std::string& ch,
         const OutputFormat::Labels& ofm
     ) const {
@@ -194,12 +215,13 @@ struct Paths {
             return array_cen(task_id);
         }
         auto postfix = OutputFormat::to_file_postfix(ofm);
-        boost::filesystem::path odir(output_);
         switch(mode_) {
             case normal:
                 return check_path((output_ / (ch + postfix)).string());
             case inplace:
-                return check_path(odir / "grid" / "channels" / ch / ( "heatmap" + postfix ));
+                return check_path(
+                    task_id.path() / "grid" / "channels" / ch / ( "heatmap" + postfix )
+                );
             default:
                 throw std::runtime_error("unsupport mode");
         }
@@ -215,11 +237,13 @@ struct Paths {
      * @return boost::filesystem::path The FOV image path
      */
     boost::filesystem::path fov_image(
-        const std::string& task_id,
-        const std::string& tag,
+        const TaskID&       task_id,
+        const std::string&  tag,
         int r, int c, const std::string& ch
     ) const {
-        return check_path(general_prefix(output_.string(), task_id, ch) / fov_image_postfix(tag, r, c, ch));
+        boost::filesystem::path odir = task_output(task_id);
+        return check_path(general_prefix(task_id, ch) 
+            / fov_image_postfix(tag, r, c, ch));
     }
     /**
      * @brief Get the stitched image path
@@ -230,11 +254,11 @@ struct Paths {
      * @return boost::filesystem::path The stitched image path
      */
     boost::filesystem::path stitch_image(
-        const std::string& task_id,
+        const TaskID& task_id,
         const std::string& tag,
         const std::string& ch
     ) const {
-        return check_path(general_prefix(output_.string(), task_id, ch) / stitch_image_postfix(tag, ch));
+        return check_path(general_prefix(task_id, ch) / stitch_image_postfix(tag, ch));
     }
     /**
      * @brief Get the gridline.csv file path
@@ -244,10 +268,10 @@ struct Paths {
      * @return boost::filesystem::path The gridline.csv file path
      */
     boost::filesystem::path gridline(
-        const std::string& task_id,
+        const TaskID& task_id,
         const std::string& channel
     ) const {
-        return check_path(general_prefix(output_.string(), task_id, channel) / "gridline.csv");
+        return check_path(general_prefix(task_id, channel) / "gridline.csv");
     }
     /**
      * @brief Get the complete file path. 
@@ -258,13 +282,13 @@ struct Paths {
      * @return boost::filesystem::path The complete file path
      */
     boost::filesystem::path complete_file(
-        const std::string& task_id, 
+        const TaskID& task_id, 
         const std::string& path
     ) const {
         boost::filesystem::path path_p(path);
         switch(mode_) {
             case normal:
-                path_p = path_p / task_id
+                path_p = path_p / task_id.string()
                     / "COMPLETE";
                 break;
             case inplace:
@@ -282,11 +306,15 @@ struct Paths {
      * @param task_id The task ID generate by summit::app::grid::TaskID
      */
     void create_complete_file(
-        const std::string& task_id
+        const TaskID& task_id
     ) const {
-        for(auto&& p : {input_, output_}){
-            auto complete_file_path = complete_file(task_id, p.string());
-            std::ofstream fout(complete_file_path.string(), std::fstream::trunc | std::fstream::out);
+        for(auto&& p : {
+            // input COMPLETE
+            task_id.path() / "grid" / "COMPLETE",
+            // output COMPLETE
+            task_output(task_id) / "grid" / "COMPLETE"
+        }){
+            std::ofstream fout(check_path(p).string(), std::fstream::trunc | std::fstream::out);
             fout.close();
         }
     }
@@ -298,16 +326,16 @@ struct Paths {
      * @return boost::filesystem::path The background file path
      */
     boost::filesystem::path background(
-        const std::string& task_id,
+        const TaskID& task_id,
         const std::string& channel
     ) const {
-        boost::filesystem::path odir(output_);
+        boost::filesystem::path odir = task_output(task_id);
         switch(mode_) {
             case normal:
                 return check_path(odir /(channel + "_background.csv"));
             case inplace:
                 return check_path(
-                    general_prefix(output_.string(), task_id, channel) / "background.csv"
+                    general_prefix(task_id, channel) / "background.csv"
                 );
             default:
                 throw std::runtime_error("unsupport mode");
@@ -321,10 +349,10 @@ struct Paths {
      * @return boost::filesystem::path The debug path
      */
     boost::filesystem::path debug(
-        const std::string& task_id, 
+        const TaskID& task_id, 
         const std::string& channel
     ) const {
-        auto dir = check_path(general_prefix(output_.string(), task_id, channel) / "debug");
+        auto dir = check_path(general_prefix(task_id, channel) / "debug");
         return dir;
     }
     /**
@@ -338,7 +366,7 @@ struct Paths {
      * @return boost::filesystem::path Debug image path
      */
     boost::filesystem::path debug_img(
-        const std::string& task_id, 
+        const TaskID& task_id, 
         const std::string& channel,
         int fov_r, int fov_c,
         const std::string& tag
@@ -360,7 +388,7 @@ struct Paths {
      * @return boost::filesystem::path Debug stitched image path
      */
     boost::filesystem::path debug_stitch(
-        const std::string& task_id, 
+        const TaskID& task_id, 
         const std::string& tag
     ) const {
         return check_path(grid_dir(task_id) / fmt::format("stitch{}.png"
@@ -376,10 +404,10 @@ struct Paths {
      * @return boost::filesystem::path Channel leve grid log path
      */
     boost::filesystem::path channel_grid_log(
-        const std::string& task_id, 
+        const TaskID& task_id, 
         const std::string& channel
     ) const {
-        return check_path(general_prefix(output_.string(), task_id, channel) / "grid_log.json");
+        return check_path(general_prefix(task_id, channel) / "grid_log.json");
     }
     /**
      * @brief Get grid log path
@@ -388,13 +416,13 @@ struct Paths {
      * @return boost::filesystem::path Chip level grid log path
      */
     boost::filesystem::path task_grid_log(
-        const std::string& task_id
+        const TaskID& task_id
     ) const {
         switch(mode_) {
             case normal:
-                return check_path(output_ / (task_id  + "-grid_log.json"));
+                return check_path(output_ / (task_id.string()  + "-grid_log.json"));
             case inplace:
-                return check_path(output_ / "grid" / "grid_log.json");
+                return check_path(task_output(task_id) / "grid" / "grid_log.json");
             default:
                 throw std::runtime_error("unsupport mode");
         }
@@ -452,14 +480,12 @@ private:
     /**
      * @brief Get the general prefix path of most paths.
      * 
-     * @param output The output path
      * @param task_id The task ID generate by summit::app::grid::TaskID
      * @param channel Channel name
      * @return boost::filesystem::path The general prefix path of most paths.
      */
     boost::filesystem::path general_prefix(
-        const std::string& output,
-        const std::string& task_id,
+        const TaskID& task_id,
         const std::string& channel
     ) const {
         return grid_dir(task_id) / "channels" / channel;
@@ -471,12 +497,12 @@ private:
      * @return boost::filesystem::path The general grid directory.
      */
     boost::filesystem::path grid_dir(
-        const std::string& task_id
+        const TaskID& task_id
     ) const {
-        boost::filesystem::path output_p(output_);
+        boost::filesystem::path output_p(task_output(task_id));
         switch(mode_) {
             case normal:
-                output_p = output_p / task_id;
+                output_p = output_p / task_id.string();
                 break;
             case inplace:
                 output_p = output_p / "grid";
@@ -521,6 +547,8 @@ private:
      * 
      */
     boost::filesystem::path secure_dir_;
+
+    bool is_group_input_;
 };
 
 }
