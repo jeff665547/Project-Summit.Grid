@@ -52,8 +52,8 @@ constexpr struct Channel {
             auto& model = task.model();
             if(!task.rot_degree_done())
                 throw std::runtime_error("[BUG]: no rotation degree, surrender gridding");
-            if(!task.um_to_px_r_done())
-                throw std::runtime_error("[BUG]: no um to pixel rate, surrender gridding");
+            // if(!task.um_to_px_r_done())
+            //     throw std::runtime_error("[BUG]: no um to pixel rate, surrender gridding");
             auto& executor = task.model().executor();
 
             Utils::FOVMap<model::FOV> fov_mods;
@@ -73,21 +73,18 @@ constexpr struct Channel {
             }
 
             // TODO: use cache
-            auto tmp_fov_mk_layouts = Utils::generate_sgl_pat_reg_mat_marker_layout(
-                task.um2px_r(),
-                task.chipspec(),
-                task.fov(),
-                channel.json()
-            );
+            // auto tmp_fov_mk_layouts = Utils::generate_sgl_pat_reg_mat_marker_layout(
+            //     task.um2px_r(),
+            //     task.chipspec(),
+            //     task.fov(),
+            //     channel.json()
+            // );
             fov_mods
             | ranges::view::transform([&](auto&& fov_id_mod){
                 auto& fov_id = fov_id_mod.first;
                 auto& fov_mod = fov_id_mod.second;
-                fov_mod.init(
-                    channel,
-                    fov_id,
-                    std::move(tmp_fov_mk_layouts.at(fov_id))
-                );
+                fov_mod.init(channel, fov_id);
+                // fov_mod.set_mk_layout(std::move(tmp_fov_mk_layouts.at(fov_id)));
                 if(model.auto_gridding()) {
                     fov_ag(fov_mod);
                 } else {

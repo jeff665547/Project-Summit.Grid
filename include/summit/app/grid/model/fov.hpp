@@ -28,8 +28,7 @@ struct FOV {
 
     void init(
         Channel& ch, 
-        const cv::Point& _fov_id, 
-        chipimgproc::marker::Layout&& _mk_layout
+        const cv::Point& _fov_id
     ) {
         channel_ = &ch;
         auto& task = channel_->task();
@@ -41,12 +40,12 @@ struct FOV {
             task.is_img_enc(),
             model
         );
-        mk_layout_ = std::move(_mk_layout);
         src_path_ = std::move(img_path);
         src_ = img;
         fov_id_ = _fov_id;
         proc_bad_ = false;
         proc_done_ = false;
+        mk_num_ = &task.fov_marker_num().at(fov_id_);
     }
 
     auto pch_rot_view() const {
@@ -95,9 +94,11 @@ struct FOV {
     VAR_IO(std::vector<cv::Point>,              low_score_marker_idx    );
     VAR_IO(std::string,                         mk_reg_src              ); // white channel, probe channel
     VAR_IO(cv::Mat,                             mk_append               );
+    VAR_IO(cv::Mat,                             warp_mat                );
 
     VAR_PTR_GET(Channel,                        channel                 );
     VAR_PTR_GET(nlohmann::json,                 in_grid_log             );
+    VAR_PTR_GET(cv::Point,                      mk_num                  );
 
 };
 

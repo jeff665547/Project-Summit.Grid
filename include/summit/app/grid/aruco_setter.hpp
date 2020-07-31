@@ -1,5 +1,6 @@
 #pragma once
 #include <ChipImgProc/aruco.hpp>
+#include <ChipImgProc/marker/detection/aruco_random.hpp>
 #include <ChipImgProc/marker/detection/aruco_reg_mat.hpp>
 #include <summit/config/aruco_db.hpp>
 #include "model/task.hpp"
@@ -29,9 +30,9 @@ constexpr struct ArUcoSetter {
             task.db_key(),
             templ, mask,
             task.aruco_width() * task.um2px_r(),
-            task.pyramid_level(), 
-            task.nms_count() + 3, 
-            task.tm_outer_width() * task.um2px_r(),
+            2, 
+            task.nms_count() + task.nms_tolerance(), 
+            task.nms_radius() * task.um2px_r(),
             task.ext_width()
         ));
 

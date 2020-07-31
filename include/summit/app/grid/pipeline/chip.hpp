@@ -81,9 +81,10 @@ struct Chip {
             white_channel_proc_aruco(task);
             return true;
         } catch (...) {
-            logger().warn("aruco process failed");
-            white_channel_proc_general(task);
-            return false;
+            summit::grid::log.warn("aruco process failed");
+            // white_channel_proc_general(task);
+            debug_throw(std::runtime_error("currently not support the general markers"));
+            // return false;
         }
     }
     /**
@@ -108,26 +109,19 @@ struct Chip {
         auto& fov_marker_num = task.fov_marker_num();
         std::vector<float> rot_degs (task.white_channel_imgs().size());
         std::vector<bool>  success  (task.white_channel_imgs().size());
-        Utils::FOVMarkerRegionMap fov_marker_regs;
-        Utils::FOVMap<cv::Mat>    fov_mk_append;
-        Utils::FOVMap<cv::Mat>    fov_white_warp_mat;
+        Utils::FOVMarkerRegionMap                 fov_marker_regs;
+        Utils::FOVMap<cv::Mat>                    fov_mk_append;
+        Utils::FOVMap<cv::Mat>                    fov_white_warp_mat;
+        Utils::FOVMap<std::vector<cv::Point2d>>   fov_wh_mk_pos;
 
         chipimgproc::aruco::MarkerMap mk_map(task.id_map());
-        double rcw    = (task.space_um() + task.cell_w_um()) * task.rescale();
-        double rch    = (task.space_um() + task.cell_h_um()) * task.rescale();
-        double mk_wd  = task.mk_wd_cl()  * rcw;
-        double mk_hd  = task.mk_hd_cl()  * rch;
-        double mk_xi  = task.mk_xi_cl()  * rcw;
-        double mk_yi  = task.mk_yi_cl()  * rch;
-        double mk_w   = task.mk_w_cl()   * rcw;
-        double mk_h   = task.mk_h_cl()   * rch;
-        double spec_w = task.spec_w_cl() * rcw;
-        double spec_h = task.spec_h_cl() * rch;
         
         auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
             fov_marker_regs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
+            fov_wh_mk_pos[fov_id] = {};
+            fov_white_warp_mat[fov_id] = cv::Mat();
         }
         auto aruco_mk_det = [&, this](
             cv::Mat mat, 
@@ -138,7 +132,7 @@ struct Chip {
             return mk_regs;
         };
 
-        auto st_pts = Utils::generate_stitch_points(task.fov());
+        auto st_pts_cl = Utils::generate_stitch_points(task.fov());
 
         summit::grid::log.debug("white channel image nums: {}", task.white_channel_imgs().size());
 
@@ -155,40 +149,49 @@ struct Chip {
                 auto& mk_num = fov_marker_num.at(fov_id);
                 /* detect marker regions */
                 auto mk_pos_des = aruco_mk_det(mat, fov_id);
-                std::vector<cv::Point>      mk_pos_px       ;
+                std::vector<cv::Point2d>    mk_pos_px       ;
                 std::vector<cv::Point2d>    mk_pos_rum      ;
-                auto& st_p = st_pts.at(fov_id);
+                auto& st_p_cl = st_pts_cl.at(fov_id);
+                cv::Point2d st_p(st_p_cl.x * task.cell_wd_rum(), st_p_cl.y * task.cell_hd_rum());
                 for(auto& [aid, score, pos] : mk_pos_des) {
+                    if(aid == -1) continue;
                     auto mkpid   = mk_map.get_sub(aid);
-                    auto mk_lt_x = (mkpid.x * mk_wd) + mk_xi - st_p.x;
-                    auto mk_lt_y = (mkpid.y * mk_hd) + mk_yi - st_p.y;
-                    auto mk_x    = mk_lt_x + (mk_w / 2);
-                    auto mk_y    = mk_lt_y + (mk_h / 2);
+                    auto mk_lt_x = (mkpid.x * task.mk_wd_rum()) + task.xi_rum() - st_p.x;
+                    auto mk_lt_y = (mkpid.y * task.mk_hd_rum()) + task.yi_rum() - st_p.y;
+                    auto mk_x    = mk_lt_x + (task.mk_w_rum() / 2);
+                    auto mk_y    = mk_lt_y + (task.mk_h_rum() / 2);
                     mk_pos_px.push_back(pos);
                     mk_pos_rum.emplace_back(mk_x, mk_y);
                 }
                 auto aruco_ch_mk_seg_view = task.aruco_ch_mk_seg_view(fov_id.y, fov_id.x);
                 if(aruco_ch_mk_seg_view) {
-                    aruco_ch_mk_seg_view(chipimgproc::marker::view(mat, mk_pos_px));
+                    std::vector<cv::Point> tmp(mk_pos_px.begin(), mk_pos_px.end());
+                    aruco_ch_mk_seg_view(chipimgproc::marker::view(mat, tmp));
                 } 
-                auto rcw = task.cell_w_um() * task.rescale();
-                auto rch = task.cell_h_um() * task.rescale();
                 auto warp_mat = cv::estimateAffinePartial2D(mk_pos_rum, mk_pos_px);
 
                 auto warped_mat = chipimgproc::make_basic_warped_mat(
-                    warp_mat, {mat}, {mk_xi, mk_yi}, rcw, rch, spec_w, spec_h 
+                    warp_mat, {mat}, {task.xi_rum(), task.yi_rum()}, 
+                    task.cell_wd_rum(), task.cell_hd_rum(), 
+                    task.fov_w_rum(), task.fov_h_rum() 
                 );
                 /* count theta */
                 rot_degs.at(i) = chipimgproc::rotation::from_warp_mat(warp_mat);
                 summit::grid::log.debug("white channel, fov id:({}, {}) theta: {}", fov_id.x, fov_id.y, rot_degs.at(i));
                 auto [fov_wh_mk_append, mk_regs] = white_mk_append(
-                    mat, warp_mat, mk_xi, mk_yi, spec_w, spec_h, mk_w, mk_h,
-                    mk_wd, mk_hd, mk_num.y, mk_num.x
+                    mat, warp_mat, 
+                    task.xi_rum(), task.yi_rum(), 
+                    task.fov_w_rum(), task.fov_h_rum(), 
+                    task.mk_w_rum(), task.mk_h_rum(),
+                    task.mk_wd_rum(), task.mk_hd_rum(), 
+                    mk_num.y, mk_num.x
                 );
+                fov_white_warp_mat.at(fov_id) = warp_mat;
                 if(model.marker_append()) {
                     fov_mk_append.at(fov_id) = fov_wh_mk_append;
                 }
                 fov_marker_regs.at(fov_id) = std::move(mk_regs);
+                fov_wh_mk_pos.at(fov_id)   = std::move(mk_pos_px);
                 success.at(i)  = true;
             } catch (...) {
                 summit::grid::log.error(
@@ -221,6 +224,8 @@ struct Chip {
             | ranges::to_vector
         ;
         auto rot_deg = Utils::mean(rot_degs);
+        task.set_white_warp_mat(std::move(fov_white_warp_mat));
+        task.set_fov_wh_mk_pos(std::move(fov_wh_mk_pos));
         task.set_rot_degree(rot_deg);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
         if(model.marker_append()) {
@@ -237,74 +242,74 @@ struct Chip {
      *  1. Chip type not support general marker
      *  2. Bad image quality
      */
-    bool white_channel_proc_general(model::Task& task) const {
-        namespace nr = nucleona::range;
-        using namespace __alias;
-        cmk_det::RegMat mk_detector;
-        int  sel_fov_row         = task.fov_rows() / 2;
-        int  sel_fov_col         = task.fov_cols() / 2;
-        auto [ch_i, ch]          = task.white_channel();
-        auto [img_path, mat]     = task.white_channel_imgs().at(cv::Point(sel_fov_col, sel_fov_row));
-        auto  mks                = task.get_marker_patterns(
-                                    "filter", 0
-                                   );
-        if(mks.empty()) return false;
-        auto& mk                 = mks.at(0);
-        auto& marker             = mk->marker;
-        auto& mask               = mk->mask;
-        auto& fov_marker_num     = task.get_fov_marker_num(sel_fov_row, sel_fov_col);
-        auto mk_layout           = make_marker_layout_from_raw_img(
-            marker, mask,
-            mk->meta.at("w_um").get<int>(),
-            mk->meta.at("h_um").get<int>(),
-            task.cell_h_um(), task.cell_w_um(),
-            task.space_um(),
-            fov_marker_num.y,
-            fov_marker_num.x,
-            task.mk_wd_cl(),
-            task.mk_hd_cl(),
-            task.um2px_r()
-        );
-        std::vector<cv::Point>   low_score_marker_idx;
-        auto mk_rot_cali = crot::make_iteration_cali(
-            [&, this](const cv::Mat& mat) {
-                auto mk_regs = mk_detector(
-                    static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
-                    mk_layout, 
-                    __alias::cimp::MatUnit::PX, 0,
-                    nucleona::stream::null_out
-                );
-                low_score_marker_idx = cmk_det::filter_low_score_marker(mk_regs);
-                auto theta      = rotate_detector(mk_regs, nucleona::stream::null_out);
-                return theta;
-            },
-            [&, this](cv::Mat& mat, auto theta) {
-                rotate_calibrator(mat, theta /*debug viewer*/);
-            }
-        );
-        // * marker detection and rotate
-        auto theta      = mk_rot_cali(mat);
-        // std::cout << "probe channel detect theta: " << theta << std::endl;
-        cv::Mat mat_loc = mat.clone();
-        rotate_calibrator(mat_loc, theta);
+    // bool white_channel_proc_general(model::Task& task) const {
+    //     namespace nr = nucleona::range;
+    //     using namespace __alias;
+    //     cmk_det::RegMat mk_detector;
+    //     int  sel_fov_row         = task.fov_rows() / 2;
+    //     int  sel_fov_col         = task.fov_cols() / 2;
+    //     auto [ch_i, ch]          = task.white_channel();
+    //     auto [img_path, mat]     = task.white_channel_imgs().at(cv::Point(sel_fov_col, sel_fov_row));
+    //     auto  mks                = task.get_marker_patterns(
+    //                                 "filter", 0
+    //                                );
+    //     if(mks.empty()) return false;
+    //     auto& mk                 = mks.at(0);
+    //     auto& marker             = mk->marker;
+    //     auto& mask               = mk->mask;
+    //     auto& fov_marker_num     = task.get_fov_marker_num(sel_fov_row, sel_fov_col);
+    //     auto mk_layout           = make_marker_layout_from_raw_img(
+    //         marker, mask,
+    //         mk->meta.at("w_um").get<int>(),
+    //         mk->meta.at("h_um").get<int>(),
+    //         task.cell_h_um(), task.cell_w_um(),
+    //         task.space_um(),
+    //         fov_marker_num.y,
+    //         fov_marker_num.x,
+    //         task.mk_wd_cl(),
+    //         task.mk_hd_cl(),
+    //         task.um2px_r()
+    //     );
+    //     std::vector<cv::Point>   low_score_marker_idx;
+    //     auto mk_rot_cali = crot::make_iteration_cali(
+    //         [&, this](const cv::Mat& mat) {
+    //             auto mk_regs = mk_detector(
+    //                 static_cast<const cv::Mat_<std::uint8_t>&>(mat), 
+    //                 mk_layout, 
+    //                 __alias::cimp::MatUnit::PX, 0,
+    //                 nucleona::stream::null_out
+    //             );
+    //             low_score_marker_idx = cmk_det::filter_low_score_marker(mk_regs);
+    //             auto theta      = rotate_detector(mk_regs, nucleona::stream::null_out);
+    //             return theta;
+    //         },
+    //         [&, this](cv::Mat& mat, auto theta) {
+    //             rotate_calibrator(mat, theta /*debug viewer*/);
+    //         }
+    //     );
+    //     // * marker detection and rotate
+    //     auto theta      = mk_rot_cali(mat);
+    //     // std::cout << "probe channel detect theta: " << theta << std::endl;
+    //     cv::Mat mat_loc = mat.clone();
+    //     rotate_calibrator(mat_loc, theta);
 
-        // * um2px_r auto scaler
-        auto [best_um2px_r, score_mat, best_mk_layout] = um_to_px_autoscale(mat_loc, marker, mask,
-            mk->meta.at("w_um").get<int>(),
-            mk->meta.at("h_um").get<int>(),
-            task.cell_h_um(), task.cell_w_um(),
-            task.space_um(),
-            fov_marker_num.y,
-            fov_marker_num.x,
-            task.mk_wd_cl(),
-            task.mk_hd_cl(),
-            task.um2px_r(), 0.002, 7, low_score_marker_idx
-        );
-        task.set_rot_degree(theta);
-        task.set_um2px_r(best_um2px_r);
-        return true;
+    //     // * um2px_r auto scaler
+    //     auto [best_um2px_r, score_mat, best_mk_layout] = um_to_px_autoscale(mat_loc, marker, mask,
+    //         mk->meta.at("w_um").get<int>(),
+    //         mk->meta.at("h_um").get<int>(),
+    //         task.cell_h_um(), task.cell_w_um(),
+    //         task.space_um(),
+    //         fov_marker_num.y,
+    //         fov_marker_num.x,
+    //         task.mk_wd_cl(),
+    //         task.mk_hd_cl(),
+    //         task.um2px_r(), 0.002, 7, low_score_marker_idx
+    //     );
+    //     task.set_rot_degree(theta);
+    //     task.set_um2px_r(best_um2px_r);
+    //     return true;
 
-    }
+    // }
     /**
      * @brief Probe channel image process, 
      *        similar to white_channel_proc but use probe marker detection.
@@ -537,21 +542,21 @@ struct Chip {
                 task.set_rot_degree(in_grid_log.at("rotate_degree"));
                 task.set_um2px_r(in_grid_log.at("um_to_pixel_rate"));
             }
-            // task.grid_log()["rotate_degree"] = task.rot_degree().value();
+            task.grid_log()["rotate_degree"] = task.rot_degree().value();
             // task.grid_log()["um_to_pixel_rate"] = task.um2px_r();
-            // task.probe_channels()
-            // | nucleona::range::indexed()
-            // | ranges::view::transform([&task](auto&& i_jch){
-            //     auto& i = std::get<0>(i_jch);
-            //     auto& jch = std::get<1>(i_jch);
-            //     model::Channel ch_mod;
-            //     ch_mod.init(task, jch);
-            //     channel(ch_mod);
-            //     task.channel_log().at(i) = ch_mod.grid_log();
-            //     return 0;
-            // })
-            // | nucleona::range::p_endp(executor)
-            // ;
+            task.probe_channels()
+            | nucleona::range::indexed()
+            | ranges::view::transform([&task](auto&& i_jch){
+                auto& i = std::get<0>(i_jch);
+                auto& jch = std::get<1>(i_jch);
+                model::Channel ch_mod;
+                ch_mod.init(task, jch);
+                channel(ch_mod);
+                task.channel_log().at(i) = ch_mod.grid_log();
+                return 0;
+            })
+            | nucleona::range::p_endp(executor)
+            ;
             // task.grid_log()["input"] = task.model().input().string();
             // task.grid_log()["chip_dir"] = task.chip_dir().string();
             // task.grid_log()["output_formats"] = task.model().FormatDecoder::to_string();

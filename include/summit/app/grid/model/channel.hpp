@@ -31,6 +31,9 @@ struct Channel {
         ch_name_ = json_->at("name");
         grid_log_["name"] = ch_name_;
         id_ = json_->at("id");
+        sh_mk_pats_ = task_->get_marker_patterns_by_marker_type(
+            jch.at("marker_type")
+        );
     }
     auto heatmap_writer() {
         return [this](MTMat& mt_mat){
@@ -178,7 +181,7 @@ struct Channel {
     }
     
     VAR_GET(std::string,                            ch_name             )
-    // VAR_GET(int,                                    id                  )
+    VAR_GET(std::vector<const MKPat*>,              sh_mk_pats          )
     VAR_IO(cv::Mat,                                 mk_append_mat       )
     VAR_IO(nlohmann::json,                          grid_log            )
 

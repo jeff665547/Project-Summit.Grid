@@ -75,7 +75,7 @@ struct Task {
         }
         throw std::runtime_error("the chip log doesn't include any white channel");
     }
-    auto get_marker_patterns_by_marker_type(const std::string& marker_type) {
+    auto get_marker_patterns_by_marker_type(const std::string& marker_type) const {
         return marker_patterns_->get_by_marker_type(marker_type);
     }
     template<class T>
@@ -247,6 +247,9 @@ struct Task {
     auto debug_stitch(const std::string& tag = "") {
         return model().debug_stitch(id().string(), tag);
     }
+    double rum2px_r() const {
+        return um2px_r_ / rescale_;
+    }
     VAR_GET(nlohmann::json,                 chip_log            )
     VAR_GET(nlohmann::json,                 grid_log            )
     VAR_GET(std::vector<nlohmann::json>,    channels            )
@@ -307,6 +310,20 @@ struct Task {
     VAR_GET(std::uint32_t,                  tm_padding          )
     VAR_GET(std::uint32_t,                  tm_margin           )
 
+    VAR_GET(double,                         cell_wd_rum         )
+    VAR_GET(double,                         cell_hd_rum         )
+    VAR_GET(double,                         cell_w_rum          )
+    VAR_GET(double,                         cell_h_rum          )
+    VAR_GET(double,                         space_rum           )
+    VAR_GET(double,                         mk_wd_rum           )
+    VAR_GET(double,                         mk_hd_rum           )
+    VAR_GET(double,                         mk_w_rum            )
+    VAR_GET(double,                         mk_h_rum            )
+    VAR_GET(double,                         fov_w_rum           )
+    VAR_GET(double,                         fov_h_rum           )
+    VAR_GET(double,                         xi_rum              )
+    VAR_GET(double,                         yi_rum              )
+
     VAR_PTR_GET(Model,                      model               )
     VAR_PTR_GET(nlohmann::json,             chipinfo            )
     VAR_PTR_GET(nlohmann::json,             chipspec            )
@@ -326,6 +343,9 @@ struct Task {
     VAR_GET(ChnMap<OptMTMat>,               multi_tiled_mat     )
     VAR_GET(ChnMap<GLRawImg>,               stitched_img        )
     VAR_IO(Utils::FOVMap<cv::Mat>,          white_warp_mat      )
+    VAR_IO(Utils::FOVMap<
+        std::vector<cv::Point2d>
+    >,                                      fov_wh_mk_pos       )
 private:
 
     
@@ -460,6 +480,21 @@ private:
         }
 
         rescale_ = 2;
+
+        xi_rum_        = -0.5;
+        yi_rum_        = -0.5;
+        cell_wd_rum_   = (space_um_ + cell_w_um_) * rescale_;
+        cell_hd_rum_   = (space_um_ + cell_h_um_) * rescale_;
+        cell_w_rum_    = cell_w_um_ * rescale_;
+        cell_h_rum_    = cell_h_um_ * rescale_;
+        space_rum_     = space_um_ * rescale_;
+        mk_wd_rum_     = mk_wd_cl_ * cell_wd_rum_;
+        mk_hd_rum_     = mk_hd_cl_ * cell_hd_rum_;
+        mk_w_rum_      = mk_w_cl_  * cell_wd_rum_;
+        mk_h_rum_      = mk_h_cl_  * cell_hd_rum_;
+        fov_w_rum_     = fov_w_    * cell_wd_rum_;
+        fov_h_rum_     = fov_h_    * cell_hd_rum_;
+
     }
 };
 using TaskMap = std::map<

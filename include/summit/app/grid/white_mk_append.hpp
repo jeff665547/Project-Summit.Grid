@@ -50,7 +50,7 @@ constexpr struct WhiteMKAppend {
         cv::Mat src,
         cv::Mat warp_mat,
         double  x_i,      double    y_i,
-        double  spec_w,   double    spec_h,
+        double  fov_w,    double    fov_h,
         double  mk_w,     double    mk_h,
         double  mk_wd,    double    mk_hd,
         int     mk_r_n,   int       mk_c_n
@@ -59,16 +59,16 @@ constexpr struct WhiteMKAppend {
         cv::Mat std_src;
         cv::invertAffineTransform(warp_mat, iwarp_mat);
         cv::warpAffine(src, std_src, iwarp_mat, cv::Size(
-            std::round(spec_w), 
-            std::round(spec_h)
+            std::round(fov_w), 
+            std::round(fov_h)
         ));
         std::vector<MKRegion> mk_regs;
         cv::Mat_<std::int16_t> mk_map(mk_r_n, mk_c_n);
         for(int i = 0; i < mk_r_n; i ++) {
             for(int j = 0; j < mk_c_n; j ++) {
                 MKRegion mkr;
-                auto mk_lt_x = (j * mk_wd) + x_i;
-                auto mk_lt_y = (i * mk_hd) + y_i;
+                auto mk_lt_x = (j * mk_wd) + x_i + 0.5;
+                auto mk_lt_y = (i * mk_hd) + y_i + 0.5;
                 mkr.x        = std::round(mk_lt_x);
                 mkr.y        = std::round(mk_lt_y);
                 mkr.width    = std::round(mk_w);
@@ -80,7 +80,7 @@ constexpr struct WhiteMKAppend {
             }
         }
         return nucleona::make_tuple(
-            chipimgproc::marker::roi_append(src, mk_map, mk_regs), 
+            chipimgproc::marker::roi_append(std_src, mk_map, mk_regs), 
             std::move(mk_regs)
         );
 

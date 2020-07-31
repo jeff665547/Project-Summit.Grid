@@ -22,7 +22,9 @@
 #include <ChipImgProc/marker/detection/reg_mat_no_rot.hpp>
 #include <ChipImgProc/marker/view.hpp>
 #include <ChipImgProc/marker/roi_append.hpp>
+#include <ChipImgProc/marker/detection/estimate_bias.hpp>
 #include <ChipImgProc/utils/mat_to_vec.hpp>
+#include <ChipImgProc/warped_mat.hpp>
 #include <limits>
 namespace summit::app::grid::pipeline {
 
@@ -46,37 +48,6 @@ namespace cm_st     = chipimgproc::stitch;
 constexpr struct FOVAG {
     using Float = summit::app::grid::model::Float;
     using GridLineID = summit::app::grid::model::GridLineID;
-    auto find_and_set_best_marker(
-        const cv::Mat_<std::uint16_t>& mat,
-        __alias::cmk::Layout& mk_layout,
-        const float& rot_deg
-    ) const {
-        using namespace __alias;
-        std::vector<cv::Point>      low_score_marker_idx    ;
-        std::size_t best_i = 0;
-        float min_theta_diff = std::numeric_limits<float>::max();
-        for(auto i : nucleona::range::irange_0(
-            mk_layout.get_single_pat_candi_num()
-        )) {
-            auto mk_regs = probe_mk_detector(
-                mat, mk_layout,
-                cimp::MatUnit::PX, i
-            );
-            auto tmp_ls_mk_idx = cmk_det::filter_low_score_marker(mk_regs);
-            auto test_theta = rotate_detector(mk_regs);
-            auto theta_diff = std::abs(test_theta - rot_deg);
-            if(theta_diff < min_theta_diff) {
-                min_theta_diff = theta_diff;
-                best_i = i;
-                low_score_marker_idx = tmp_ls_mk_idx;
-            }
-        }
-        mk_layout.set_single_pat_best_mk(best_i);
-        return nucleona::make_tuple(
-            std::move(min_theta_diff), 
-            std::move(low_score_marker_idx)
-        );
-    }
     /**
      * @brief Set the background value to statistic matrix.
      * 
@@ -116,15 +87,16 @@ constexpr struct FOVAG {
      */
     bool operator()(model::FOV& fov_mod) const {
         using namespace __alias;
-        auto& channel    = fov_mod.channel();
-        auto& fov_id     = fov_mod.fov_id();
-        auto& path       = fov_mod.src_path();
-        auto  mat        = fov_mod.src().clone();
-        auto& mk_layout  = fov_mod.mk_layout();
-        auto& f_grid_log = fov_mod.grid_log();
-        auto& grid_bad   = fov_mod.proc_bad();
-        auto& grid_done  = fov_mod.proc_done();
-        auto& task       = fov_mod.channel().task();
+        auto& channel     = fov_mod.channel();
+        auto& fov_id      = fov_mod.fov_id();
+        auto& path        = fov_mod.src_path();
+        auto  mat         = fov_mod.src().clone();
+        auto& f_grid_log  = fov_mod.grid_log();
+        auto& grid_bad    = fov_mod.proc_bad();
+        auto& grid_done   = fov_mod.proc_done();
+        auto& task        = fov_mod.channel().task();
+        auto& wh_mk_pos   = task.fov_wh_mk_pos().at(fov_id);
+        auto& wh_warp_mat = task.white_warp_mat().at(fov_id);
         auto log_prefix  = fmt::format("[{}-{}-({},{})]", 
             task.id().chip_id(), channel.ch_name(), fov_id.x, fov_id.y
         );
@@ -133,153 +105,135 @@ constexpr struct FOVAG {
             log_prefix
         );
         try {
-            auto wh_mk_regs  = task.fov_mk_regs().at(fov_id);
-            // * determine the no rotation marker region
-            auto td_lsmk     = find_and_set_best_marker(
-                mat, mk_layout, task.rot_degree().value()
+            // TODO: search best marker, currently use first as standard marker
+            auto& std_mk = *(channel.sh_mk_pats()[0]);
+            auto [templ, mask] = cmk::txt_to_img(
+                std_mk.marker,
+                std_mk.mask,
+                task.cell_h_um() * task.um2px_r(),
+                task.cell_w_um() * task.um2px_r(),
+                task.space_um()  * task.um2px_r()
             );
-            auto& theta_diff = std::get<0>(td_lsmk);
-            auto& ls_mk_idx  = std::get<1>(td_lsmk);
-            summit::grid::log.debug("{}: probe channel rotation: {}", log_prefix, task.rot_degree().value());
-            rotate_calibrator(
-                mat, 
-                task.rot_degree().value(),
-                fov_mod.pch_rot_view()
-            );
-            auto  mk_regs    = cmk_det::reg_mat_no_rot(
-                mat, mk_layout,
-                cimp::MatUnit::PX, ls_mk_idx,
-                nucleona::stream::null_out,
-                fov_mod.pch_mk_seg_view()
-            );
-            auto& mk_des     = mk_layout.get_single_pat_marker_des();
-            auto& std_mk_px  = mk_des.get_std_mk(cimp::MatUnit::PX);
-            for(auto&& mk : wh_mk_regs) {
-                mk.x = std::round(mk.x + (mk.width / 2.0) - (std_mk_px.cols / 2.0));
-                mk.y = std::round(mk.y + (mk.width / 2.0) - (std_mk_px.rows / 2.0));
-                mk.width  = std_mk_px.cols;
-                mk.height = std_mk_px.rows;
+            // TODO: case for no white marker
+            auto [bias, score] = cmk_det::estimate_bias(mat, templ, mask, wh_mk_pos, wh_warp_mat);
+            summit::grid::log.info("bias: ({}, {})", bias.x, bias.y);
+            auto warp_mat = wh_warp_mat.clone();
+            {
+                auto _bias = bias;
+                cimp::typed_mat(warp_mat, [&_bias](auto& mat){
+                    mat(0, 2) += _bias.x;
+                    mat(1, 2) += _bias.y;
+                });
             }
-            if(theta_diff > 0.5)  {
-                if(wh_mk_regs.empty()) {
-                    grid_bad = true;
-                } else {
-                    mk_regs = wh_mk_regs;
-                    fov_mod.mk_reg_src() = "white_channel";
-                }
-            } else {
-                if(!wh_mk_regs.empty()) {
-                    auto& std_mk_cl = mk_des.get_std_mk(cimp::MatUnit::CELL);
-                    const auto px_per_cl_w = std_mk_px.cols / (float)std_mk_cl.cols;
-                    const auto shift_thd_w = px_per_cl_w / 2;
-
-                    const auto px_per_cl_h = std_mk_px.rows / (float)std_mk_cl.rows;
-                    const auto shift_thd_h = px_per_cl_h / 2;
-
-                    auto& d_mk_reg = mk_regs.at(0);
-                    auto& w_mk_reg = wh_mk_regs.at(0);
-                    
-                    if( std::abs(d_mk_reg.x - w_mk_reg.x) > shift_thd_w ||
-                        std::abs(d_mk_reg.y - w_mk_reg.y) > shift_thd_h
-                    ) {
-                        mk_regs = wh_mk_regs;
-                        fov_mod.mk_reg_src() = "white_channel";
-                    } else {
-                        grid_bad = false;
-                        fov_mod.mk_reg_src() = "probe_channel";
-                    }
+            cv::Mat iwarp_mat;
+            cv::Mat std_mat;
+            cv::invertAffineTransform(warp_mat, iwarp_mat);
+            cv::warpAffine(mat, std_mat, iwarp_mat, cv::Size(
+                std::round(task.fov_w_rum()),
+                std::round(task.fov_h_rum())
+            ));
+            std::vector<cmk_det::MKRegion> mk_regs;
+            cv::Mat_<std::int16_t> mk_map(
+                fov_mod.mk_num().y, 
+                fov_mod.mk_num().x
+            );
+            for(int i = 0; i < fov_mod.mk_num().y; i ++) {
+                for(int j = 0; j < fov_mod.mk_num().x; j ++) {
+                    cmk_det::MKRegion mkr;
+                    mkr.x = (j * task.mk_wd_rum()) + task.xi_rum() + 0.5;
+                    mkr.y = (i * task.mk_hd_rum()) + task.yi_rum() + 0.5;
+                    mkr.width  = task.mk_w_rum();
+                    mkr.height = task.mk_h_rum();
+                    mkr.x_i = j;
+                    mkr.y_i = i;
+                    mk_regs.emplace_back(std::move(mkr));
+                    mk_map(i, j) = i * fov_mod.mk_num().x + j;
                 }
             }
             auto final_mk_seg_view = fov_mod.final_mk_seg_view();
             if(final_mk_seg_view) {
-                final_mk_seg_view(cmk::view(mat, mk_regs));
+                final_mk_seg_view(cmk::view(std_mat, mk_regs));
             }
             // gridding
-            auto grid_res = gridder(mat, mk_layout, mk_regs,
-                nucleona::stream::null_out,
-                fov_mod.pch_grid_view()
-            );
-            // write norm result
-            // auto fov_norm_path = channel.fov_image("norm", fov_id.y, fov_id.x);
-            // cv::imwrite(fov_norm_path.string(), chipimgproc::viewable(mat));
+            // TODO: pch_grid_view
+            // auto grid_res = gridder(mat, mk_layout, mk_regs,
+            //     nucleona::stream::null_out,
+            //     fov_mod.pch_grid_view()
+            // );
 
             // write raw result
-            auto fov_norm_path = channel.fov_image("raw", fov_id.y, fov_id.x);
-            auto x0 = std::round(grid_res.gl_x.front());
-            auto y0 = std::round(grid_res.gl_y.front());
-            auto x_d = std::round(grid_res.gl_x.back() - grid_res.gl_x.front());
-            auto y_d = std::round(grid_res.gl_y.back() - grid_res.gl_y.front());
-            cv::imwrite(fov_norm_path.string(), mat(
-                cv::Rect(x0, y0, x_d, y_d)
-            ));
+            auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
+            cv::imwrite(fov_raw_path.string(), std_mat);
 
             if(task.model().marker_append()) {
                 auto mk_append_res = cmk::roi_append(
-                    mat, mk_layout, mk_regs
+                    std_mat, mk_map, mk_regs
                 );
                 fov_mod.set_mk_append(
                     std::move(mk_append_res)
                 );
             }
-            auto tiled_mat = cimp::TiledMat<>::make_from_grid_res(
-                grid_res, mat, mk_layout
-            );
-            cimp::GridRawImg<> grid_raw_img(
-                mat, grid_res.gl_x, grid_res.gl_y
-            );
-            // auto tiles = tiled_mat.get_tiles();
 
-            // bgp
-            auto inty_region = tiled_mat.get_image_roi();
-            cv::Mat_<std::uint16_t> dmat = mat(inty_region);
-            auto surf = cimp::bgb::bspline(dmat, {3, 6}, 0.3);
-            if(!task.model().no_bgp()) {
-                dmat.forEach([&surf](std::uint16_t& v, const int* pos){
-                    const auto& r = pos[0];
-                    const auto& c = pos[1];
-                    v = std::round(std::max(0.0, v - surf(r, c))) + 1;
-                });
-            }
-            auto margin_res = margin(
-                task.model().method(),
-                cimp::margin::Param<GridLineID> {
-                    0.6,
-                    &tiled_mat,
-                    true,
-                    fov_mod.pch_margin_view()
-                }
+            auto warped_mat = cimp::make_warped_mat(
+                warp_mat, mat, {task.xi_rum(), task.yi_rum()},
+                task.cell_w_rum(), task.cell_h_rum(),
+                task.cell_wd_rum(), task.cell_hd_rum(),
+                task.fov_w_rum(), task.fov_h_rum(),
+                0.6, task.rum2px_r(),
+                task.fov_w(), task.fov_h()
             );
-            set_bg(margin_res.stat_mats, tiled_mat, surf);
-            fov_mod.set_tiled_mat(std::move(tiled_mat));
-            fov_mod.set_stat_mats(std::move(margin_res.stat_mats));
-            fov_mod.set_bg_means(cimp::utils::mat__to_vec(surf));
 
-            f_grid_log["x0_px"] = std::round(grid_res.gl_x[0] * 100) / 100;
-            f_grid_log["y0_px"] = std::round(grid_res.gl_y[0] * 100) / 100;
-            f_grid_log["du_x"] = Utils::du_um(grid_res.gl_x, task.um2px_r());
-            f_grid_log["du_y"] = Utils::du_um(grid_res.gl_y, task.um2px_r());
-            f_grid_log["mks"]["pos_px"] = ranges::view::transform(mk_regs, [](const auto& mk_reg) {
-                return std::vector<int>({mk_reg.x, mk_reg.y});
-            });
-            f_grid_log["grid_bad"] = grid_bad;
-            f_grid_log["marker_region_source"] = fov_mod.mk_reg_src();
-            auto& fov_log_id = f_grid_log["id"];
-            fov_log_id = nlohmann::json::array();
-            fov_log_id[0] = fov_id.x;
-            fov_log_id[1] = fov_id.y;
+            // // bgp
+            // auto inty_region = tiled_mat.get_image_roi();
+            // cv::Mat_<std::uint16_t> dmat = mat(inty_region);
+            // auto surf = cimp::bgb::bspline(dmat, {3, 6}, 0.3);
+            // if(!task.model().no_bgp()) {
+            //     dmat.forEach([&surf](std::uint16_t& v, const int* pos){
+            //         const auto& r = pos[0];
+            //         const auto& c = pos[1];
+            //         v = std::round(std::max(0.0, v - surf(r, c))) + 1;
+            //     });
+            // }
+            // auto margin_res = margin(
+            //     task.model().method(),
+            //     cimp::margin::Param<GridLineID> {
+            //         0.6,
+            //         &tiled_mat,
+            //         true,
+            //         fov_mod.pch_margin_view()
+            //     }
+            // );
+            // set_bg(margin_res.stat_mats, tiled_mat, surf);
+            // fov_mod.set_tiled_mat(std::move(tiled_mat));
+            // fov_mod.set_stat_mats(std::move(margin_res.stat_mats));
+            // fov_mod.set_bg_means(cimp::utils::mat__to_vec(surf));
 
-            grid_done = true;
+            // f_grid_log["x0_px"] = std::round(grid_res.gl_x[0] * 100) / 100;
+            // f_grid_log["y0_px"] = std::round(grid_res.gl_y[0] * 100) / 100;
+            // f_grid_log["du_x"] = Utils::du_um(grid_res.gl_x, task.um2px_r());
+            // f_grid_log["du_y"] = Utils::du_um(grid_res.gl_y, task.um2px_r());
+            // f_grid_log["mks"]["pos_px"] = ranges::view::transform(mk_regs, [](const auto& mk_reg) {
+            //     return std::vector<int>({mk_reg.x, mk_reg.y});
+            // });
+            // f_grid_log["grid_bad"] = grid_bad;
+            // f_grid_log["marker_region_source"] = fov_mod.mk_reg_src();
+            // auto& fov_log_id = f_grid_log["id"];
+            // fov_log_id = nlohmann::json::array();
+            // fov_log_id[0] = fov_id.x;
+            // fov_log_id[1] = fov_id.y;
+
+            // grid_done = true;
         } catch(const std::exception& e) {
-            f_grid_log["grid_fail_reason"] = e.what();
-            grid_done = false;
-            grid_bad = true;
-            summit::grid::log.error(
-                "channel: {}, FOV: ({},{}) process failed, reason: {}", 
-                channel.ch_name(), fov_id.x, fov_id.y, e.what()
-            );
+            // f_grid_log["grid_fail_reason"] = e.what();
+            // grid_done = false;
+            // grid_bad = true;
+            // summit::grid::log.error(
+            //     "channel: {}, FOV: ({},{}) process failed, reason: {}", 
+            //     channel.ch_name(), fov_id.x, fov_id.y, e.what()
+            // );
         }
-        f_grid_log["grid_done"] = grid_done;
-        f_grid_log["grid_bad"] = grid_bad;
+        // f_grid_log["grid_done"] = grid_done;
+        // f_grid_log["grid_bad"] = grid_bad;
         return grid_done;
     }
     /**
