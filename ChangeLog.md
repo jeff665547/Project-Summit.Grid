@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 1.2.8 - 2020.7.31
+
+- Bugfix: fix yz01-41, Kenai process failed (configuration file problem)
+- Bugfix: exit code not work
+
 ## 1.2.7 - 2020.7.31
 
 - Feature: built-in batch process with inplace mode
