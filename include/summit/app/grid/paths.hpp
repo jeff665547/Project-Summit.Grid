@@ -154,9 +154,9 @@ struct Paths {
         boost::filesystem::path odir = task_output(task_id);
         std::string file_name;
         if(ch.empty()) {
-            file_name = fmt::format("{}.tiff", task_id);
+            file_name = fmt::format("{}.tiff", task_id.string());
         } else {
-            file_name = fmt::format("{}-{}.tiff", task_id, ch);
+            file_name = fmt::format("{}-{}.tiff", task_id.string(), ch);
         }
         auto res = check_path(odir / "marker_append" / file_name);
         return res;
