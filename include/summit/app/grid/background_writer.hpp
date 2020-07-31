@@ -49,7 +49,7 @@ struct BackgroundWriter {
         auto& mux = fid_mux_[opath.string()];
         {
         std::lock_guard<std::mutex> lock(*mux);
-        summit::app::grid::Utils::write_background(*fid, task_id, bg_data);
+        summit::app::grid::Utils::write_background(*fid, task_id.string(), bg_data);
         }
     }
     void close() {

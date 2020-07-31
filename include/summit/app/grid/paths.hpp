@@ -274,33 +274,6 @@ struct Paths {
         return check_path(general_prefix(task_id, channel) / "gridline.csv");
     }
     /**
-     * @brief Get the complete file path. 
-     *      This file is not in specification, because it is only used by Bamboo-lake and no informations in this file
-     * 
-     * @param task_id The task ID generate by summit::app::grid::TaskID
-     * @param path The prefix of the file
-     * @return boost::filesystem::path The complete file path
-     */
-    boost::filesystem::path complete_file(
-        const TaskID& task_id, 
-        const std::string& path
-    ) const {
-        boost::filesystem::path path_p(path);
-        switch(mode_) {
-            case normal:
-                path_p = path_p / task_id.string()
-                    / "COMPLETE";
-                break;
-            case inplace:
-                path_p = path_p / "grid" 
-                    / "COMPLETE";
-                break;
-            default:
-                throw std::runtime_error("unsupport mode");
-        }
-        return check_path(path_p);
-    }
-    /**
      * @brief Create the complete file.
      * 
      * @param task_id The task ID generate by summit::app::grid::TaskID
