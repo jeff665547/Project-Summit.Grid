@@ -366,7 +366,6 @@ private:
         // load chipinfo > origin_infer
         origin_infer_      = &chipinfo_->at("origin_infer");
         origin_infer_algo_ = origin_infer_->at("algo");
-        pyramid_level_     = origin_infer_->at("pyramid_level");
 
         // load cell_fov
         fov_               = &summit::config::cell_fov().get_fov_type(chip_info_name_);
@@ -409,6 +408,7 @@ private:
         mk_row_cl_         = sh_mk_pos_cl_->at("row");
         // load chipspec > aruco marker
         if(support_aruco()) {
+            pyramid_level_     = origin_infer_->at("pyramid_level");
 
             // obtain ArUco patterns
             aruco_marker_   = &chipspec_->at("aruco_marker");
