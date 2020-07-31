@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 1.2.7 - 2020.7.31
+
+- Feature: built-in batch process with inplace mode
+- Feature: add option --force_inplace(-f)
+
 ## 1.2.6 - 2020.7.14
 
 - Merge 1.1.22 update.
