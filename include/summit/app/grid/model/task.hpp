@@ -345,7 +345,6 @@ struct Task {
     VAR_GET(double,                         fov_h_rum           )
     VAR_GET(double,                         xi_rum              )
     VAR_GET(double,                         yi_rum              )
-    VAR_GET(Utils::FOVMap<cv::Point>,       stitched_points_cl  )
 
     VAR_PTR_GET(Model,                      model               )
     VAR_PTR_GET(nlohmann::json,             chipinfo            )
@@ -370,6 +369,7 @@ struct Task {
         std::vector<cv::Point2d>
     >,                                      fov_wh_mk_pos       )
     VAR_GET(ChnMap<MWMat>,                  multi_warped_mat    )
+    VAR_IO(Utils::FOVMap<cv::Point>,        stitched_points_cl  )
 private:
     std::vector<MKRegion>                   mk_regs_cl_;
     
