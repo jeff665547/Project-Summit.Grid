@@ -101,9 +101,7 @@ constexpr struct Channel {
 
             // write heatmap
             // FIXME: remove_const -> multi tiled mat immutable workaround
-            channel.heatmap_writer()(
-                nucleona::remove_const(channel.multi_tiled_mat().value())
-            );
+            channel.heatmap_writer()(channel.multi_warped_mat());
 
             // stitch image
             auto grid_image = image_stitcher(channel.multi_tiled_mat().value());

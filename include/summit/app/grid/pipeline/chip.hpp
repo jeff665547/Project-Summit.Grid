@@ -132,7 +132,8 @@ struct Chip {
             return mk_regs;
         };
 
-        auto st_pts_cl = Utils::generate_stitch_points(task.fov());
+        task.set_stitched_points_cl(Utils::generate_stitch_points(task.fov()));
+        auto& st_pts_cl = task.stitched_points_cl();
 
         summit::grid::log.debug("white channel image nums: {}", task.white_channel_imgs().size());
 

@@ -4,8 +4,7 @@
 #include "cell_info_writer.hpp"
 namespace summit::app::grid::heatmap_writer{
 
-template<class FLOAT, class GLID>
-struct HtmlTableWriter : public CellInfoWriter<FLOAT, GLID> {
+struct HtmlTableWriter : public CellInfoWriter {
     HtmlTableWriter(std::ostream& os)
     : os_ ( os )
     {
@@ -49,7 +48,7 @@ struct HtmlTableWriter : public CellInfoWriter<FLOAT, GLID> {
     std::string bool_str(bool b) {
         return b ? "true" : "false";
     }
-    virtual void write(const CellInfo<FLOAT, GLID>& ci, const std::string& task_id) override {
+    virtual void write(const CellInfo& ci, const std::string& task_id) override {
         os_ << htag("tr",
             htag(
                 "td", task_id, img_tag(ci.probe), ci.cl_x, ci.cl_y,
@@ -61,11 +60,11 @@ struct HtmlTableWriter : public CellInfoWriter<FLOAT, GLID> {
 
     }
     virtual void write(
-        const chipimgproc::MultiTiledMat<FLOAT, GLID>& mat, 
-        const std::string& task_id, 
-        const std::string& ch_name, 
-        const int&         ch_id,
-        const std::string& filter
+        const model::MWMat& mat, 
+        const std::string&  task_id, 
+        const std::string&  ch_name, 
+        const int&          ch_id,
+        const std::string&  filter
     ) {}
     virtual bool is_write_entire_mat() override { return false; }
     virtual void flush() override {
@@ -78,17 +77,16 @@ struct HtmlTableWriter : public CellInfoWriter<FLOAT, GLID> {
 private:
     std::ostream& os_;
 };
-template<class FLOAT, class GLID>
 struct HtmlTableFileWriter 
 : protected std::ofstream
-, public HtmlTableWriter<FLOAT, GLID> 
+, public HtmlTableWriter 
 {
     HtmlTableFileWriter(const std::string& path)
     : std::ofstream(path)
-    , HtmlTableWriter<FLOAT, GLID>(static_cast<std::ofstream&>(*this))
+    , HtmlTableWriter(static_cast<std::ofstream&>(*this))
     {}
     virtual void flush() override {
-        HtmlTableWriter<FLOAT, GLID>::flush();
+        HtmlTableWriter::flush();
         std::ofstream::flush();
     }
     virtual void close() override {

@@ -6,9 +6,8 @@
 #include <fmt/format.h>
 namespace summit::app::grid::heatmap_writer{
 
-template<class FLOAT, class GLID>
 struct CENWriter 
-: public CellInfoWriter<FLOAT, GLID>
+: public CellInfoWriter
 {
     template<class Task>
     CENWriter(const std::string& path, const Task& task)
@@ -24,10 +23,10 @@ struct CENWriter
         array_.feature_columns() = task.spec_w_cl();
         array_.feature_rows()    = task.spec_h_cl();
     }
-    virtual void write(const CellInfo<FLOAT, GLID>& ci, const std::string& task_id) override {}
+    virtual void write(const CellInfo& ci, const std::string& task_id) override {}
     virtual bool is_write_entire_mat() override { return true; }
     virtual void write(
-        const chipimgproc::MultiTiledMat<FLOAT, GLID>& mat, 
+        const model::MWMat& mat, 
         const std::string& task_id, 
         const std::string& ch_name, 
         const int&         ch_id,

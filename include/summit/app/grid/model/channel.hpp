@@ -15,6 +15,7 @@
 #include "type.hpp"
 #include "model.hpp"
 #include <ChipImgProc/utils.h>
+#include "make_multi_warped_mat.hpp"
 
 namespace summit::app::grid::model {
 /**
@@ -36,13 +37,13 @@ struct Channel {
         );
     }
     auto heatmap_writer() {
-        return [this](MTMat& mt_mat){
+        return [this](const MWMat& mw_mat){
             task_->model().heatmap_writer().write(
                 *task_,
                 ch_name_,
                 id_,
                 task_->model().filter(),
-                mt_mat
+                mw_mat
             );
         };
     }
@@ -128,9 +129,16 @@ struct Channel {
             }
         );
     }
+    // template<class FOVMod>
+    // void collect_fovs(Utils::FOVMap<FOVMod>& fov_mods) {
+    //     nucleona::remove_const(*task_).set_multi_tiled_mat(ch_name_, make_multi_tiled_mat(fov_mods, *task_));
+    //     collect_fovs_mk_append(fov_mods);
+    // }
     template<class FOVMod>
     void collect_fovs(Utils::FOVMap<FOVMod>& fov_mods) {
-        nucleona::remove_const(*task_).set_multi_tiled_mat(ch_name_, make_multi_tiled_mat(fov_mods, *task_));
+        nucleona::remove_const(*task_).set_multi_warped_mat(
+            ch_name_, summit::app::grid::make_multi_warped_mat(fov_mods, *task_)
+        );
         collect_fovs_mk_append(fov_mods);
     }
     template<class FOVMod>
@@ -145,6 +153,9 @@ struct Channel {
     }
     decltype(auto) multi_tiled_mat() { 
         return nucleona::remove_const(*task_).multi_tiled_mat().at(ch_name_);
+    }
+    decltype(auto) multi_warped_mat() { 
+        return nucleona::remove_const(*task_).multi_warped_mat().at(ch_name_);
     }
     void set_stitched_img(GLRawImg&& grid_raw_img) {
         nucleona::remove_const(*task_).set_stitched_img(ch_name_, std::move(grid_raw_img));

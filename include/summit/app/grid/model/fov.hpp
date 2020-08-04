@@ -15,6 +15,7 @@
 #include "single_img_proc_res.hpp"
 #include <ChipImgProc/tiled_mat.hpp>
 #include "channel.hpp"
+#include <ChipImgProc/warped_mat.hpp>
 
 namespace summit::app::grid::model {
 /**
@@ -25,6 +26,7 @@ namespace summit::app::grid::model {
  */
 struct FOV {
     using CimpMKRegion = chipimgproc::marker::detection::MKRegion;
+    using WarpedMat = chipimgproc::WarpedMat<true, float>;
 
     void init(
         Channel& ch, 
@@ -95,6 +97,7 @@ struct FOV {
     VAR_IO(std::string,                         mk_reg_src              ); // white channel, probe channel
     VAR_IO(cv::Mat,                             mk_append               );
     VAR_IO(cv::Mat,                             warp_mat                );
+    VAR_IO(WarpedMat,                           warped_mat              );
 
     VAR_PTR_GET(Channel,                        channel                 );
     VAR_PTR_GET(nlohmann::json,                 in_grid_log             );

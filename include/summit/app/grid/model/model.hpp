@@ -37,7 +37,7 @@ struct Model
      * @brief Heatmap format data writer;
      * 
      */
-    using HmWriter = HeatmapWriter<Float, GLID>;
+    using HmWriter = HeatmapWriter;
     /**
      * @brief Parallel executor
      * 

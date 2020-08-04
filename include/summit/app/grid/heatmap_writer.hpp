@@ -22,6 +22,7 @@
 #include <memory>
 #include <Nucleona/range.hpp>
 #include <summit/grid/logger.hpp>
+#include "model/type.hpp"
 namespace summit::app::grid {
 namespace model {
     struct Task;
@@ -33,9 +34,8 @@ namespace model {
  *      may effect intensity or other cell info representation.
  * @tparam GLID The grid lines position integer type.
  */
-template<class Float, class GLID>
 struct HeatmapWriter {
-    using CellInfoWriterType = heatmap_writer::CellInfoWriter<Float, GLID>;
+    using CellInfoWriterType = heatmap_writer::CellInfoWriter;
     /**
      * @brief Construct a new Heatmap Writer object
      * 
@@ -62,19 +62,19 @@ private:
         std::unique_ptr<CellInfoWriterType> res(nullptr);
         switch(format) {
             case OutputFormat::csv_probe_list:
-                res.reset(new heatmap_writer::TsvFileWriter<Float, GLID>(out, ","));
+                res.reset(new heatmap_writer::TsvFileWriter(out, ","));
                 break;
             case OutputFormat::tsv_probe_list:
-                res.reset(new heatmap_writer::TsvFileWriter<Float, GLID>(out, "\t"));
+                res.reset(new heatmap_writer::TsvFileWriter(out, "\t"));
                 break;
             case OutputFormat::html_probe_list:
-                res.reset(new heatmap_writer::HtmlTableFileWriter<Float, GLID>(out));
+                res.reset(new heatmap_writer::HtmlTableFileWriter(out));
                 break;
             case OutputFormat::cen_file:
-                res.reset(new heatmap_writer::CENWriter<Float, GLID>(out, task));
+                res.reset(new heatmap_writer::CENWriter(out, task));
                 break;
             case OutputFormat::mat_tiff:
-                res.reset(new heatmap_writer::MatTiffWriter<Float, GLID>(out));
+                res.reset(new heatmap_writer::MatTiffWriter(out));
                 break;
             default:
                 throw std::runtime_error("not support output format: " + OutputFormat::to_string(format));
@@ -88,72 +88,72 @@ private:
      * 
      * @param mat The input multi-tiled matrix.
      */
-    void raw_image_norm( 
-        chipimgproc::MultiTiledMat<
-            Float, GLID
-        >& mat
-    ) {
-        auto& raw_imgs = mat.mats();
-        // int im_r = raw_imgs.at(0).mat().rows;
-        // int im_c = raw_imgs.at(0).mat().cols;
-        int w = 0; // raw_imgs.size() * im_c;
-        int h = 0; // im_r;
-        for( auto& img : raw_imgs ) {
-            w += img.mat().cols; 
-            if( h < img.mat().rows ) h = img.mat().rows;
-        }
-        cv::Mat all(h, w, raw_imgs.at(0).mat().type());
-        // std::cout << "all image append info: " << std::endl;
-        // chipimgproc::info(std::cout, all);
-        // int i = 0;
-        // for(int j = 0; j < w; j += im_c ) {
-        //     cv::Rect roi(
-        //         j,
-        //         0,
-        //         im_c,
-        //         im_r
-        //     );
-        //     std::cout << "copy to append image roi: " << roi << std::endl;
-        //     raw_imgs.at(i).mat().copyTo(all(roi));
-        //     i++;
-        // }
-        {
-            int x = 0;
-            for(auto& img : raw_imgs) {
-                cv::Rect roi(
-                    x, 0, img.mat().cols, img.mat().rows
-                );
-                // std::cout << "copy to append image roi: " << roi << std::endl;
-                img.mat().copyTo(all(roi));
-                x += img.mat().cols;
-            }
-        }
-        // all = chipimgproc::viewable(all);
+    // void raw_image_norm( 
+    //     chipimgproc::MultiTiledMat<
+    //         Float, GLID
+    //     >& mat
+    // ) {
+    //     auto& raw_imgs = mat.mats();
+    //     // int im_r = raw_imgs.at(0).mat().rows;
+    //     // int im_c = raw_imgs.at(0).mat().cols;
+    //     int w = 0; // raw_imgs.size() * im_c;
+    //     int h = 0; // im_r;
+    //     for( auto& img : raw_imgs ) {
+    //         w += img.mat().cols; 
+    //         if( h < img.mat().rows ) h = img.mat().rows;
+    //     }
+    //     cv::Mat all(h, w, raw_imgs.at(0).mat().type());
+    //     // std::cout << "all image append info: " << std::endl;
+    //     // chipimgproc::info(std::cout, all);
+    //     // int i = 0;
+    //     // for(int j = 0; j < w; j += im_c ) {
+    //     //     cv::Rect roi(
+    //     //         j,
+    //     //         0,
+    //     //         im_c,
+    //     //         im_r
+    //     //     );
+    //     //     std::cout << "copy to append image roi: " << roi << std::endl;
+    //     //     raw_imgs.at(i).mat().copyTo(all(roi));
+    //     //     i++;
+    //     // }
+    //     {
+    //         int x = 0;
+    //         for(auto& img : raw_imgs) {
+    //             cv::Rect roi(
+    //                 x, 0, img.mat().cols, img.mat().rows
+    //             );
+    //             // std::cout << "copy to append image roi: " << roi << std::endl;
+    //             img.mat().copyTo(all(roi));
+    //             x += img.mat().cols;
+    //         }
+    //     }
+    //     // all = chipimgproc::viewable(all);
 
-        // i = 0;
-        // for(int j = 0; j < w; j += im_c ) {
-        //     cv::Rect roi(
-        //         j,
-        //         0,
-        //         im_c,
-        //         im_r
-        //     );
-        //     std::cout << "copy from append image roi: " << roi << std::endl;
-        //     all(roi).copyTo(raw_imgs.at(i).mat());
-        //     i++;
-        // }
-        {
-            int x = 0;
-            for(auto& img : raw_imgs) {
-                cv::Rect roi(
-                    x, 0, img.mat().cols, img.mat().rows
-                );
-                // std::cout << "copy from append image roi: " << roi << std::endl;
-                all(roi).copyTo(img.mat());
-                x += img.mat().cols;
-            }
-        }
-    }
+    //     // i = 0;
+    //     // for(int j = 0; j < w; j += im_c ) {
+    //     //     cv::Rect roi(
+    //     //         j,
+    //     //         0,
+    //     //         im_c,
+    //     //         im_r
+    //     //     );
+    //     //     std::cout << "copy from append image roi: " << roi << std::endl;
+    //     //     all(roi).copyTo(raw_imgs.at(i).mat());
+    //     //     i++;
+    //     // }
+    //     {
+    //         int x = 0;
+    //         for(auto& img : raw_imgs) {
+    //             cv::Rect roi(
+    //                 x, 0, img.mat().cols, img.mat().rows
+    //             );
+    //             // std::cout << "copy from append image roi: " << roi << std::endl;
+    //             all(roi).copyTo(img.mat());
+    //             x += img.mat().cols;
+    //         }
+    //     }
+    // }
     /**
      * @brief Write multi-tiled matrix to specific format file.
      * 
@@ -163,36 +163,29 @@ private:
      * @param ch_name The channel name.
      * @param filter_type The filter type, usually "all".
      */
+    template<class Task>
     void write_output( 
+        const Task&                 task,
         CellInfoWriterType&         writer,
         const std::string&          task_id, 
-        chipimgproc::MultiTiledMat<
-            Float, GLID
-        >&                          mat,
+        const model::MWMat&         mat,
         const std::string&          ch_name,
         const std::string&          filter_type
     ) {
-        // auto mean_dump = mat.dump();
-        // std::cout << "mean dump info: " << std::endl;
-        // chipimgproc::info(std::cout, mean_dump);
-        // cv::Mat_<std::uint16_t> heatmap;
-        // mean_dump.convertTo(heatmap, CV_16U, 1);
-        // heatmap = chipimgproc::viewable(heatmap, 0.02, 0.02);
-        // cv::imwrite(task_id + ".png", heatmap);
 
-        summit::grid::RegMatMkIndex mk_index(mat.markers());
+        summit::grid::RegMatMkIndex mk_index(task.mk_regs_cl());
 
-        raw_image_norm(mat);
+        // raw_image_norm(mat);
         
-        auto filter = make_filter<Float, GLID>(filter_type);
+        auto filter = make_filter(filter_type);
         for( auto r = 0; r < mat.rows(); r ++ ) {
             for( auto c = 0; c < mat.cols(); c ++ ) {
-                auto full_cellinfo = mat.at(r, c, mat.min_cv_all_data());
+                auto full_cellinfo = mat.at_cell(r, c);
                 cv::Rect mk_reg;
                 int mk_id_x;
                 int mk_id_y;
                 bool is_marker = mk_index.search(c, r, mk_reg, mk_id_x, mk_id_y);
-                heatmap_writer::CellInfo<Float, GLID> o_cell_info(
+                heatmap_writer::CellInfo o_cell_info(
                     r, c, full_cellinfo,
                     is_marker, mk_id_x, mk_id_y,
                     mk_reg
@@ -221,7 +214,7 @@ public:
         const std::string& ch,
         int ch_id,
         const std::string& filter,
-        chipimgproc::MultiTiledMat<Float, GLID>& mat 
+        const model::MWMat& mat 
     ) {
         auto&& task_id = task.id().string();
         for( auto&& ofm : output_formats_ ) {
@@ -247,7 +240,7 @@ public:
                 if(writer->is_write_entire_mat()) {
                     writer->write(mat, task_id, ch, ch_id, filter);
                 } else {
-                    write_output(*writer, task_id, mat, ch, filter);
+                    write_output(task, *writer, task_id, mat, ch, filter);
                 }
             }
         }

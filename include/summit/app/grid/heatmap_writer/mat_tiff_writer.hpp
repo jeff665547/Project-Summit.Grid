@@ -2,26 +2,28 @@
 #include "cell_info_writer.hpp"
 namespace summit::app::grid::heatmap_writer{
 
-template<class FLOAT, class GLID>
 struct MatTiffWriter 
-: public CellInfoWriter<FLOAT, GLID>
+: public CellInfoWriter
 {
     MatTiffWriter(const std::string& path)
     : file_path_(path)
     {
     }
-    virtual void write(const CellInfo<FLOAT, GLID>& ci, const std::string& task_id) override {}
+    virtual void write(const CellInfo& ci, const std::string& task_id) override {}
     virtual bool is_write_entire_mat() override { return true; }
     virtual void write(
-        const chipimgproc::MultiTiledMat<FLOAT, GLID>& mat, 
+        const model::MWMat& mat, 
         const std::string& task_id, 
         const std::string& ch_name, 
         const int&         ch_id,
         const std::string& filter
     ) override {
-        auto res_float = mat.dump();
-        cv::Mat res;
-        res_float.convertTo(res, CV_16U);
+        cv::Mat_<std::uint16_t> res(mat.rows(), mat.cols());
+        for(int i = 0; i < mat.rows(); i ++) {
+            for(int j = 0; j < mat.cols(); j ++) {
+                res(i, j) = std::round(mat.at_cell(i, j).mean);
+            }
+        }
         cv::imwrite(file_path_, res);
     }
     virtual void flush() override {

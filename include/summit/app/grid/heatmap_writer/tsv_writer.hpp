@@ -5,8 +5,7 @@
 #include <fstream>
 namespace summit::app::grid::heatmap_writer{
 
-template<class FLOAT, class GLID>
-struct TsvWriter : public CellInfoWriter<FLOAT, GLID> {
+struct TsvWriter : public CellInfoWriter {
     TsvWriter(std::ostream& os, const std::string& delim = "\t")
     : os_   (    os )
     , delim_( delim )
@@ -38,7 +37,7 @@ struct TsvWriter : public CellInfoWriter<FLOAT, GLID> {
     std::string bool_str(bool b) {
         return b ? "true" : "false";
     }
-    virtual void write(const CellInfo<FLOAT, GLID>& ci, const std::string& task_id) override {
+    virtual void write(const CellInfo& ci, const std::string& task_id) override {
         os_ <<
             fields(
                 task_id, ci.cl_x, ci.cl_y,
@@ -51,11 +50,11 @@ struct TsvWriter : public CellInfoWriter<FLOAT, GLID> {
     }
     virtual bool is_write_entire_mat() { return false; }
     virtual void write(
-        const chipimgproc::MultiTiledMat<FLOAT, GLID>& mat, 
-        const std::string& task_id, 
-        const std::string& ch_name, 
-        const int&         ch_id,
-        const std::string& filter
+        const model::MWMat&   mat, 
+        const std::string&   task_id, 
+        const std::string&   ch_name, 
+        const int&           ch_id,
+        const std::string&   filter
     ) {}
     virtual void flush() override {}
     virtual void close() override {}
@@ -66,17 +65,16 @@ private:
     std::string     delim_  ;
 };
 
-template<class FLOAT, class GLID>
 struct TsvFileWriter 
 : protected std::ofstream
-, public TsvWriter<FLOAT, GLID> 
+, public TsvWriter
 {
     TsvFileWriter(const std::string& path, const std::string& delim = "\t")
     : std::ofstream(path)
-    , TsvWriter<FLOAT, GLID>(*this, delim)
+    , TsvWriter(*this, delim)
     {}
     virtual void flush() override {
-        TsvWriter<FLOAT, GLID>::flush();
+        TsvWriter::flush();
         std::ofstream::flush();
     }
     virtual void close() override {

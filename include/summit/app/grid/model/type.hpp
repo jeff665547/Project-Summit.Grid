@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <ChipImgProc/multi_tiled_mat.hpp>
+#include <ChipImgProc/multi_warped_mat.hpp>
+#include <ChipImgProc/warped_mat.hpp>
 #include <optional>
 namespace summit::app::grid::model {
     using GridLineID    = std::uint16_t;
@@ -11,4 +13,7 @@ namespace summit::app::grid::model {
     using MTMat         = chipimgproc::MultiTiledMat<Float, GLID>;
     using OptMTMat      = std::optional<MTMat>;
     using GLRawImg      = chipimgproc::GridRawImg<GLID>;
+
+    using WarpedMat     = chipimgproc::WarpedMat<>;
+    using MWMat         = chipimgproc::MultiWarpedMat<WarpedMat>;
 }

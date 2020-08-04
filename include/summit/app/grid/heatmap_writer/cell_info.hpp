@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include <ChipImgProc/multi_tiled_mat.hpp>
 #include <ChipImgProc/utils.h>
+#include <ChipImgProc/warped_mat/patch.hpp>
 namespace summit::app::grid::heatmap_writer{
 struct MarkerInfo {
     bool        is_marker   ;
@@ -10,27 +10,25 @@ struct MarkerInfo {
     int         sub_x       ;
     int         sub_y       ;
 };
-template<class FLOAT = float, class GLID = std::uint16_t>
 struct CellInfo {
-    using Mat = chipimgproc::MultiTiledMat<FLOAT, GLID>;
-    using MatElem = typename Mat::MinCVAllData::Result;
+    using MatElem = chipimgproc::warped_mat::Patch;
     CellInfo(
         int row, int col, 
         const MatElem& ele,
-        bool is_marker,
-        int mk_id_x,
-        int mk_id_y,
-        cv::Rect& mk
+        bool           is_marker,
+        int            mk_id_x,
+        int            mk_id_y,
+        cv::Rect&      mk
     )
-    : cl_x        ( col )
-    , cl_y        ( row )
-    , width       ( ele.cell_info.width  )
-    , height      ( ele.cell_info.height )
-    , mean        ( ele.cell_info.mean   )
-    , stddev      ( ele.cell_info.stddev )
-    , cv          ( ele.cell_info.cv     )
-    , bg          ( ele.cell_info.bg     )
-    , probe       ( ele.pixels           )
+    : cl_x        ( col            )
+    , cl_y        ( row            )
+    , width       ( ele.patch.cols )
+    , height      ( ele.patch.rows )
+    , mean        ( ele.mean       )
+    , stddev      ( ele.stddev     )
+    , cv          ( ele.cv         )
+    , bg          ( ele.bg         )
+    , probe       ( ele.patch      )
     , marker_info {
         is_marker,
         mk_id_x, mk_id_y,
@@ -44,10 +42,10 @@ struct CellInfo {
     int         cl_y        ;
     int         width       ;
     int         height      ;
-    FLOAT       mean        ;
-    FLOAT       stddev      ;
-    FLOAT       cv          ;
-    FLOAT       bg          ;
+    double      mean        ;
+    double      stddev      ;
+    double      cv          ;
+    double      bg          ;
     cv::Mat     probe       ;
 
     MarkerInfo  marker_info ;

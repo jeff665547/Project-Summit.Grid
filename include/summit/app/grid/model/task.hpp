@@ -26,8 +26,10 @@ namespace summit::app::grid::model {
  * 
  */
 struct Task {
+    using This = Task;
     template<class T>
     using ChnMap = std::map<std::string, T>;
+    using MKRegion = chipimgproc::marker::detection::MKRegion;
     void set_model(const Model& _model) {
         model_ = &_model;
     }
@@ -241,6 +243,9 @@ struct Task {
     void set_multi_tiled_mat(const std::string& chname, MTMat mat) {
         multi_tiled_mat_[chname] = std::move(mat);
     }
+    void set_multi_warped_mat(const std::string& chname, MWMat mat) {
+        multi_warped_mat_[chname] = std::move(mat);
+    }
     void set_stitched_img(const std::string& chname, GLRawImg glraw_img) {
         stitched_img_[chname] = std::move(glraw_img);
     }
@@ -249,6 +254,23 @@ struct Task {
     }
     double rum2px_r() const {
         return um2px_r_ / rescale_;
+    }
+    const std::vector<MKRegion>& mk_regs_cl() const {
+        if(mk_regs_cl_.empty()) {
+            for(int i = 0; i < mk_row_cl_; i ++) {
+                for(int j = 0; j < mk_col_cl_; j ++) {
+                    MKRegion mkr;
+                    mkr.x_i = j;
+                    mkr.y_i = i;
+                    mkr.x = (j * mk_wd_cl_) + mk_xi_cl_;
+                    mkr.y = (i * mk_hd_cl_) + mk_yi_cl_;
+                    mkr.width = mk_w_cl_;
+                    mkr.height = mk_h_cl_;
+                    const_cast<This*>(this)->mk_regs_cl_.emplace_back(std::move(mkr));
+                }
+            }
+        }
+        return mk_regs_cl_;
     }
     VAR_GET(nlohmann::json,                 chip_log            )
     VAR_GET(nlohmann::json,                 grid_log            )
@@ -323,6 +345,7 @@ struct Task {
     VAR_GET(double,                         fov_h_rum           )
     VAR_GET(double,                         xi_rum              )
     VAR_GET(double,                         yi_rum              )
+    VAR_GET(Utils::FOVMap<cv::Point>,       stitched_points_cl  )
 
     VAR_PTR_GET(Model,                      model               )
     VAR_PTR_GET(nlohmann::json,             chipinfo            )
@@ -346,8 +369,9 @@ struct Task {
     VAR_IO(Utils::FOVMap<
         std::vector<cv::Point2d>
     >,                                      fov_wh_mk_pos       )
+    VAR_GET(ChnMap<MWMat>,                  multi_warped_mat    )
 private:
-
+    std::vector<MKRegion>                   mk_regs_cl_;
     
     void set_chip_dir(const boost::filesystem::path& path) {
         grid_log_["channels"] = nlohmann::json::array();
