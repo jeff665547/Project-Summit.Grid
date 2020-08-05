@@ -215,13 +215,12 @@ struct Paths {
             return array_cen(task_id);
         }
         auto postfix = OutputFormat::to_file_postfix(ofm);
+        auto output = task_output(task_id);
         switch(mode_) {
             case normal:
-                return check_path((output_ / (ch + postfix)).string());
+                return check_path((output / (ch + postfix)).string());
             case inplace:
-                return check_path(
-                    task_id.path() / "grid" / "channels" / ch / ( "heatmap" + postfix )
-                );
+                return check_path(output / "grid" / "channels" / ch / ( "heatmap" + postfix ));
             default:
                 throw std::runtime_error("unsupport mode");
         }
@@ -241,7 +240,6 @@ struct Paths {
         const std::string&  tag,
         int r, int c, const std::string& ch
     ) const {
-        boost::filesystem::path odir = task_output(task_id);
         return check_path(general_prefix(task_id, ch) 
             / fov_image_postfix(tag, r, c, ch));
     }
@@ -391,11 +389,12 @@ struct Paths {
     boost::filesystem::path task_grid_log(
         const TaskID& task_id
     ) const {
+        auto output = task_output(task_id);
         switch(mode_) {
             case normal:
-                return check_path(output_ / (task_id.string()  + "-grid_log.json"));
+                return check_path(output / (task_id.string()  + "-grid_log.json"));
             case inplace:
-                return check_path(task_output(task_id) / "grid" / "grid_log.json");
+                return check_path(output / "grid" / "grid_log.json");
             default:
                 throw std::runtime_error("unsupport mode");
         }
