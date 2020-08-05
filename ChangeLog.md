@@ -2,7 +2,7 @@
 
 ## 1.2.9 - 2020.8.5
 
-- Bugfix: heatmap generation path error.
+- Bugfix: heatmap output path error.
 
 ## 1.2.8 - 2020.7.31
 
