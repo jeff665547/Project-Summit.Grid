@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.2.9 - 2020.8.5
+
+- Bugfix: heatmap generation path error.
+
 ## 1.2.8 - 2020.7.31
 
 - Bugfix: fix yz01-41, Kenai process failed (configuration file problem)
