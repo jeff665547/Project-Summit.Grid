@@ -100,32 +100,44 @@ constexpr struct Channel {
             channel.collect_fovs(fov_mods);
 
             // write heatmap
-            // FIXME: remove_const -> multi tiled mat immutable workaround
             channel.heatmap_writer()(channel.multi_warped_mat());
 
             // stitch image
-            auto grid_image = image_stitcher(channel.multi_tiled_mat().value());
-            auto v_st_img = cimp::viewable(grid_image.mat());
+            std::vector<cv::Point> std_rum_st_pts;
+            std::vector<cv::Mat> std_rum_imgs;
+            for(auto [fov_id, st_pts_cl] : task.stitched_points_cl()) {
+                std_rum_st_pts.emplace_back(
+                    std::round(fov_id.x * (task.fov_wd() * task.cell_wd_rum())),
+                    std::round(fov_id.y * (task.fov_hd() * task.cell_hd_rum()))
+                );
+                std_rum_imgs.push_back(
+                    fov_mods.at(fov_id).std_img()
+                );
+            }
+            auto stitched_img = chipimgproc::stitch::add(
+                std_rum_imgs, std_rum_st_pts
+            );
+            auto v_st_img = cimp::viewable(stitched_img);
             auto st_img_path = channel.stitch_image("norm");
             cv::imwrite(st_img_path.string(), v_st_img);
             auto r_st_img_path = channel.stitch_image("raw");
-            cv::imwrite(r_st_img_path.string(), grid_image.mat());
+            cv::imwrite(r_st_img_path.string(), stitched_img);
 
-            // gridline
-            std::ofstream gl_file(channel.gridline().string());
-            Utils::write_gl(gl_file, grid_image);
-            channel.set_gridline(grid_image.gl_x(), grid_image.gl_y());
+            // // gridline
+            // std::ofstream gl_file(channel.gridline().string());
+            // Utils::write_gl(gl_file, grid_image);
+            // channel.set_gridline(grid_image.gl_x(), grid_image.gl_y());
 
-            channel.set_stitched_img(std::move(grid_image));
+            channel.set_stitched_img(std::move(stitched_img));
 
-            // background
-            Utils::FOVMap<float> bg_value;
-            for(auto&& p : fov_mods) {
-                auto& fov_id = p.first;
-                auto& fov_mod = p.second;
-                bg_value[fov_id] = Utils::mean(fov_mod.bg_means());
-            }
-            channel.background_writer()(bg_value);
+            // // background
+            // Utils::FOVMap<float> bg_value;
+            // for(auto&& p : fov_mods) {
+            //     auto& fov_id = p.first;
+            //     auto& fov_mod = p.second;
+            //     bg_value[fov_id] = Utils::mean(fov_mod.bg_means());
+            // }
+            // channel.background_writer()(bg_value);
 
             // marker append
             if(model.marker_append()) {

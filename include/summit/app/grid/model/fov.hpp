@@ -98,6 +98,7 @@ struct FOV {
     VAR_IO(cv::Mat,                             mk_append               );
     VAR_IO(cv::Mat,                             warp_mat                );
     VAR_IO(WarpedMat,                           warped_mat              );
+    VAR_IO(cv::Mat,                             std_img                 );
 
     VAR_PTR_GET(Channel,                        channel                 );
     VAR_PTR_GET(nlohmann::json,                 in_grid_log             );

@@ -173,7 +173,7 @@ constexpr struct FOVAG {
                     std::move(mk_append_res)
                 );
             }
-
+            chipimgproc::ip_convert(mat, CV_32F);
             auto warped_mat = cimp::make_warped_mat(
                 warp_mat, mat, {task.xi_rum(), task.yi_rum()},
                 task.cell_w_rum(), task.cell_h_rum(),
@@ -210,6 +210,7 @@ constexpr struct FOVAG {
             // fov_mod.set_stat_mats(std::move(margin_res.stat_mats));
             // fov_mod.set_bg_means(cimp::utils::mat__to_vec(surf));
             fov_mod.set_warped_mat(std::move(warped_mat));
+            fov_mod.set_std_img(std::move(std_mat));
 
             // f_grid_log["x0_px"] = std::round(grid_res.gl_x[0] * 100) / 100;
             // f_grid_log["y0_px"] = std::round(grid_res.gl_y[0] * 100) / 100;

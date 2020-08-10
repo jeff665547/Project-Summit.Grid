@@ -25,7 +25,7 @@ constexpr struct MakeMultiWarpedMat {
         return chipimgproc::make_multi_warped_mat(
             std::move(fovs), std::move(st_pts),
             {task.xi_rum(), task.yi_rum()},
-            task.cell_wd_rum(), task.cell_h_rum(),
+            task.cell_wd_rum(), task.cell_hd_rum(),
             task.cell_wd_rum() * ((task.fov_wd() * task.fov_cols()) + task.mk_w_cl()),
             task.cell_hd_rum() * ((task.fov_hd() * task.fov_rows()) + task.mk_h_cl())
         );
