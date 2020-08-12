@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.2.10 - 2020.8.12
+
+- Feature: support YZ01 splited chip.
+
 ## 1.2.9 - 2020.8.5
 
 - Bugfix: heatmap output path error.
