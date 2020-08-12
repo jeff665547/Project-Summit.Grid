@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.2.11 - 2020.8.12
+
+- Bugfix: Prevent several debug grid generation failed.
+
 ## 1.2.10 - 2020.8.12
 
 - Feature: support YZ01 splited chip.
