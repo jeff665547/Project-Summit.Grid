@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.2.12 - 2020.8.17
+
+- Bugfix: YZ01 4 cornor configuration not complete.
+
 ## 1.2.11 - 2020.8.12
 
 - Bugfix: Prevent several debug grid generation failed.
