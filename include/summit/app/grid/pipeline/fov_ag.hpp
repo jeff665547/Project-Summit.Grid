@@ -140,8 +140,8 @@ constexpr struct FOVAG {
             for(int i = 0; i < fov_mod.mk_num().y; i ++) {
                 for(int j = 0; j < fov_mod.mk_num().x; j ++) {
                     cmk_det::MKRegion mkr;
-                    mkr.x = (j * task.mk_wd_rum()) + task.xi_rum() + 0.5;
-                    mkr.y = (i * task.mk_hd_rum()) + task.yi_rum() + 0.5;
+                    mkr.x = (j * task.mk_wd_rum()) + task.xi_rum();
+                    mkr.y = (i * task.mk_hd_rum()) + task.yi_rum();
                     mkr.width  = task.mk_w_rum();
                     mkr.height = task.mk_h_rum();
                     mkr.x_i = j;
@@ -211,6 +211,7 @@ constexpr struct FOVAG {
             // fov_mod.set_bg_means(cimp::utils::mat__to_vec(surf));
             fov_mod.set_warped_mat(std::move(warped_mat));
             fov_mod.set_std_img(std::move(std_mat));
+            fov_mod.set_warp_mat(std::move(warp_mat));
 
             // f_grid_log["x0_px"] = std::round(grid_res.gl_x[0] * 100) / 100;
             // f_grid_log["y0_px"] = std::round(grid_res.gl_y[0] * 100) / 100;
@@ -221,6 +222,7 @@ constexpr struct FOVAG {
             // });
             // f_grid_log["grid_bad"] = grid_bad;
             // f_grid_log["marker_region_source"] = fov_mod.mk_reg_src();
+            f_grid_log["warp_mat"] = fov_mod.warp_mat_vec();
             auto& fov_log_id = f_grid_log["id"];
             fov_log_id = nlohmann::json::array();
             fov_log_id[0] = fov_id.x;

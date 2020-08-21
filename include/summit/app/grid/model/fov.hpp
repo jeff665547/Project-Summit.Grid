@@ -80,6 +80,19 @@ struct FOV {
     void set_in_grid_log(const nlohmann::json& _log ) {
         in_grid_log_ = &_log;
     }
+    std::vector<std::vector<double>> warp_mat_vec() const {
+        std::vector<std::vector<double>> res;
+        res.resize(warp_mat_.rows);
+        for(auto& r : res) {
+            r.resize(warp_mat_.cols);
+        }
+        for(int i = 0; i < warp_mat_.rows; i ++) {
+            for(int j = 0; j < warp_mat_.cols; j ++) {
+                res[i][j] = warp_mat_.at<double>(i, j);
+            }
+        }
+        return res;
+    }
 
     VAR_GET(boost::filesystem::path,            src_path                );
     VAR_GET(cv::Mat_<std::uint16_t>,            src                     );

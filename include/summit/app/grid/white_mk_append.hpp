@@ -67,8 +67,8 @@ constexpr struct WhiteMKAppend {
         for(int i = 0; i < mk_r_n; i ++) {
             for(int j = 0; j < mk_c_n; j ++) {
                 MKRegion mkr;
-                auto mk_lt_x = (j * mk_wd) + x_i + 0.5;
-                auto mk_lt_y = (i * mk_hd) + y_i + 0.5;
+                auto mk_lt_x = (j * mk_wd) + x_i;
+                auto mk_lt_y = (i * mk_hd) + y_i;
                 mkr.x        = std::round(mk_lt_x);
                 mkr.y        = std::round(mk_lt_y);
                 mkr.width    = std::round(mk_w);

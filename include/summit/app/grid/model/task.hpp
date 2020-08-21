@@ -505,8 +505,8 @@ private:
 
         rescale_ = 2;
 
-        xi_rum_        = -0.5;
-        yi_rum_        = -0.5;
+        xi_rum_        = 0;
+        yi_rum_        = 0;
         cell_wd_rum_   = (space_um_ + cell_w_um_) * rescale_;
         cell_hd_rum_   = (space_um_ + cell_h_um_) * rescale_;
         cell_w_rum_    = cell_w_um_ * rescale_;

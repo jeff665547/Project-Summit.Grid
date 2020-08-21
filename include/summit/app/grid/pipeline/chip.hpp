@@ -25,6 +25,8 @@
 #include <ChipImgProc/marker/detection/aruco_random.hpp>
 #include <ChipImgProc/warped_mat.hpp>
 #include <ChipImgProc/rotation/from_warp_mat.hpp>
+#include <ChipImgProc/warped_mat/estimate_transform_mat.hpp>
+
 namespace summit::app::grid::pipeline {
 namespace __alias {
 
@@ -169,7 +171,7 @@ struct Chip {
                     std::vector<cv::Point> tmp(mk_pos_px.begin(), mk_pos_px.end());
                     aruco_ch_mk_seg_view(chipimgproc::marker::view(mat, tmp));
                 } 
-                auto warp_mat = cv::estimateAffinePartial2D(mk_pos_rum, mk_pos_px);
+                auto warp_mat = chipimgproc::warped_mat::estimate_transform_mat(mk_pos_rum, mk_pos_px);
 
                 auto warped_mat = chipimgproc::make_basic_warped_mat(
                     warp_mat, {mat}, {task.xi_rum(), task.yi_rum()}, 

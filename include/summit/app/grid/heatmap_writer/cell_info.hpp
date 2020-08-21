@@ -28,6 +28,8 @@ struct CellInfo {
     , stddev      ( ele.stddev     )
     , cv          ( ele.cv         )
     , bg          ( ele.bg         )
+    , img_x       ( ele.img_p.x    )
+    , img_y       ( ele.img_p.y    )
     , probe       ( ele.patch      )
     , marker_info {
         is_marker,
@@ -46,6 +48,8 @@ struct CellInfo {
     double      stddev      ;
     double      cv          ;
     double      bg          ;
+    double      img_x       ;
+    double      img_y       ;
     cv::Mat     probe       ;
 
     MarkerInfo  marker_info ;
