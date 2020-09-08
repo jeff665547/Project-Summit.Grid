@@ -2,11 +2,32 @@
 #include <ChipImgProc/aruco.hpp>
 #include <ChipImgProc/marker/detection/aruco_random.hpp>
 #include <ChipImgProc/marker/detection/aruco_reg_mat.hpp>
+#include <ChipImgProc/utils.h>
 #include <summit/config/aruco_db.hpp>
 #include "model/task.hpp"
 namespace summit::app::grid {
 
-constexpr struct ArUcoSetter {
+constexpr class ArUcoSetter {
+    auto load_templ_marker(
+        const std::string& tpath,
+        const std::string& mpath,
+        int width,
+        int height,
+        double scale
+    ) const {
+        auto flags = cv::IMREAD_GRAYSCALE | cv::IMREAD_ANYDEPTH;
+        auto templ = cv::imread(tpath, flags);
+        auto mask  = cv::imread(mpath, flags);
+        auto size_w = scale * width  / templ.cols;
+        auto size_h = scale * height / templ.rows;
+        auto rtempl = chipimgproc::affine_resize(templ, size_w, size_h, cv::INTER_AREA);
+        auto rmask  = chipimgproc::affine_resize(mask,  size_w, size_h, cv::INTER_NEAREST);
+        return nucleona::make_tuple(
+            std::move(rtempl),
+            std::move(rmask)
+        );
+    }
+public:
     auto operator()(const model::Task& task) const {
         namespace cmkd = chipimgproc::marker::detection;
 
@@ -23,6 +44,15 @@ constexpr struct ArUcoSetter {
             task.tm_margin(), 
             task.um2px_r()
         );
+        // auto& templ_meta = task.get_marker_patterns("filter", 0).at(0)->meta; 
+        // auto w_um = templ_meta.at("w_um").get<int>();
+        // auto h_um = templ_meta.at("h_um").get<int>();
+        // auto [templ, mask] = load_templ_marker(
+        //     task.frame_template().string(),
+        //     task.frame_mask().string(),
+        //     w_um, h_um,
+        //     task.um2px_r()
+        // );
 
         // prepare pixel domain anchors
         auto detector(cmkd::make_aruco_random(

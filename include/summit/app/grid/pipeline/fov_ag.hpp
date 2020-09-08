@@ -96,6 +96,7 @@ constexpr struct FOVAG {
         auto& grid_done   = fov_mod.proc_done();
         auto& task        = fov_mod.channel().task();
         auto& wh_mk_pos   = task.fov_wh_mk_pos().at(fov_id);
+        auto& mk_pos_spec = task.fov_mk_pos_spec().at(fov_id);
         auto& wh_warp_mat = task.white_warp_mat().at(fov_id);
         auto log_prefix  = fmt::format("[{}-{}-({},{})]", 
             task.id().chip_id(), channel.ch_name(), fov_id.x, fov_id.y
@@ -110,12 +111,13 @@ constexpr struct FOVAG {
             auto [templ, mask] = cmk::txt_to_img(
                 std_mk.marker,
                 std_mk.mask,
-                task.cell_h_um() * task.um2px_r(),
-                task.cell_w_um() * task.um2px_r(),
-                task.space_um()  * task.um2px_r()
+                task.cell_h_um(),
+                task.cell_w_um(),
+                task.space_um(),
+                task.um2px_r()
             );
             // TODO: case for no white marker
-            auto [bias, score] = cmk_det::estimate_bias(mat, templ, mask, wh_mk_pos, wh_warp_mat);
+            auto [bias, score] = cmk_det::estimate_bias(mat, templ, mask, mk_pos_spec, wh_warp_mat);
             summit::grid::log.info("bias: ({}, {})", bias.x, bias.y);
             auto warp_mat = wh_warp_mat.clone();
             {

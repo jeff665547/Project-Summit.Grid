@@ -81,7 +81,7 @@ struct Task {
         return marker_patterns_->get_by_marker_type(marker_type);
     }
     template<class T>
-    auto get_marker_patterns(const std::string& query_key, T value) {
+    auto get_marker_patterns(const std::string& query_key, T value) const {
         return marker_patterns_->get(query_key, value);
     }
     const cv::Point& get_fov_marker_num(int r, int c) {
@@ -368,6 +368,9 @@ struct Task {
     VAR_IO(Utils::FOVMap<
         std::vector<cv::Point2d>
     >,                                      fov_wh_mk_pos       )
+    VAR_IO(Utils::FOVMap<
+        std::vector<cv::Point2d>
+    >,                                      fov_mk_pos_spec     )
     VAR_GET(ChnMap<MWMat>,                  multi_warped_mat    )
     VAR_IO(Utils::FOVMap<cv::Point>,        stitched_points_cl  )
 private:

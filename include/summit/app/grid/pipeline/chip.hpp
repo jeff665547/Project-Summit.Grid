@@ -115,6 +115,7 @@ struct Chip {
         Utils::FOVMap<cv::Mat>                    fov_mk_append;
         Utils::FOVMap<cv::Mat>                    fov_white_warp_mat;
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_wh_mk_pos;
+        Utils::FOVMap<std::vector<cv::Point2d>>   fov_mk_pos_spec;
 
         chipimgproc::aruco::MarkerMap mk_map(task.id_map());
         
@@ -123,6 +124,7 @@ struct Chip {
             fov_marker_regs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
             fov_wh_mk_pos[fov_id] = {};
+            fov_mk_pos_spec[fov_id] = {};
             fov_white_warp_mat[fov_id] = cv::Mat();
         }
         auto aruco_mk_det = [&, this](
@@ -163,6 +165,8 @@ struct Chip {
                     auto mk_lt_y = (mkpid.y * task.mk_hd_rum()) + task.yi_rum() - st_p.y;
                     auto mk_x    = mk_lt_x + (task.mk_w_rum() / 2);
                     auto mk_y    = mk_lt_y + (task.mk_h_rum() / 2);
+                    std::cout << pos << '\n';
+                    std::cout << mk_x << ',' << mk_y << '\n';
                     mk_pos_px.push_back(pos);
                     mk_pos_rum.emplace_back(mk_x, mk_y);
                 }
@@ -189,12 +193,14 @@ struct Chip {
                     task.mk_wd_rum(), task.mk_hd_rum(), 
                     mk_num.y, mk_num.x
                 );
+                summit::grid::log.debug("white channel, fov id:({}, {}) marker append done", fov_id.x, fov_id.y);
                 fov_white_warp_mat.at(fov_id) = warp_mat;
                 if(model.marker_append()) {
                     fov_mk_append.at(fov_id) = fov_wh_mk_append;
                 }
                 fov_marker_regs.at(fov_id) = std::move(mk_regs);
                 fov_wh_mk_pos.at(fov_id)   = std::move(mk_pos_px);
+                fov_mk_pos_spec.at(fov_id) = std::move(mk_pos_rum);
                 success.at(i)  = true;
             } catch (...) {
                 summit::grid::log.error(
@@ -229,6 +235,7 @@ struct Chip {
         auto rot_deg = Utils::mean(rot_degs);
         task.set_white_warp_mat(std::move(fov_white_warp_mat));
         task.set_fov_wh_mk_pos(std::move(fov_wh_mk_pos));
+        task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
         task.set_rot_degree(rot_deg);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
         if(model.marker_append()) {
