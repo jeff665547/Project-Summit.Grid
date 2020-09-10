@@ -373,6 +373,9 @@ struct Task {
     >,                                      fov_mk_pos_spec     )
     VAR_GET(ChnMap<MWMat>,                  multi_warped_mat    )
     VAR_IO(Utils::FOVMap<cv::Point>,        stitched_points_cl  )
+    VAR_IO(std::vector<cv::Point>,          stitched_points_rum )
+    VAR_IO(std::vector<model::GLID>,        gl_x_rum            )
+    VAR_IO(std::vector<model::GLID>,        gl_y_rum            )
 private:
     std::vector<MKRegion>                   mk_regs_cl_;
     
@@ -522,6 +525,23 @@ private:
         fov_w_rum_     = fov_w_    * cell_wd_rum_;
         fov_h_rum_     = fov_h_    * cell_hd_rum_;
 
+        set_stitched_points_cl(Utils::generate_stitch_points(fov()));
+
+        for(auto [fov_id, st_pts_cl] : stitched_points_cl()) {
+            stitched_points_rum_.emplace_back(
+                std::round(fov_id.x * (fov_wd() * cell_wd_rum())),
+                std::round(fov_id.y * (fov_hd() * cell_hd_rum()))
+            );
+        }
+
+        gl_x_rum_.resize(spec_w_cl() + 1);
+        gl_y_rum_.resize(spec_h_cl() + 1);
+        for(model::GLID i = 0; i <= spec_w_cl(); i ++) {
+            gl_x_rum_[i] = i * cell_wd_rum();
+        }
+        for(model::GLID i = 0; i <= spec_h_cl(); i ++) {
+            gl_y_rum_[i] = i * cell_hd_rum();
+        }
     }
 };
 using TaskMap = std::map<

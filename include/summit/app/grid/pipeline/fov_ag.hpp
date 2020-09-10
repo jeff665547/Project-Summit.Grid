@@ -78,6 +78,32 @@ constexpr struct FOVAG {
             }
         }
     }
+    auto draw_grid_line(
+        const cv::Mat& std_mat, 
+        const model::Task& task
+    ) const {
+        cv::Mat_<std::uint16_t> res = chipimgproc::viewable(std_mat);
+
+        for(double x = task.xi_rum(); x <= std_mat.cols; x += task.cell_wd_rum()) {
+            int _x = std::round(x);
+            cv::line(
+                res, 
+                cv::Point(_x, 0),
+                cv::Point(_x, std_mat.rows),
+                cv::Scalar(65536/2)
+            );
+        } 
+        for(double y = task.yi_rum(); y <= std_mat.rows; y += task.cell_hd_rum()) {
+            int _y = std::round(y);
+            cv::line(
+                res, 
+                cv::Point(0, _y),
+                cv::Point(std_mat.rows, _y),
+                cv::Scalar(65536/2)
+            );
+        } 
+        return res;
+    }
     /**
      * @brief Run FOV level gridding process.
      * 
@@ -106,22 +132,32 @@ constexpr struct FOVAG {
             log_prefix
         );
         try {
-            // TODO: search best marker, currently use first as standard marker
-            auto& std_mk = *(channel.sh_mk_pats()[0]);
-            auto [templ, mask] = cmk::txt_to_img(
-                std_mk.marker,
-                std_mk.mask,
-                task.cell_h_um(),
-                task.cell_w_um(),
-                task.space_um(),
-                task.um2px_r()
-            );
+            summit::grid::log.info("marker pattern number: {}", channel.sh_mk_pats().size());
             // TODO: case for no white marker
-            auto [bias, score] = cmk_det::estimate_bias(mat, templ, mask, mk_pos_spec, wh_warp_mat);
-            summit::grid::log.info("bias: ({}, {})", bias.x, bias.y);
+            double res_score = 0.0;
+            cv::Point2d res_bias;
+            for(auto&& p_mk_pat : channel.sh_mk_pats()) {
+                auto& mk_pat = *p_mk_pat;
+                auto [templ, mask] = cmk::txt_to_img(
+                    mk_pat.marker,
+                    mk_pat.mask,
+                    task.cell_h_um(),
+                    task.cell_w_um(),
+                    task.space_um(),
+                    task.um2px_r()
+                );
+                auto [bias, score] = cmk_det::estimate_bias(
+                    mat, templ, mask, mk_pos_spec, wh_warp_mat
+                );
+                if(res_score < score) {
+                    res_score = score;
+                    res_bias = bias;
+                }
+            }
+            summit::grid::log.info("bias: ({}, {})", res_bias.x, res_bias.y);
             auto warp_mat = wh_warp_mat.clone();
             {
-                auto _bias = bias;
+                auto _bias = res_bias;
                 cimp::typed_mat(warp_mat, [&_bias](auto& mat){
                     mat(0, 2) += _bias.x;
                     mat(1, 2) += _bias.y;
@@ -157,11 +193,8 @@ constexpr struct FOVAG {
                 final_mk_seg_view(cmk::view(std_mat, mk_regs));
             }
             // gridding
-            // TODO: pch_grid_view
-            // auto grid_res = gridder(mat, mk_layout, mk_regs,
-            //     nucleona::stream::null_out,
-            //     fov_mod.pch_grid_view()
-            // );
+            auto grid_view = draw_grid_line(std_mat, task);
+            fov_mod.pch_grid_view()(grid_view);
 
             // write raw result
             auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
@@ -185,7 +218,7 @@ constexpr struct FOVAG {
                 task.fov_w(), task.fov_h()
             );
 
-            // // bgp
+            // // TODO: bgp
             // auto inty_region = tiled_mat.get_image_roi();
             // cv::Mat_<std::uint16_t> dmat = mat(inty_region);
             // auto surf = cimp::bgb::bspline(dmat, {3, 6}, 0.3);

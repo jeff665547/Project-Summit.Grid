@@ -116,6 +116,9 @@ struct Chip {
         Utils::FOVMap<cv::Mat>                    fov_white_warp_mat;
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_wh_mk_pos;
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_mk_pos_spec;
+        std::vector<cv::Mat>                      fov_rum_imgs(task.white_channel_imgs().size());
+        auto [id, wh_ch] = task.white_channel();
+        auto wh_ch_name = wh_ch["name"].get<std::string>();
 
         chipimgproc::aruco::MarkerMap mk_map(task.id_map());
         
@@ -136,7 +139,6 @@ struct Chip {
             return mk_regs;
         };
 
-        task.set_stitched_points_cl(Utils::generate_stitch_points(task.fov()));
         auto& st_pts_cl = task.stitched_points_cl();
 
         summit::grid::log.debug("white channel image nums: {}", task.white_channel_imgs().size());
@@ -165,8 +167,8 @@ struct Chip {
                     auto mk_lt_y = (mkpid.y * task.mk_hd_rum()) + task.yi_rum() - st_p.y;
                     auto mk_x    = mk_lt_x + (task.mk_w_rum() / 2);
                     auto mk_y    = mk_lt_y + (task.mk_h_rum() / 2);
-                    std::cout << pos << '\n';
-                    std::cout << mk_x << ',' << mk_y << '\n';
+                    // std::cout << pos << '\n';
+                    // std::cout << mk_x << ',' << mk_y << '\n';
                     mk_pos_px.push_back(pos);
                     mk_pos_rum.emplace_back(mk_x, mk_y);
                 }
@@ -177,18 +179,27 @@ struct Chip {
                 } 
                 auto warp_mat = chipimgproc::warped_mat::estimate_transform_mat(mk_pos_rum, mk_pos_px);
 
-                auto warped_mat = chipimgproc::make_basic_warped_mat(
-                    warp_mat, {mat}, {task.xi_rum(), task.yi_rum()}, 
-                    task.cell_wd_rum(), task.cell_hd_rum(), 
-                    task.fov_w_rum(), task.fov_h_rum() 
-                );
+                // auto warped_mat = chipimgproc::make_basic_warped_mat(
+                //     warp_mat, {mat}, {task.xi_rum(), task.yi_rum()}, 
+                //     task.cell_wd_rum(), task.cell_hd_rum(), 
+                //     task.fov_w_rum(), task.fov_h_rum() 
+                // );
+
                 /* count theta */
                 rot_degs.at(i) = chipimgproc::rotation::from_warp_mat(warp_mat);
                 summit::grid::log.debug("white channel, fov id:({}, {}) theta: {}", fov_id.x, fov_id.y, rot_degs.at(i));
+
+                cv::Mat iwarp_mat;
+                cv::Mat std_mat;
+                cv::invertAffineTransform(warp_mat, iwarp_mat);
+                cv::warpAffine(mat, std_mat, iwarp_mat, cv::Size(
+                    std::round(task.fov_w_rum()), 
+                    std::round(task.fov_h_rum())
+                ));
+                fov_rum_imgs[fov_id.x + (fov_id.y * task.fov_cols())] = std_mat;
                 auto [fov_wh_mk_append, mk_regs] = white_mk_append(
-                    mat, warp_mat, 
+                    std_mat, 
                     task.xi_rum(), task.yi_rum(), 
-                    task.fov_w_rum(), task.fov_h_rum(), 
                     task.mk_w_rum(), task.mk_h_rum(),
                     task.mk_wd_rum(), task.mk_hd_rum(), 
                     mk_num.y, mk_num.x
@@ -225,6 +236,10 @@ struct Chip {
             debug_throw(std::runtime_error("white marker process failed"));
         } 
 
+        auto stitched_img = chipimgproc::stitch::add(
+            fov_rum_imgs, task.stitched_points_rum()
+        );
+
         /* consensus */
         rot_degs = rot_degs 
             | nr::indexed() 
@@ -241,7 +256,11 @@ struct Chip {
         if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
         }
-        // um2px_r not processed
+        // TODO: um2px_r
+        model::GLRawImg stitched_grid_img(
+            stitched_img, task.gl_x_rum(), task.gl_y_rum()
+        );
+        task.set_stitched_img(wh_ch_name, std::move(stitched_grid_img));
     }
     /**
      * @brief Bright-field general marker process, a sub-part of white_channel_proc
@@ -428,90 +447,90 @@ struct Chip {
      * 
      * @param task chip parameter model
      */
-    // void gridline_debug_image_proc(model::Task& task) const { 
-    //     chipimgproc::stitch::GridlineBased gl_stitcher;
-    //     std::map<std::string, const nlohmann::json*> channel_params;
-    //     /*
-    //      * Find white channel name
-    //      */
-    //     std::string wh_name = "";
-    //     for(auto&& ch : task.channels()) {
-    //         channel_params[ch.at("name").get<std::string>()] = &ch;
-    //         if(ch.at("filter").get<int>() == 0) {
-    //             wh_name = ch.at("name").get<std::string>();
-    //         }
-    //     }
-    //     /*
-    //      * Filter id to color mapping, 0 = blue, 1 = green, 2 = red
-    //      */
-    //     std::vector<int> filter_to_color({0, 0, 1, 0, 2, 0});
-    //     /*
-    //      * Create white channel stitched image.
-    //      */
-    //     if(!wh_name.empty() && channel_params.size() > 1) {
-    //         auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
-    //         for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
-    //             auto& [path, img] = img_data;
-    //             cv::Mat img_loc = img.clone();
-    //             rotate_calibrator(img_loc, task.rot_degree().value());
-    //             auto& tpl_gri = tpl_mtm.get_fov_img(fov_id.x, fov_id.y);
-    //             tpl_gri.mat() = img_loc;
-    //         }
-    //         auto gl_wh_stitch = gl_stitcher(tpl_mtm);
-    //         task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
-    //     }
-    //     if(channel_params.size() <= 1) {
-    //         summit::grid::log.warn("no probe channel images provided, unable to generate stitched grid images");
-    //         return ;
-    //     }
+    void gridline_debug_image_proc(model::Task& task) const { 
+        chipimgproc::stitch::GridlineBased gl_stitcher;
+        std::map<std::string, const nlohmann::json*> channel_params;
+        /*
+         * Find white channel name
+         */
+        std::string wh_name = "";
+        for(auto&& ch : task.channels()) {
+            channel_params[ch.at("name").get<std::string>()] = &ch;
+            if(ch.at("filter").get<int>() == 0) {
+                wh_name = ch.at("name").get<std::string>();
+            }
+        }
+        /*
+         * Filter id to color mapping, 0 = blue, 1 = green, 2 = red
+         */
+        std::vector<int> filter_to_color({0, 0, 1, 0, 2, 0});
+        /*
+         * Create white channel stitched image.
+         */
+        // if(!wh_name.empty() && channel_params.size() > 1) {
+        //     auto tpl_mtm = task.multi_tiled_mat().begin()->second.value();
+        //     for(auto&& [fov_id, img_data] : task.white_channel_imgs()) {
+        //         auto& [path, img] = img_data;
+        //         cv::Mat img_loc = img.clone();
+        //         rotate_calibrator(img_loc, task.rot_degree().value());
+        //         auto& tpl_gri = tpl_mtm.get_fov_img(fov_id.x, fov_id.y);
+        //         tpl_gri.mat() = img_loc;
+        //     }
+        //     auto gl_wh_stitch = gl_stitcher(tpl_mtm);
+        //     task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
+        // }
+        if(channel_params.size() <= 1) {
+            summit::grid::log.warn("no probe channel images provided, unable to generate stitched grid images");
+            return ;
+        }
 
-    //     /*
-    //      * Stitch each probe channel image and write to files.
-    //      * White channel convert 8 bit to 16 bit.
-    //      */
-    //     std::vector<cv::Mat> channels;
-    //     channels.resize(3);
-    //     for(auto& [chid, st_img] : task.stitched_img()) {
-    //         auto loc_st_img = st_img.mat().clone();
-    //         if(chid == wh_name) {
-    //             cv::Mat tmp;
-    //             loc_st_img.convertTo(tmp, CV_16UC1, 256);
-    //             loc_st_img = tmp;
-    //         } else {
-    //             loc_st_img = chipimgproc::viewable(loc_st_img, 5000);
-    //         }
-    //         draw_grid(loc_st_img, st_img.gl_x(), st_img.gl_y(), 32767);
-    //         auto ch_filter = channel_params.at(chid)->at("filter").get<int>();
-    //         channels.at(filter_to_color.at(ch_filter)) = loc_st_img;
-    //         cv::imwrite(task.debug_stitch(chid).string(), loc_st_img);
-    //     }
-    //     /* channel may empty, because user may only scan one channel, 
-    //      we need to fill empty channel for merge */
-    //     for(auto& ch : channels) {
-    //         if(ch.empty()) {
-    //             ch = cv::Mat::zeros(
-    //                 cv::Size(channels.at(0).cols, channels.at(0).rows),
-    //                 channels.at(0).type()
-    //             );
-    //         }
-    //         summit::grid::log.info("{},{},{}", ch.rows, ch.cols, ch.type());
-    //     }
-    //     try {
-    //         /*
-    //          * Merge all channel and write to file.
-    //          */
-    //         cv::Mat stitched_grid_all;
-    //         cv::merge(channels, stitched_grid_all);
-    //         cv::imwrite(task.debug_stitch("merged").string(), stitched_grid_all);
-    //     } catch(...) {
-    //         summit::grid::log.error("Stitched and channel merged image generate failed\n"
-    //             "This is because the each channel may not use the same gridding source and when the source is different,\n"
-    //             "the image size will not exactly same.\n"
-    //             "In this case, each channel image is logically unmerge able.\n"
-    //             "This is current algorithm limitation."
-    //         );
-    //     }
-    // }
+        /*
+         * Stitch each probe channel image and write to files.
+         * White channel convert 8 bit to 16 bit.
+         */
+        std::vector<cv::Mat> channels;
+        channels.resize(3);
+        for(auto& [chid, st_img] : task.stitched_img()) {
+            auto loc_st_img = st_img.mat().clone();
+            if(chid == wh_name) {
+                cv::Mat tmp;
+                loc_st_img.convertTo(tmp, CV_16UC1, 256);
+                loc_st_img = tmp;
+            } else {
+                loc_st_img = chipimgproc::viewable(loc_st_img, 5000);
+            }
+            draw_grid(loc_st_img, st_img.gl_x(), st_img.gl_y(), 32767);
+            auto ch_filter = channel_params.at(chid)->at("filter").get<int>();
+            channels.at(filter_to_color.at(ch_filter)) = loc_st_img;
+            cv::imwrite(task.debug_stitch(chid).string(), loc_st_img);
+        }
+        /* channel may empty, because user may only scan one channel, 
+         we need to fill empty channel for merge */
+        for(auto& ch : channels) {
+            if(ch.empty()) {
+                ch = cv::Mat::zeros(
+                    cv::Size(channels.at(0).cols, channels.at(0).rows),
+                    channels.at(0).type()
+                );
+            }
+            summit::grid::log.info("{},{},{}", ch.rows, ch.cols, ch.type());
+        }
+        try {
+            /*
+             * Merge all channel and write to file.
+             */
+            cv::Mat stitched_grid_all;
+            cv::merge(channels, stitched_grid_all);
+            cv::imwrite(task.debug_stitch("merged").string(), stitched_grid_all);
+        } catch(...) {
+            summit::grid::log.error("Stitched and channel merged image generate failed\n"
+                "This is because the each channel may not use the same gridding source and when the source is different,\n"
+                "the image size will not exactly same.\n"
+                "In this case, each channel image is logically unmerge able.\n"
+                "This is current algorithm limitation."
+            );
+        }
+    }
     /**
      * @brief Run chip level process.
      * @details See @ref chip-level-process "Chip level process" for more details.
@@ -567,29 +586,29 @@ struct Chip {
             })
             | nucleona::range::p_endp(executor)
             ;
-            // task.grid_log()["input"] = task.model().input().string();
-            // task.grid_log()["chip_dir"] = task.chip_dir().string();
-            // task.grid_log()["output_formats"] = task.model().FormatDecoder::to_string();
-            // task.grid_log()["output"] = task.model().output().string();
+            task.grid_log()["input"] = task.model().input().string();
+            task.grid_log()["chip_dir"] = task.chip_dir().string();
+            task.grid_log()["output_formats"] = task.model().FormatDecoder::to_string();
+            task.grid_log()["output"] = task.model().output().string();
             // task.grid_log()["no_bgp"] = task.model().no_bgp();
             // task.grid_log()["method"] = task.model().method();
-            // task.grid_log()["shared_dir"] = task.model().shared_dir_path().string();
-            // task.grid_log()["secure_dir"] = task.model().secure_dir_path().string();
-            // task.grid_log()["marker_append"] = task.model().marker_append();
-            // task.grid_log()["auto_gridding"] = task.model().auto_gridding();
-            // task.grid_log()["version"] = summit::grid::version().to_string();
-            // task.summary_channel_log();
-            // task.model().heatmap_writer().flush();
-            // if(task.grid_bad()) {
-            //     debug_throw(
-            //         std::runtime_error(
-            //             "several channel gridding failed, stop process(gridline image not generated)"
-            //         )
-            //     );
-            // }
-            // if(task.model().debug() >= 4) {
-            //     gridline_debug_image_proc(task);
-            // }
+            task.grid_log()["shared_dir"] = task.model().shared_dir_path().string();
+            task.grid_log()["secure_dir"] = task.model().secure_dir_path().string();
+            task.grid_log()["marker_append"] = task.model().marker_append();
+            task.grid_log()["auto_gridding"] = task.model().auto_gridding();
+            task.grid_log()["version"] = summit::grid::version().to_string();
+            task.summary_channel_log();
+            task.model().heatmap_writer().flush();
+            if(task.grid_bad()) {
+                debug_throw(
+                    std::runtime_error(
+                        "several channel gridding failed, stop process(gridline image not generated)"
+                    )
+                );
+            }
+            if(task.model().debug() >= 4) {
+                gridline_debug_image_proc(task);
+            }
 
         } catch( const std::exception& e ) {
             summit::grid::log.error("grid failed with reason: {}", e.what());

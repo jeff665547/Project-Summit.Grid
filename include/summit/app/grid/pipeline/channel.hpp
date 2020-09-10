@@ -103,13 +103,9 @@ constexpr struct Channel {
             channel.heatmap_writer()(channel.multi_warped_mat());
 
             // stitch image
-            std::vector<cv::Point> std_rum_st_pts;
+            auto& std_rum_st_pts = task.stitched_points_rum();
             std::vector<cv::Mat> std_rum_imgs;
             for(auto [fov_id, st_pts_cl] : task.stitched_points_cl()) {
-                std_rum_st_pts.emplace_back(
-                    std::round(fov_id.x * (task.fov_wd() * task.cell_wd_rum())),
-                    std::round(fov_id.y * (task.fov_hd() * task.cell_hd_rum()))
-                );
                 std_rum_imgs.push_back(
                     fov_mods.at(fov_id).std_img()
                 );
@@ -123,14 +119,29 @@ constexpr struct Channel {
             auto r_st_img_path = channel.stitch_image("raw");
             cv::imwrite(r_st_img_path.string(), stitched_img);
 
-            // // gridline
-            // std::ofstream gl_file(channel.gridline().string());
-            // Utils::write_gl(gl_file, grid_image);
-            // channel.set_gridline(grid_image.gl_x(), grid_image.gl_y());
+            std::vector<model::GLID> x_gl(task.spec_w_cl() + 1);
+            std::vector<model::GLID> y_gl(task.spec_h_cl() + 1);
+            for(model::GLID i = 0; i <= task.spec_w_cl(); i ++) {
+                x_gl[i] = i * task.cell_wd_rum();
+            }
+            for(model::GLID i = 0; i <= task.spec_h_cl(); i ++) {
+                y_gl[i] = i * task.cell_hd_rum();
+            }
+            model::GLRawImg stitched_grid_img(
+                stitched_img, task.gl_x_rum(), task.gl_y_rum()
+            );
 
-            // channel.set_stitched_img(std::move(stitched_img));
+            // gridline
+            std::ofstream gl_file(channel.gridline().string());
+            Utils::write_gl(gl_file, stitched_grid_img);
+            channel.set_gridline(
+                stitched_grid_img.gl_x(), 
+                stitched_grid_img.gl_y()
+            );
 
-            // // background
+            channel.set_stitched_img(std::move(stitched_grid_img));
+
+            // // TODO: background
             // Utils::FOVMap<float> bg_value;
             // for(auto&& p : fov_mods) {
             //     auto& fov_id = p.first;
