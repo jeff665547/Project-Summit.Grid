@@ -295,6 +295,7 @@ class Main
         /*
          * start process pipeline
          */
+        std::atomic<int> exit_code = 0;
         task_groups
         | ranges::view::transform([&](auto&& tg_param){
             auto& rfid = tg_param.first;
@@ -303,13 +304,13 @@ class Main
             task_group.set_model(model);
             task_group.set_rfid(rfid);
             task_group.set_task_ids(task_ids);
-            pipeline::rfid(task_group);
+            exit_code |= pipeline::rfid(task_group);
             return 0;
         })
         | nucleona::range::endp
         ;
         summit::grid::log.info("process done");
-        return 0;
+        return exit_code;
     }
 };
 
