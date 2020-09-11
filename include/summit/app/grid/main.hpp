@@ -220,6 +220,10 @@ class Main
             return false;
         }
     }
+    static int no_cv_error(
+        int status, const char *func_name, const char *err_msg, const char *file_name, int line, void *userdata
+    ) {}
+
     /**
      * @brief Summit.Grid start point.
      * 
@@ -229,6 +233,7 @@ class Main
         /*
          *  set logger level
          */
+        cv::redirectError(no_cv_error);
         summit::grid::log.set_level(std::min(args_.debug, 6));
         chipimgproc::log.set_level(std::max(args_.debug - 1, 0));
         Model model;
