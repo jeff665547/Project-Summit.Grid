@@ -479,7 +479,7 @@ struct Chip {
         //     auto gl_wh_stitch = gl_stitcher(tpl_mtm);
         //     task.set_stitched_img(wh_name, std::move(gl_wh_stitch));
         // }
-        if(channel_params.size() <= 1) {
+        if(channel_params.size() <= (wh_name.empty() ? 0 : 1)) {
             summit::grid::log.warn("no probe channel images provided, unable to generate stitched grid images");
             return ;
         }
@@ -506,11 +506,17 @@ struct Chip {
         }
         /* channel may empty, because user may only scan one channel, 
          we need to fill empty channel for merge */
+        cv::Mat* first_exist_ch = nullptr;
+        for(auto& ch : channels) {
+            if(ch.empty()) continue;
+            first_exist_ch = &ch;
+            break;
+        }
         for(auto& ch : channels) {
             if(ch.empty()) {
                 ch = cv::Mat::zeros(
-                    cv::Size(channels.at(0).cols, channels.at(0).rows),
-                    channels.at(0).type()
+                    cv::Size(first_exist_ch->cols, first_exist_ch->rows),
+                    first_exist_ch->type()
                 );
             }
             summit::grid::log.info("{},{},{}", ch.rows, ch.cols, ch.type());

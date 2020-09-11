@@ -23,6 +23,7 @@ constexpr struct RFID {
      * @return decltype(auto) exit code
      */
     decltype(auto) operator()(model::TaskGroup& task_group) const {
+        int exit_code = 0;
 
         /*
          * declare chip process pipeline
@@ -34,7 +35,6 @@ constexpr struct RFID {
          * pipe tasks to chip process pipeline
          */
         | ranges::view::transform([&](auto&& task_id){
-            int exit_code = 0;
             model::Task task;
             try {
                 /*
@@ -45,20 +45,20 @@ constexpr struct RFID {
                 /*
                  * run chip process pipeline
                  */
-                exit_code = chip(task);
+                exit_code |= chip(task);
             } catch(const std::exception& e) {
                 summit::grid::log.error("BUG: {}", e.what());
                 exit_code = 1;
             }
             task.create_complete_file();
-            return exit_code;
+            return 0;
         })
         /*
          * run each chip sequencially
          */
         | nucleona::range::endp
         ;
-        return 0;
+        return exit_code;
     }
 } rfid;
 

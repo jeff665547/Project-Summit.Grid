@@ -1,5 +1,31 @@
 # ChangeLog
 
+## 1.2.12 - 2020.8.17
+
+- Bugfix: YZ01 4 cornor configuration not complete.
+
+## 1.2.11 - 2020.8.12
+
+- Bugfix: Prevent several debug grid generation failed.
+
+## 1.2.10 - 2020.8.12
+
+- Feature: support YZ01 splited chip.
+
+## 1.2.9 - 2020.8.5
+
+- Bugfix: heatmap output path error.
+
+## 1.2.8 - 2020.7.31
+
+- Bugfix: fix yz01-41, Kenai process failed (configuration file problem)
+- Bugfix: exit code not work
+
+## 1.2.7 - 2020.7.31
+
+- Feature: built-in batch process with inplace mode
+- Feature: add option --force_inplace(-f)
+
 ## 1.2.6 - 2020.7.14
 
 - Merge 1.1.22 update.

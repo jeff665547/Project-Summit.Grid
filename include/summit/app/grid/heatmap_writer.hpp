@@ -216,7 +216,7 @@ public:
         const std::string& filter,
         const model::MWMat& mat 
     ) {
-        auto&& task_id = task.id().string();
+        auto&& task_id = task.id();
         for( auto&& ofm : output_formats_ ) {
             auto heatmap_opath = data_paths.heatmap(
                 task_id, ch, ofm
@@ -238,9 +238,9 @@ public:
             {
                 std::lock_guard<std::mutex> lock(*mux);
                 if(writer->is_write_entire_mat()) {
-                    writer->write(mat, task_id, ch, ch_id, filter);
+                    writer->write(mat, task_id.string(), ch, ch_id, filter);
                 } else {
-                    write_output(task, *writer, task_id, mat, ch, filter);
+                    write_output(task, *writer, task_id.string(), mat, ch, filter);
                 }
             }
         }

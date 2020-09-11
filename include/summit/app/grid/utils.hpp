@@ -17,6 +17,7 @@
 #include "sup_improc_data.hpp"
 #include <optional>
 #include "task_id.hpp"
+#include "is_chip_dir.hpp"
 
 namespace summit::app::grid {
 struct Utils{
@@ -531,7 +532,7 @@ struct Utils{
         return res;
     }
     static bool is_chip_scan( const boost::filesystem::path& path ) {
-        return boost::filesystem::exists( path / "chip_log.json" );
+        return summit::app::grid::is_chip_dir(path);
     }
     static std::vector<boost::filesystem::path> task_paths(
         const boost::filesystem::path& root

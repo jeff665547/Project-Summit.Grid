@@ -124,11 +124,11 @@ struct Task {
         return mk_h_um() * um2px_r;
     }
     auto grid_log_path() const {
-        return model_->task_grid_log(id_.string()).string();
+        return model_->task_grid_log(id_).string();
     }
     auto channel_grid_log_path() const {
         return [this](const auto& chname) {
-            return model_->channel_grid_log(id_.string(), chname).string();
+            return model_->channel_grid_log(id_, chname).string();
         };
     }
     void set_grid_done(bool flag) {
@@ -156,16 +156,16 @@ struct Task {
         const std::string& tag,
         int r, int c, const std::string& ch
     ) const {
-        return model_->fov_image(id_.string(),tag, r, c, ch);
+        return model_->fov_image(id_,tag, r, c, ch);
     }
     auto stitch_image(
         const std::string& tag,
         const std::string& ch 
     ) const {
-        return model_->stitch_image(id_.string(), tag, ch);
+        return model_->stitch_image(id_, tag, ch);
     }
     auto gridline(const std::string& ch_name) const {
-        return model_->gridline(id_.string(), ch_name);
+        return model_->gridline(id_, ch_name);
     }
     void set_proc_time(float time) {
         proc_time_ = time;
@@ -174,10 +174,10 @@ struct Task {
         return model_->in_grid_log().at("channels").at(ch_i);
     }
     void create_complete_file() const {
-        model_->create_complete_file(id_.string());
+        model_->create_complete_file(id_);
     }
     void copy_chip_log() const {
-        std::ofstream grid_cl(model_->grid_chip_log(id_.string()).string());
+        std::ofstream grid_cl(model_->grid_chip_log(id_).string());
         grid_cl << chip_log_;
         grid_cl.close();
         if(!model_->secure_output_enabled()) return ;
@@ -195,7 +195,7 @@ struct Task {
             [](auto&& mat){ return mat; }
         );
         auto path = model().marker_append_path(
-            id_.string(), ""
+            id_, ""
         );
         cv::imwrite(path.string(), wh_mk_append_mat);
     }
@@ -204,7 +204,7 @@ struct Task {
         int r, int c, 
         const std::string& tag
     ) const {
-        return model().debug_img(id().string(), ch_name, r, c, tag);
+        return model().debug_img(id(), ch_name, r, c, tag);
     }
     template<class Str>
     std::function<void(const cv::Mat&)> debug_img_view(
@@ -250,7 +250,7 @@ struct Task {
         stitched_img_[chname] = std::move(glraw_img);
     }
     auto debug_stitch(const std::string& tag = "") {
-        return model().debug_stitch(id().string(), tag);
+        return model().debug_stitch(id(), tag);
     }
     double rum2px_r() const {
         return um2px_r_ / rescale_;
@@ -419,7 +419,6 @@ private:
         // load chipinfo > origin_infer
         origin_infer_      = &chipinfo_->at("origin_infer");
         origin_infer_algo_ = origin_infer_->at("algo");
-        pyramid_level_     = origin_infer_->at("pyramid_level");
 
         // load cell_fov
         fov_               = &summit::config::cell_fov().get_fov_type(chip_info_name_);
@@ -462,6 +461,7 @@ private:
         mk_row_cl_         = sh_mk_pos_cl_->at("row");
         // load chipspec > aruco marker
         if(support_aruco()) {
+            pyramid_level_     = origin_infer_->at("pyramid_level");
 
             // obtain ArUco patterns
             aruco_marker_   = &chipspec_->at("aruco_marker");
