@@ -194,7 +194,9 @@ constexpr struct FOVAG {
             }
             // gridding
             auto grid_view = draw_grid_line(std_mat, task);
-            fov_mod.pch_grid_view()(grid_view);
+            if(fov_mod.pch_grid_view()) {
+                fov_mod.pch_grid_view()(grid_view);
+            }
 
             // write raw result
             auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
