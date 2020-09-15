@@ -134,7 +134,7 @@ stop
 
 Reference:
 
-* [FOV image gridding](#fov-level-process)
+* [FOV image gridding](@ref fov-level-process)
 
 See ChipImgProc:
 
