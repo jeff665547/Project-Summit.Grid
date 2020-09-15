@@ -135,6 +135,17 @@ struct Chip {
             const cv::Point& fov_id
         ) {
             auto mk_regs = aruco_mk_detector(mat, mk_map.get_marker_indices());
+            auto& mk_ids = fov_mk_rel.at(fov_id);
+            std::vector<typename decltype(mk_regs)::value_type> tmp;
+            for(auto mk : mk_regs) {
+                auto& idx = std::get<0>(mk);
+                if(idx < 0) continue;
+                auto pos = mk_map.get_sub(idx);
+                if(mk_ids.count(pos) > 0) {
+                    tmp.push_back(mk);
+                }
+            }
+            mk_regs.swap(tmp);
             summit::grid::log.debug("marker # = {}", mk_regs.size());
             return mk_regs;
         };
