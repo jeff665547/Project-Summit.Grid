@@ -20,6 +20,13 @@ target_link_libraries(${__screw_target}
     Boost::program_options
 
 )
+if(PROFILER)
+    target_compile_definitions(${__screw_target} PUBLIC PROFILER)
+    target_link_libraries(${__screw_target} profiler)
+    if(GNU)
+        target_link_options(${__screw_target} PRIVATE -Wl,--whole-archive)
+    endif()
+endif()
 if(MINGW)
     target_compile_options(${__screw_target} PUBLIC -Wa,-mbig-obj)
 endif()
