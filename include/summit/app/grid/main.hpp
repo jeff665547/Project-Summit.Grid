@@ -20,6 +20,8 @@
 #include "utils.hpp"
 #include "pipeline.hpp"
 
+#include <Nucleona/proftool/gprofiler.hpp>
+
 namespace summit::app::grid{
 
 /**
@@ -230,6 +232,7 @@ class Main
      * @return int exit code, 0 is success, otherwise failed.
      */
     int operator()() {
+        nucleona::proftool::GProfiler profiler("summit-grid-prof.out");
         /*
          *  set logger level
          */
