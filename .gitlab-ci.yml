@@ -16,11 +16,17 @@ Win_CI:
         - ..\stage\bin\summit-app-grid.exe --help
         - mkdir ..\test\secure
         - cd ..
+        - time /t
         - stage\bin\summit-app-grid.exe -n 3 -d 4 -i lib\Summit.Grid-CI-data\banff\25_20171218123658 -o test\secure\banff\25_20171218123658 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - time /t
         - stage\bin\summit-app-grid.exe -n 5 -d 4 -i lib\Summit.Grid-CI-data\yz01\877-09_without96 -o test\secure\yz01\877-09_without96 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - time /t
         - stage\bin\summit-app-grid.exe -n 4 -d 4 -i lib\Summit.Grid-CI-data\yz01-41\185_20200520130056 -o test\secure\yz01-41\185_20200520130056 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - time /t
         - stage\bin\summit-app-grid.exe -n 3 -d 4 -i lib\Summit.Grid-CI-data\lassen\60_C20200528134935 -o test\secure\lassen\60_C20200528134935 -a lib\Summit.Grid-CI-data -e test\secure -m -r cen_file,tsv_probe_list,mat_tiff
+        - time /t
         - stage\bin\summit-app-light_mean.exe -i lib\Summit.Grid-CI-data\yz01\877-09_without96\grid\channels\CY3_750ms\heatmap.csv -o light_mean_AM1E.csv -c yz01 -m AM1E -e light_mean_AM1E_probes.csv
+        - time /t
     only:
         - 1.0.x
         - 1.1.x
