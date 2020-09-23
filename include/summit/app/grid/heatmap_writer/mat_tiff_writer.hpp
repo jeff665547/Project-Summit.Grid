@@ -19,9 +19,15 @@ struct MatTiffWriter
         const std::string& filter
     ) override {
         cv::Mat_<std::uint16_t> res(mat.rows(), mat.cols());
+        auto cell = mat.make_at_result();
         for(int i = 0; i < mat.rows(); i ++) {
             for(int j = 0; j < mat.cols(); j ++) {
-                res(i, j) = std::round(mat.at_cell(i, j).mean);
+                if(!mat.at_cell(cell, i, j)) {
+                    debug_throw(std::runtime_error(
+                        fmt::format("at_cell: ({},{}), unable to access", i, j)
+                    ));
+                }
+                res(i, j) = std::round(cell.mean);
             }
         }
         cv::imwrite(file_path_, res);

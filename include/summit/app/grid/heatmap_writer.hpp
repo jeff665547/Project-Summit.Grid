@@ -178,9 +178,14 @@ private:
         // raw_image_norm(mat);
         
         auto filter = make_filter(filter_type);
+        auto full_cellinfo = mat.make_at_result();
         for( auto r = 0; r < mat.rows(); r ++ ) {
             for( auto c = 0; c < mat.cols(); c ++ ) {
-                auto full_cellinfo = mat.at_cell(r, c);
+                if(!mat.at_cell(full_cellinfo, r, c)) {
+                    debug_throw(std::runtime_error(
+                        fmt::format("at_cell: ({},{}) unable to access", r, c)
+                    ));
+                }
                 cv::Rect mk_reg;
                 int mk_id_x;
                 int mk_id_y;

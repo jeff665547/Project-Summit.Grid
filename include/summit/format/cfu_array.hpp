@@ -5,6 +5,7 @@
 #include <summit/utils/datetime.hpp>
 #include <nlohmann/json.hpp>
 #include <ChipImgProc/multi_warped_mat.hpp>
+#include <summit/exception/debug_throw.hpp>
 namespace summit::format {
 
 cfu::format::chip_sample::Array init_array(
@@ -31,9 +32,14 @@ void push_to_cfu_array(
     // channel.outlier         .reserve(vec_size); 
     channel.raw_pixel_value .reserve(vec_size);    
     channel.cv_value        .reserve(vec_size); 
+    auto cell = multi_warped_mat.make_at_result();
     for(Rows r = 0; r < multi_warped_mat.rows(); r ++ ) {
         for(Cols c = 0; c < multi_warped_mat.cols(); c ++ ) {
-            auto cell = multi_warped_mat.at_cell(r, c);
+            if(!multi_warped_mat.at_cell(cell, r, c)) {
+                debug_throw(std::runtime_error(
+                    fmt::format("at_cell: ({},{}), unable to access", r, c)
+                ));
+            }
             std::vector<int> raw_pixels(
                 cell.patch.template begin<std::uint16_t>(), cell.patch.template end<std::uint16_t>() // NOTE: a little bit dangerous...
             );
