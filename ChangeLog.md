@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 1.3.0 - 2020.10.19
+
+- Bugfix: Lassen marker type swap issue.
+- Feature: Support for new Lassen wafer Lassen chip (L3B, L4C) at fluorescent channel.
+
 ## 1.2.12 - 2020.8.17
 
 - Bugfix: YZ01 4 cornor configuration not complete.
