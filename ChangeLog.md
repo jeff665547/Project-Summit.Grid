@@ -1,9 +1,14 @@
 # ChangeLog
 
+## 1.3.1 - 2020.10.28
+
+- Feature: Support for Sequoia chip (S1C).
+
 ## 1.3.0 - 2020.10.19
 
 - Bugfix: Lassen marker type swap issue.
 - Feature: Support for new Lassen wafer Lassen chip (L3B, L4C) at fluorescent channel.
+- Feature: New gridding algorithm (Grid2).
 
 ## 1.2.12 - 2020.8.17
 
