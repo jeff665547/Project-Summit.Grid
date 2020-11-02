@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.2 - 2020.11.2
+
+- Feature: Support aruco2 and new chip for brighter background
+
 ## 1.3.1 - 2020.10.28
 
 - Feature: Support for Sequoia chip (S1C).
