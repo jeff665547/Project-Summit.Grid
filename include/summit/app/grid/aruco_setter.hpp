@@ -37,13 +37,34 @@ public:
         if(!task.support_aruco()) {
             debug_throw(std::runtime_error("Current task doesn't support ArUco"));
         };
+
+        // ***** for brighter background of aruco2 ***** 
+        double sum(0.0);
+        for (auto&& [_, tuple] : task.white_channel_imgs())
+            sum += cv::sum(std::get<1>(tuple))[0];
+        
+        auto&& mat(std::get<1>(task.white_channel_imgs().cbegin()->second));
+        sum /= mat.rows * mat.cols * task.white_channel_imgs().size();
+        if (sum > 256 || sum < 0)
+        {
+            std::cout << "******************************"
+                      << "background auto-detection fail"
+                      << "******************************";
+        }
+        std::uint8_t bg_color(std::floor(static_cast<std::uint8_t>(sum)));
+        // ***** end *****
+
         auto [templ, mask] = chipimgproc::aruco::create_location_marker(
             task.tm_outer_width(), 
             task.tm_inner_width(), 
             task.tm_padding(),
             task.tm_margin(), 
-            task.um2px_r()
+            task.um2px_r(), 
+            bg_color
         );
+        // try to print templ
+        // cv::imwrite("origin_templ.tiff", templ);
+
         // auto& templ_meta = task.get_marker_patterns("filter", 0).at(0)->meta; 
         // auto w_um = templ_meta.at("w_um").get<int>();
         // auto h_um = templ_meta.at("h_um").get<int>();
