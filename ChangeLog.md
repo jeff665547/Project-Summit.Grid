@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 1.3.3 - 2020.11.17
+
+- Bugfix: More stable for the M/pT marker type at fluorescent channel.
+- Bugfix: More stable for quick scan mode image.
+
 ## 1.3.2 - 2020.11.2
 
 - Feature: Support aruco2 and new chip for brighter background
