@@ -1,5 +1,8 @@
 # ChangeLog
 
+
+- Feature: Support for Westlake chip (W1B).
+
 ## 1.3.2 - 2020.11.2
 
 - Feature: Support aruco2 and new chip for brighter background
