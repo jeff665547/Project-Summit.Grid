@@ -1,6 +1,8 @@
 # ChangeLog
 
+## 1.3.4 - 2020.12.04
 
+- Feature: Automatically judge the scan mode and use different condition to improve gridding accuracy.
 - Feature: Support for Westlake chip (W1B).
 
 ## 1.3.3 - 2020.11.17
