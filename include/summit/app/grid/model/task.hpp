@@ -17,6 +17,7 @@
 #include "type.hpp"
 #include <summit/app/grid/utils.hpp>
 #include "model.hpp"
+#include "scan_mode.hpp"
 
 namespace summit::app::grid::model {
 /**
@@ -279,6 +280,7 @@ struct Task {
     VAR_GET(boost::filesystem::path,        chip_dir            )
     VAR_GET(bool,                           is_img_enc          )
     VAR_GET(double,                         um2px_r             )
+    VAR_GET(std::string,                    scan_mode           )
     VAR_GET(std::string,                    chip_info_name      )
     VAR_GET(std::string,                    chip_spec_name      )
     VAR_GET(float,                          cell_h_um           )
@@ -376,6 +378,11 @@ struct Task {
     VAR_IO(std::vector<cv::Point>,          stitched_points_rum )
     VAR_IO(std::vector<model::GLID>,        gl_x_rum            )
     VAR_IO(std::vector<model::GLID>,        gl_y_rum            )
+
+    VAR_GET(cv::Size2d,                     basic_cover_size    )
+    VAR_IO(double,                          highP_cover_extend_r)
+    VAR_IO(double,                          regu_cover_extend_r )
+    VAR_IO(bool,                            est_regulation      )
 private:
     std::vector<MKRegion>                   mk_regs_cl_;
     
@@ -413,6 +420,7 @@ private:
         chipinfo_          = &chip_log_["chip"];
         is_img_enc_        = chip_log_.at("img_encrypted");
         um2px_r_           = chip_log_.value<double>("um_to_px_coef", -1);
+        scan_mode_         = chip_log_.value<std::string>("scan_mode", "precise");
         chip_info_name_    = chipinfo_->at("name");
         chip_spec_name_    = chipinfo_->at("spec").at("name");
 
@@ -541,6 +549,35 @@ private:
         }
         for(model::GLID i = 0; i <= spec_h_cl(); i ++) {
             gl_y_rum_[i] = i * cell_hd_rum();
+        }
+
+        // auto tmp = ScanMode::from_string(scan_mode_);
+        // Generate scan mode related parameters for ChipImgProc marker detection estimate_bias.
+        set_scan_mode_params(ScanMode::from_string(scan_mode_));
+    }
+    void set_scan_mode_params(const ScanMode::Modes& mode) {
+        double basic_multiplying_factor = 14.3;
+        double basic_sd = 7.74;
+        basic_cover_size_.width = basic_multiplying_factor * basic_sd;
+        basic_cover_size_.height = basic_multiplying_factor * basic_sd;
+        switch(mode) {
+            case ScanMode::precise:
+                est_regulation_ = true;
+                regu_cover_extend_r_ = 0.1;
+                highP_cover_extend_r_ = 2.3;
+                break;
+            case ScanMode::regular:
+                est_regulation_ = false;
+                highP_cover_extend_r_ = 2.3;
+                break;
+            case ScanMode::quick:
+                est_regulation_ = false;
+                highP_cover_extend_r_ = 2.3;
+                break;
+            case ScanMode::unknown:
+                est_regulation_ = true;
+                regu_cover_extend_r_ = 0.0;
+                highP_cover_extend_r_ = 2.3;
         }
     }
 };

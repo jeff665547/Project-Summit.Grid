@@ -147,7 +147,11 @@ constexpr struct FOVAG {
                     task.um2px_r()
                 );
                 auto [bias, score] = cmk_det::estimate_bias(
-                    mat, templ, mask, mk_pos_spec, wh_warp_mat
+                    mat, templ, mask, mk_pos_spec, wh_warp_mat, 
+                    task.basic_cover_size(),
+                    task.highP_cover_extend_r(),
+                    task.est_regulation(),
+                    task.regu_cover_extend_r()
                 );
                 if(res_score < score) {
                     res_score = score;
