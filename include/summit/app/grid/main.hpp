@@ -23,19 +23,32 @@
 #include <Nucleona/proftool/gprofiler.hpp>
 
 /**
- * 1. Upsampling white light image then using template to detect white light aruco marker position
- * 2. Identified aruco code to exclude those binary code not match current chip
- * 3. Finly search marker again to calculate warp matrix, thus the invert warp matrix can rotate 
- *    tilt image back
- * 4. Using aruco marker positions and invert warp matrix to check the bias between white light and 
- *    current channel light
- * 5. Using the bias to modify warp matrix to make it much more fit current image, then apply it to 
- *    image to get a standard image
- * 6. By using the value in spec, cropping image and draw grid line can be done
- * 7. For each cell in every fov, find a fixed size regtangle in it whose covariance is greatest, 
- *    then using the mean value of the regtangle to represent this cell, thus heatmap is generated
- * 8. By using marker as ancher, stitch all fov to get stitched chip image
- * 9. Output heatmap and stitched image
+ * Bright-field Gridding Process
+ * 
+ * 0. Load chip images, parameters and configs.
+ * 1. Downsample bright field (white channel) images and identify positions of 
+ *    ArUco code surrounded by rectangle markers.
+ * 2. Filter ArUco code to exclude those who should not be shown in the current 
+ *    FOV (field of vision).
+ * 3. Search Aruco marker again to estimate the warp matrix for calculating the
+ *    rotation angle and getting the relationship between bright-field images 
+ *    and the theoretical GDS spec for the corresponding chip type.
+ * 4. Estimate the bias between white channel and current probe channel 
+ *    (fluorescence) by using the bright-filed warp matrix.
+ * 5. Add the bias to the bright-filed warp matrix to get the true position of 
+ *    the fluorescent markers and probes due to the invariant of the ratation 
+ *    degree among bright-filed images and fluorescent images.
+ * 6. By using the information from the updated warp matrix and the theoretical 
+ *    GDS spec, grid line can be known and can be mapped into any pixel and 
+ *    subpixel domain.
+ * 7. For each cell (feature/probe) in every fov, find a fixed size rectangle 
+ *    whose coefficient of variation is the smallest to calculate the heatmap 
+ *    intensity (mean value of that cell) for the corresponding probe.
+ * 8. Rotate and crop the tilt images. Use marker as ancher, stitch all fovs to 
+ *    get stitched chip image.
+ * 9. Output heatmap, stitched images, and all other images for debug and shown 
+ *    only.
+ * 
  */
 namespace summit::app::grid{
 
