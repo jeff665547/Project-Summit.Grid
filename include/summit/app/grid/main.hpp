@@ -22,6 +22,21 @@
 
 #include <Nucleona/proftool/gprofiler.hpp>
 
+/**
+ * 1. Upsampling white light image then using template to detect white light aruco marker position
+ * 2. Identified aruco code to exclude those binary code not match current chip
+ * 3. Finly search marker again to calculate warp matrix, thus the invert warp matrix can rotate 
+ *    tilt image back
+ * 4. Using aruco marker positions and invert warp matrix to check the bias between white light and 
+ *    current channel light
+ * 5. Using the bias to modify warp matrix to make it much more fit current image, then apply it to 
+ *    image to get a standard image
+ * 6. By using the value in spec, cropping image and draw grid line can be done
+ * 7. For each cell in every fov, find a fixed size regtangle in it whose covariance is greatest, 
+ *    then using the mean value of the regtangle to represent this cell, thus heatmap is generated
+ * 8. By using marker as ancher, stitch all fov to get stitched chip image
+ * 9. Output heatmap and stitched image
+ */
 namespace summit::app::grid{
 
 /**
