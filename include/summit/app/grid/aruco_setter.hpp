@@ -47,9 +47,9 @@ public:
         sum /= mat.rows * mat.cols * task.white_channel_imgs().size();
         if (sum > 256 || sum < 0)
         {
-            std::cout << "******************************"
-                      << "background auto-detection fail"
-                      << "******************************";
+            summit::grid::log.warn( "******************************\n"
+                                    "background auto-detection fail\n"
+                                    "******************************\n");
         }
         std::uint8_t bg_color(std::floor(static_cast<std::uint8_t>(sum)));
         // ***** end *****
