@@ -1,5 +1,7 @@
 # ChangeLog
 
+- Log: Output warning message to logger instead of stdout
+
 ## 1.3.4 - 2020.12.04
 
 - Feature: Automatically judge the scan mode and use different condition to improve gridding accuracy.
