@@ -113,17 +113,21 @@ constexpr struct FOVAG {
      */
     bool operator()(model::FOV& fov_mod) const {
         using namespace __alias;
-        auto& channel     = fov_mod.channel();
-        auto& fov_id      = fov_mod.fov_id();
-        auto& path        = fov_mod.src_path();
-        auto  mat         = fov_mod.src().clone();
-        auto& f_grid_log  = fov_mod.grid_log();
-        auto& grid_bad    = fov_mod.proc_bad();
-        auto& grid_done   = fov_mod.proc_done();
-        auto& task        = fov_mod.channel().task();
-        auto& wh_mk_pos   = task.fov_wh_mk_pos().at(fov_id);
-        auto& mk_pos_spec = task.fov_mk_pos_spec().at(fov_id);
-        auto& wh_warp_mat = task.white_warp_mat().at(fov_id);
+        auto& channel       = fov_mod.channel();
+        auto& fov_id        = fov_mod.fov_id();
+        auto& path          = fov_mod.src_path();
+        auto  mat           = fov_mod.src().clone();
+        auto& f_grid_log    = fov_mod.grid_log();
+        auto& grid_bad      = fov_mod.proc_bad();
+        auto& grid_done     = fov_mod.proc_done();
+        auto& task          = fov_mod.channel().task();
+        // auto& wh_mk_pos    = task.fov_wh_mk_pos().at(fov_id);
+        // auto& wh_warp_mat  = task.white_warp_mat().at(fov_id);
+        auto& ref_from_wh   = task.ref_from_white_ch(); 
+        auto& ref_successes = task.fov_ref_ch_successes().at(fov_id);
+        auto& ref_mk_pos    = task.fov_ref_ch_mk_pos().at(fov_id);
+        auto& ref_warp_mat  = task.ref_ch_warp_mat().at(fov_id);
+        auto& mk_pos_spec   = task.fov_mk_pos_spec().at(fov_id);
         auto log_prefix  = fmt::format("[{}-{}-({},{})]", 
             task.id().chip_id(), channel.ch_name(), fov_id.x, fov_id.y
         );
@@ -146,20 +150,33 @@ constexpr struct FOVAG {
                     task.space_um(),
                     task.um2px_r()
                 );
-                auto [bias, score] = cmk_det::estimate_bias(
-                    mat, templ, mask, mk_pos_spec, wh_warp_mat, 
-                    task.basic_cover_size(),
-                    task.highP_cover_extend_r(),
-                    task.est_regulation(),
-                    task.regu_cover_extend_r()
-                );
-                if(res_score < score) {
-                    res_score = score;
-                    res_bias = bias;
+                
+                if(!ref_from_wh){
+
+                    // fluorescent process: deal with ref_warp_mat for first-staged finding marker failed.
+                    
+                }else{
+                    if(task.est_bias()){
+                        auto [bias, score] = cmk_det::estimate_bias(
+                            mat, templ, mask, mk_pos_spec, ref_warp_mat, 
+                            task.global_search(),
+                            task.basic_cover_size(),
+                            task.highP_cover_extend_r(),
+                            task.est_bias_regulation(),
+                            task.regu_cover_extend_r()
+                        );
+                        if(res_score < score) {
+                            res_score = score;
+                            res_bias = bias;
+                        }
+                    }else{
+                        res_bias.x = 0;
+                        res_bias.y = 0;
+                    }
                 }
             }
             summit::grid::log.info("bias: ({}, {})", res_bias.x, res_bias.y);
-            auto warp_mat = wh_warp_mat.clone();
+            auto warp_mat = ref_warp_mat.clone();
             {
                 auto _bias = res_bias;
                 cimp::typed_mat(warp_mat, [&_bias](auto& mat){

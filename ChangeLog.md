@@ -1,6 +1,10 @@
 # ChangeLog
 
-- Log: Output warning message to logger instead of stdout
+## 1.3.5 - 2020.12.25
+
+- Feature: Adapt codes of BF image process to for the fluorescent image process.
+- Feature: Set "unknown" and "abandoned" scan mode to run default estimate_bias and use reference marker position respectively.
+- Log: Output warning message to logger instead of stdout.
 
 ## 1.3.4 - 2020.12.04
 

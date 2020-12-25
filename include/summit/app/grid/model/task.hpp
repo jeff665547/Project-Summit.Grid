@@ -41,6 +41,9 @@ struct Task {
     void set_white_channel_imgs(Utils::FOVImages<std::uint8_t>&& wci) {
         white_channel_imgs_ = std::move(wci);
     }
+    void set_probe_channel_imgs(Utils::FOVImages<std::uint16_t>&& pci) {
+        probe_channel_imgs_ = std::move(pci);
+    }
     void set_rot_degree(const std::optional<float>& _rot_degree) {
         rot_degree_ = _rot_degree;
     }
@@ -293,6 +296,7 @@ struct Task {
     VAR_GET(int,                            fov_wd              )
     VAR_GET(int,                            fov_hd              )
     VAR_GET(Utils::FOVImages<std::uint8_t>, white_channel_imgs  )
+    VAR_GET(Utils::FOVImages<std::uint16_t>,probe_channel_imgs  )
     VAR_GET(std::int32_t,                   pyramid_level       )
     VAR_GET(std::int32_t,                   border_bits         )
     VAR_GET(std::int32_t,                   fringe_bits         )
@@ -366,10 +370,15 @@ struct Task {
 
     VAR_GET(ChnMap<OptMTMat>,               multi_tiled_mat     )
     VAR_GET(ChnMap<GLRawImg>,               stitched_img        )
+    VAR_IO(Utils::FOVMap<bool>,             fov_ref_ch_successes)
     VAR_IO(Utils::FOVMap<cv::Mat>,          white_warp_mat      )
+    VAR_IO(Utils::FOVMap<cv::Mat>,          ref_ch_warp_mat     )
     VAR_IO(Utils::FOVMap<
         std::vector<cv::Point2d>
     >,                                      fov_wh_mk_pos       )
+    VAR_IO(Utils::FOVMap<
+        std::vector<cv::Point2d>
+    >,                                      fov_ref_ch_mk_pos   )
     VAR_IO(Utils::FOVMap<
         std::vector<cv::Point2d>
     >,                                      fov_mk_pos_spec     )
@@ -382,7 +391,10 @@ struct Task {
     VAR_GET(cv::Size2d,                     basic_cover_size    )
     VAR_IO(double,                          highP_cover_extend_r)
     VAR_IO(double,                          regu_cover_extend_r )
-    VAR_IO(bool,                            est_regulation      )
+    VAR_IO(bool,                            est_bias            )
+    VAR_IO(bool,                            est_bias_regulation )
+    VAR_IO(bool,                            global_search       )
+    VAR_IO(bool,                            ref_from_white_ch   )
 private:
     std::vector<MKRegion>                   mk_regs_cl_;
     
@@ -562,22 +574,32 @@ private:
         basic_cover_size_.height = basic_multiplying_factor * basic_sd;
         switch(mode) {
             case ScanMode::precise:
-                est_regulation_ = true;
+                est_bias_ = true;
+                global_search_ = false;
+                est_bias_regulation_ = true;
                 regu_cover_extend_r_ = 0.1;
                 highP_cover_extend_r_ = 2.3;
                 break;
             case ScanMode::regular:
-                est_regulation_ = false;
+                est_bias_ = true;
+                global_search_ = false;
+                est_bias_regulation_ = false;
                 highP_cover_extend_r_ = 2.3;
                 break;
             case ScanMode::quick:
-                est_regulation_ = false;
+                est_bias_ = true;
+                global_search_ = false;
+                est_bias_regulation_ = false;
                 highP_cover_extend_r_ = 2.3;
                 break;
             case ScanMode::unknown:
-                est_regulation_ = true;
-                regu_cover_extend_r_ = 0.0;
-                highP_cover_extend_r_ = 2.3;
+                est_bias_ = true;
+                global_search_ = true;
+                est_bias_regulation_ = false;
+                break;
+            case ScanMode::abandoned:
+                est_bias_ = false;
+                break;
         }
     }
 };

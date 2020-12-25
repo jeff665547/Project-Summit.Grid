@@ -531,6 +531,30 @@ struct Utils{
         }
         return res;
     }
+    template<class Channel>
+    static FOVImages<std::uint16_t> read_probe_channel(
+        const std::string&              ch_name,
+        const boost::filesystem::path&  src_path,
+        const std::vector<cv::Point>&   fov_ids,
+        bool                            img_enc,
+        const Paths&                    data_paths
+    ) {
+        if(ch_name.empty()) return {};
+        FOVImages<std::uint16_t> res;
+        for(auto&& fov_id : fov_ids){
+            std::stringstream ss;
+            ss << std::to_string(fov_id.y) << '-'
+               << std::to_string(fov_id.x) << '-'
+               << ch_name
+            ;
+            auto img_path = src_path / ss.str();
+            cv::Mat_<std::uint16_t> img = Utils::imread(
+                img_path.string(), img_enc, data_paths
+            );
+            res[cv::Point(fov_id.x, fov_id.y)] = std::make_tuple(img_path, img);
+        }
+        return res;
+    }
     static bool is_chip_scan( const boost::filesystem::path& path ) {
         return summit::app::grid::is_chip_dir(path);
     }

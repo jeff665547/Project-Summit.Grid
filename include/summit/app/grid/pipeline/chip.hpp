@@ -109,9 +109,9 @@ struct Chip {
         auto aruco_mk_detector = aruco_setter(task);
 
         auto& fov_marker_num = task.fov_marker_num();
-        std::vector<float> rot_degs (task.white_channel_imgs().size());
-        std::vector<bool>  success  (task.white_channel_imgs().size());
         Utils::FOVMarkerRegionMap                 fov_marker_regs;
+        Utils::FOVMap<bool>                       fov_wh_successes;
+        Utils::FOVMap<float>                      fov_rot_degs;
         Utils::FOVMap<cv::Mat>                    fov_mk_append;
         Utils::FOVMap<cv::Mat>                    fov_white_warp_mat;
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_wh_mk_pos;
@@ -125,6 +125,8 @@ struct Chip {
         auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
             fov_marker_regs[fov_id] = {};
+            fov_wh_successes[fov_id] = {};
+            fov_rot_degs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
             fov_wh_mk_pos[fov_id] = {};
             fov_mk_pos_spec[fov_id] = {};
@@ -197,8 +199,8 @@ struct Chip {
                 // );
 
                 /* count theta */
-                rot_degs.at(i) = chipimgproc::rotation::from_warp_mat(warp_mat);
-                summit::grid::log.debug("white channel, fov id:({}, {}) theta: {}", fov_id.x, fov_id.y, rot_degs.at(i));
+                fov_rot_degs.at(fov_id) = chipimgproc::rotation::from_warp_mat(warp_mat);
+                summit::grid::log.debug("white channel, fov id:({}, {}) theta: {}", fov_id.x, fov_id.y, fov_rot_degs.at(fov_id));
 
                 cv::Mat iwarp_mat;
                 cv::Mat std_mat;
@@ -220,16 +222,16 @@ struct Chip {
                 if(model.marker_append()) {
                     fov_mk_append.at(fov_id) = fov_wh_mk_append;
                 }
-                fov_marker_regs.at(fov_id) = std::move(mk_regs);
-                fov_wh_mk_pos.at(fov_id)   = std::move(mk_pos_px);
-                fov_mk_pos_spec.at(fov_id) = std::move(mk_pos_rum);
-                success.at(i)  = true;
+                fov_marker_regs.at(fov_id)  = std::move(mk_regs);
+                fov_wh_mk_pos.at(fov_id)    = std::move(mk_pos_px);
+                fov_mk_pos_spec.at(fov_id)  = std::move(mk_pos_rum);
+                fov_wh_successes.at(fov_id) = true;
             } catch (...) {
                 summit::grid::log.error(
                     "white channel, fov id:({}, {}) process failed", 
                     fov_id.x, fov_id.y
                 );
-                success.at(i) = false;
+                fov_wh_successes.at(fov_id) = false;
             }
             summit::grid::log.debug("white channel, fov id:({}, {}) end process", fov_id.x, fov_id.y);
             return 0;
@@ -240,8 +242,8 @@ struct Chip {
         summit::grid::log.debug("white channel FOVs process done");
 
         std::size_t success_num = 0;
-        for(auto f : success) {
-            if(f) success_num ++;
+        for(auto f = fov_wh_successes.begin(); f != fov_wh_successes.end(); f++) {
+            if(f->second) success_num ++;
         }
         if(success_num == 0) {
             debug_throw(std::runtime_error("white marker process failed"));
@@ -252,15 +254,19 @@ struct Chip {
         );
 
         /* consensus */
-        rot_degs = rot_degs 
-            | nr::indexed() 
-            | ranges::view::filter([&](auto&& p ){ return success.at(p.first); }) 
-            | nr::transformed([&](auto&& p){ return p.second; })
+        auto rot_degs = fov_wh_successes 
+            | ranges::view::filter([&](auto&& p ){ return p.second; }) 
+            | nr::transformed([&](auto&& p){ return fov_rot_degs.at(p.first); })
             | ranges::to_vector
         ;
         auto rot_deg = Utils::mean(rot_degs);
-        task.set_white_warp_mat(std::move(fov_white_warp_mat));
-        task.set_fov_wh_mk_pos(std::move(fov_wh_mk_pos));
+        task.set_ref_from_white_ch(true);
+        std::cout << task.ref_from_white_ch() << std::endl;
+        task.set_ref_ch_warp_mat(std::move(fov_white_warp_mat));
+        task.set_fov_ref_ch_mk_pos(std::move(fov_wh_mk_pos));
+        task.set_fov_ref_ch_successes(std::move(fov_wh_successes));
+        // task.set_white_warp_mat(std::move(fov_white_warp_mat));
+        // task.set_fov_wh_mk_pos(std::move(fov_wh_mk_pos));
         task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
         task.set_rot_degree(rot_deg);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
@@ -358,6 +364,61 @@ struct Chip {
      * @return false Current implementation won't return false.
      */
     // bool probe_channel_proc(model::Task& task) const {
+        // namespace nr = nucleona::range;
+        // using namespace __alias;
+        
+        // int sampled_fov_row   = task.fov_rows() / 2;
+        // int sampled_fov_col   = task.fov_cols() / 2;
+        // auto [ch_i, ch]       = task.first_probe_channel();
+        // auto pb_ch_name       = ch["name"].get<std::string>();
+        // std::vector<cv::Point> fov_ids{{sampled_fov_col, sampled_fov_row}, {0, 0}};
+        
+        // task.set_probe_channel_imgs(Utils::read_probe_channel(
+        //     pb_ch_name,
+        //     task.chip_dir(),
+        //     fov_ids,
+        //     task.is_img_enc(),
+        //     task.model()
+        // ));
+
+        // auto& executor       = task.model().executor();
+        // auto& model          = task.model();
+        // auto& fov_marker_num = task.fov_marker_num();
+        
+        // std::vector<float> rot_degs (task.probe_channel_imgs().size());
+        // std::vector<bool>  success  (task.probe_channel_imgs().size());
+        // Utils::FOVMarkerRegionMap                   fov_marker_regs;
+        // Utils::FOVMap<cv::Mat>                      fov_mk_append;
+        // Utils::FOVMap<cv::Mat>                      fov_probe_warp_mat;
+        // Utils::FOVMap<std::vector<cv::Point2d>>     fov_pb_mk_pos;
+        // Utils::FOVMap<std::vector<cv::Point2d>>     fov_mk_pos_spec;
+        // std::vector<cv::Mat>                        fov_rum_imgs(task.probe_channel_imgs().size());
+
+        // auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
+        // // Initialization
+        // for(auto&& [fov_id, mat] : task.probe_channel_imgs()) {
+        //     fov_marker_regs[fov_id] = {};
+        //     fov_mk_append[fov_id] = cv::Mat();
+        //     fov_wh_mk_pos[fov_id] = {};
+        //     fov_mk_pos_spec[fov_id] = {};
+        //     fov_white_warp_mat[fov_id] = cv::Mat();
+        // }
+        // auto mk_det = [&, this](
+        //     cv::Mat mat,
+        //     const cv::Point& fov_id
+        // ) {
+        //     auto mk_regs = mk_detector();
+        //     auto& mk_ids = fov_mk_rel.at(fov_id);
+        //     std::vector<typename decltype(mk_regs)::value_type> tmp;
+        //     for(auto mk : mk_regs) {
+        //         auto& idx = std::get<0>(mk);
+        //         if(idx < 0) continue;
+        //     }
+        // };
+
+        // summit::grid::log.debug("white channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
+
+
     //     using namespace __alias;
     //     cmk_det::RegMat probe_mk_detector       ;
     //     int  sel_fov_row = task.fov_rows() / 2;

@@ -23,7 +23,8 @@ struct ScanMode {
         precise,
         regular,
         quick,
-        unknown
+        unknown,
+        abandoned
     };
     /**
      * @brief Convert string to scan mode.
@@ -33,9 +34,11 @@ struct ScanMode {
      */
     static Modes from_string(const std::string& str) {
         static std::map<std::string, Modes> mapper {
-            {"precise"    , precise },
-            {"regular"    , regular },
-            {"quick"      , quick   }
+            {"precise"    , precise   },
+            {"regular"    , regular   },
+            {"quick"      , quick     },
+            {"unknown"    , unknown   },
+            {"abandoned"  , abandoned }
         };
         try {
             return mapper.at(str);
@@ -52,9 +55,11 @@ struct ScanMode {
      */
     static std::string to_string(const Modes& mode) {
         static std::map<Modes, std::string> mapper {
-            { precise,  "precise" },
-            { regular,  "regular" },
-            { quick,    "quick"   }  
+            { precise,   "precise"   },
+            { regular,   "regular"   },
+            { quick,     "quick"     },
+            { unknown,   "unknown"   },
+            { abandoned, "abandoned" }  
         };
         try {
             return mapper.at(mode);
