@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.6 - 2021.01.05
+
+- Bugfix: Bugfix for one-pixel shifting issue ("precise", "quick", and "regular" scan mode) in ChipImgProc.
+
 ## 1.3.5 - 2020.12.25
 
 - Feature: Adapt codes of BF image process to for the fluorescent image process.
