@@ -103,33 +103,40 @@ constexpr struct Channel {
             channel.heatmap_writer()(channel.multi_warped_mat());
 
             // stitch image
-            auto& std_rum_st_pts = task.stitched_points_rum();
-            std::vector<cv::Mat> std_rum_imgs;
-            for(auto [fov_id, st_pts_cl] : task.stitched_points_cl()) {
-                std_rum_imgs.push_back(
-                    fov_mods.at(fov_id).std_img()
+            model::GLRawImg stitched_grid_img;
+            if (task.model().debug() >= 4) {
+                auto& std_rum_st_pts = task.stitched_points_rum();
+                std::vector<cv::Mat> std_rum_imgs;
+                for(auto [fov_id, st_pts_cl] : task.stitched_points_cl()) {
+                    std_rum_imgs.push_back(
+                        fov_mods.at(fov_id).std_img()
+                    );
+                }
+                auto stitched_img = chipimgproc::stitch::add(
+                    std_rum_imgs, std_rum_st_pts
                 );
-            }
-            auto stitched_img = chipimgproc::stitch::add(
-                std_rum_imgs, std_rum_st_pts
-            );
-            auto v_st_img = cimp::viewable(stitched_img);
-            auto st_img_path = channel.stitch_image("norm");
-            cv::imwrite(st_img_path.string(), v_st_img);
-            auto r_st_img_path = channel.stitch_image("raw");
-            cv::imwrite(r_st_img_path.string(), stitched_img);
+                auto v_st_img = cimp::viewable(stitched_img);
+                auto st_img_path = channel.stitch_image("norm");
+                cv::imwrite(st_img_path.string(), v_st_img);
+                auto r_st_img_path = channel.stitch_image("raw");
+                cv::imwrite(r_st_img_path.string(), stitched_img);
 
-            std::vector<model::GLID> x_gl(task.spec_w_cl() + 1);
-            std::vector<model::GLID> y_gl(task.spec_h_cl() + 1);
-            for(model::GLID i = 0; i <= task.spec_w_cl(); i ++) {
-                x_gl[i] = i * task.cell_wd_rum();
+                std::vector<model::GLID> x_gl(task.spec_w_cl() + 1);
+                std::vector<model::GLID> y_gl(task.spec_h_cl() + 1);
+                for(model::GLID i = 0; i <= task.spec_w_cl(); i ++) {
+                    x_gl[i] = i * task.cell_wd_rum();
+                }
+                for(model::GLID i = 0; i <= task.spec_h_cl(); i ++) {
+                    y_gl[i] = i * task.cell_hd_rum();
+                }
+                stitched_grid_img.mat() = std::move(stitched_img);
+                stitched_grid_img.gl_x() = task.gl_x_rum();
+                stitched_grid_img.gl_y() = task.gl_y_rum();
             }
-            for(model::GLID i = 0; i <= task.spec_h_cl(); i ++) {
-                y_gl[i] = i * task.cell_hd_rum();
+            else {
+                stitched_grid_img.gl_x() = task.gl_x_rum();
+                stitched_grid_img.gl_y() = task.gl_y_rum();
             }
-            model::GLRawImg stitched_grid_img(
-                stitched_img, task.gl_x_rum(), task.gl_y_rum()
-            );
 
             // gridline
             std::ofstream gl_file(channel.gridline().string());
@@ -151,7 +158,7 @@ constexpr struct Channel {
             // channel.background_writer()(bg_value);
 
             // marker append
-            if(model.marker_append()) {
+            if(model.marker_append() && task.model().debug() >= 4) {
                 channel.mk_append_view()(channel.mk_append_mat());
             }
         } catch (const std::exception& e) {

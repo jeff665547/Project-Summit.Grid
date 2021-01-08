@@ -261,7 +261,7 @@ struct Chip {
         ;
         auto rot_deg = Utils::mean(rot_degs);
         task.set_ref_from_white_ch(true);
-        std::cout << task.ref_from_white_ch() << std::endl;
+        // std::cout << task.ref_from_white_ch() << std::endl;
         task.set_ref_ch_warp_mat(std::move(fov_white_warp_mat));
         task.set_fov_ref_ch_mk_pos(std::move(fov_wh_mk_pos));
         task.set_fov_ref_ch_successes(std::move(fov_wh_successes));
@@ -270,7 +270,7 @@ struct Chip {
         task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
         task.set_rot_degree(rot_deg);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
-        if(model.marker_append()) {
+        if(model.marker_append() && task.model().debug() >= 4) {
             task.collect_fovs_mk_append(fov_mk_append);
         }
         // TODO: um2px_r

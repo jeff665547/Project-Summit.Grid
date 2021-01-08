@@ -104,6 +104,48 @@ constexpr struct FOVAG {
         } 
         return res;
     }
+    void draw_margin(
+        cv::Mat& grid_view, 
+        const model::Task& task, 
+        int cell_w, 
+        int cell_h, 
+        int cell_wd, 
+        int cell_hd, 
+        float seg_rate
+    ) const {
+        const int swin_w(std::round(cell_w * seg_rate)), swin_h(std::round(cell_h * seg_rate));
+        const int swin_size(swin_w * swin_h);
+        double mean, sd;
+        cv::Mat mean_mat, sd_mat;
+        for (int x(task.xi_rum() + 1); x <= grid_view.cols; x += cell_wd) {
+            for (int y(task.xi_rum() + 1); y <= grid_view.rows; y += cell_hd) {
+                //plus 1 on width and height to prevent cut rectangle border off
+                cv::Mat cell(grid_view, cv::Rect2d(x, y, cell_w + 1, cell_h + 1));
+                cv::Point2i min_pos(-1, -1);
+                double min_cv(std::numeric_limits<double>::max());
+                //minus 1 on width and height to get correct value
+                for (int w(0); w < cell.cols - 1 - swin_w + 1; ++w) {
+                    for (int h(0); h < cell.rows - 1 - swin_h + 1 ; ++h) {
+                        cv::Mat swin(cell, cv::Rect2d(w, h, swin_w, swin_h));
+                        cv::meanStdDev(swin, mean_mat, sd_mat);
+
+                        mean = mean_mat.at<double>(0, 0);
+                        // mean = cv::sum(swin)[0] / swin_size;
+                        sd = sd_mat.at<double>(0, 0);
+                        if (min_cv > sd / mean) {
+                            min_cv = sd / mean;
+                            min_pos = {w, h};
+                        }
+                    }
+                }
+
+                cv::rectangle(
+                    cell, cv::Point2d(min_pos.x, min_pos.y), 
+                    cv::Point2d(min_pos.x + swin_w, min_pos.y + swin_h), 65536/2
+                );
+            }
+        }
+    }
     /**
      * @brief Run FOV level gridding process.
      * 
@@ -187,49 +229,60 @@ constexpr struct FOVAG {
             cv::Mat iwarp_mat;
             cv::Mat std_mat;
             cv::invertAffineTransform(warp_mat, iwarp_mat);
-            cv::warpAffine(mat, std_mat, iwarp_mat, cv::Size(
-                std::round(task.fov_w_rum()),
-                std::round(task.fov_h_rum())
-            ));
-            std::vector<cmk_det::MKRegion> mk_regs;
-            cv::Mat_<std::int16_t> mk_map(
-                fov_mod.mk_num().y, 
-                fov_mod.mk_num().x
-            );
-            for(int i = 0; i < fov_mod.mk_num().y; i ++) {
-                for(int j = 0; j < fov_mod.mk_num().x; j ++) {
-                    cmk_det::MKRegion mkr;
-                    mkr.x = (j * task.mk_wd_rum()) + task.xi_rum();
-                    mkr.y = (i * task.mk_hd_rum()) + task.yi_rum();
-                    mkr.width  = task.mk_w_rum();
-                    mkr.height = task.mk_h_rum();
-                    mkr.x_i = j;
-                    mkr.y_i = i;
-                    mk_regs.emplace_back(std::move(mkr));
-                    mk_map(i, j) = i * fov_mod.mk_num().x + j;
+            if (task.model().debug() >= 4) {
+                cv::warpAffine(mat, std_mat, iwarp_mat, cv::Size(
+                    std::round(task.fov_w_rum()),
+                    std::round(task.fov_h_rum())
+                ));
+                
+                std::vector<cmk_det::MKRegion> mk_regs;
+                cv::Mat_<std::int16_t> mk_map(
+                    fov_mod.mk_num().y, 
+                    fov_mod.mk_num().x
+                );
+                for(int i = 0; i < fov_mod.mk_num().y; i ++) {
+                    for(int j = 0; j < fov_mod.mk_num().x; j ++) {
+                        cmk_det::MKRegion mkr;
+                        mkr.x = (j * task.mk_wd_rum()) + task.xi_rum();
+                        mkr.y = (i * task.mk_hd_rum()) + task.yi_rum();
+                        mkr.width  = task.mk_w_rum();
+                        mkr.height = task.mk_h_rum();
+                        mkr.x_i = j;
+                        mkr.y_i = i;
+                        mk_regs.emplace_back(std::move(mkr));
+                        mk_map(i, j) = i * fov_mod.mk_num().x + j;
+                    }
                 }
-            }
-            auto final_mk_seg_view = fov_mod.final_mk_seg_view();
-            if(final_mk_seg_view) {
-                final_mk_seg_view(cmk::view(std_mat, mk_regs));
-            }
-            // gridding
-            auto grid_view = draw_grid_line(std_mat, task);
-            if(fov_mod.pch_grid_view()) {
-                fov_mod.pch_grid_view()(grid_view);
-            }
-
-            // write raw result
-            auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
-            cv::imwrite(fov_raw_path.string(), std_mat);
-
-            if(task.model().marker_append()) {
-                auto mk_append_res = cmk::roi_append(
-                    std_mat, mk_map, mk_regs
+                
+                auto final_mk_seg_view = fov_mod.final_mk_seg_view();
+                if(final_mk_seg_view) {
+                    final_mk_seg_view(cmk::view(std_mat, mk_regs));
+                }
+                // gridding
+                auto grid_view = draw_grid_line(std_mat, task);
+                if(fov_mod.pch_grid_view()) {
+                    fov_mod.pch_grid_view()(grid_view);
+                }
+                // draw min-cv margin
+                draw_margin(
+                    grid_view, task, 
+                    task.cell_w_rum(), task.cell_h_rum(), 
+                    task.cell_wd_rum(), task.cell_hd_rum(), 0.6
                 );
-                fov_mod.set_mk_append(
-                    std::move(mk_append_res)
-                );
+                fov_mod.pch_margin_view()(grid_view);
+
+                // write raw result
+                auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
+                cv::imwrite(fov_raw_path.string(), std_mat);
+
+                if(task.model().marker_append()) {
+                    auto mk_append_res = cmk::roi_append(
+                        std_mat, mk_map, mk_regs
+                    );
+                    fov_mod.set_mk_append(
+                        std::move(mk_append_res)
+                    );
+                }
             }
             chipimgproc::ip_convert(mat, CV_32F);
             auto warped_mat = cimp::make_warped_mat(
@@ -256,6 +309,7 @@ constexpr struct FOVAG {
             //     task.model().method(),
             //     cimp::margin::Param<GridLineID> {
             //         0.6,
+            //         0.17, 
             //         &tiled_mat,
             //         true,
             //         fov_mod.pch_margin_view()
