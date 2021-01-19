@@ -1,5 +1,8 @@
 # ChangeLog
 
+- Feature: Modified structure of warped_mat and other class related to it
+- Feature: Add param about margin to store related parameters
+
 ## 1.3.6 - 2021.01.05
 
 - Bugfix: Bugfix for one-pixel shifting issue ("precise", "quick", and "regular" scan mode) in ChipImgProc.
