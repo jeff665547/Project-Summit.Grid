@@ -45,6 +45,7 @@ hunter_config(
     VERSION "3.4.0-p0"
     CMAKE_ARGS 
         BUILD_SHARED_LIBS=ON
+        CPU_BASELINE=AVX2
         ENABLE_PRECOMPILED_HEADERS=${OpenCV_ENABLE_PRECOMPILED_HEADERS}
 )
 hunter_config(
