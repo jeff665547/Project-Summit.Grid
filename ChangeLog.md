@@ -1,5 +1,10 @@
 # ChangeLog
 
+- Feature: Using bilinear interpolation during getting the ROI from the boundary of the score matrix.
+- Feature: Modified structure of warped_mat and other class related to it for the debug mode.
+- Feature: Add param about margin to store related parameters for the debug mode.
+- Feature: Change the procedure to accelerate processing speed in estimate_bias.hpp.
+
 ## 1.3.6 - 2021.01.05
 
 - Bugfix: Bugfix for one-pixel shifting issue ("precise", "quick", and "regular" scan mode) in ChipImgProc.
