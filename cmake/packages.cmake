@@ -46,6 +46,7 @@ hunter_config(
     CMAKE_ARGS 
         BUILD_SHARED_LIBS=ON
         CPU_BASELINE=AVX2
+        WITH_LAPACK=ON
         ENABLE_PRECOMPILED_HEADERS=${OpenCV_ENABLE_PRECOMPILED_HEADERS}
 )
 hunter_config(
@@ -66,6 +67,13 @@ hunter_config(ChipImgProc
     VERSION ${HUNTER_ChipImgProc_VERSION}
     CMAKE_ARGS
         ENABLE_LOG=ON
+)
+hunter_config(
+    OpenBLAS 
+    VERSION ${HUNTER_OpenBLAS_VERSION}
+    CMAKE_ARGS
+        BUILD_SHARED_LIBS=ON
+        BUILD_TESTS=OFF 
 )
 # hunter_config(ChipImgProc GIT_SUBMODULE "lib/ChipImgProc"
 #     CMAKE_ARGS
