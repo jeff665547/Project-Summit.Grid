@@ -1,5 +1,7 @@
 # ChangeLog
 
+## 1.3.7 - 2021.01.20
+
 - Feature: Using bilinear interpolation during getting the ROI from the boundary of the score matrix.
 - Feature: Modified structure of warped_mat and other class related to it for the debug mode.
 - Feature: Add param about margin to store related parameters for the debug mode.
