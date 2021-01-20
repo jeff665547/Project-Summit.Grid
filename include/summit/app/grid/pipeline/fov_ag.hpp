@@ -104,48 +104,78 @@ constexpr struct FOVAG {
         } 
         return res;
     }
-    void draw_margin(
-        cv::Mat& grid_view, 
-        const model::Task& task, 
-        int cell_w, 
-        int cell_h, 
-        int cell_wd, 
-        int cell_hd, 
-        float seg_rate
-    ) const {
-        const int swin_w(std::round(cell_w * seg_rate)), swin_h(std::round(cell_h * seg_rate));
-        const int swin_size(swin_w * swin_h);
-        double mean, sd;
-        cv::Mat mean_mat, sd_mat;
-        for (int x(task.xi_rum() + 1); x <= grid_view.cols; x += cell_wd) {
-            for (int y(task.xi_rum() + 1); y <= grid_view.rows; y += cell_hd) {
-                //plus 1 on width and height to prevent cut rectangle border off
-                cv::Mat cell(grid_view, cv::Rect2d(x, y, cell_w + 1, cell_h + 1));
-                cv::Point2i min_pos(-1, -1);
-                double min_cv(std::numeric_limits<double>::max());
-                //minus 1 on width and height to get correct value
-                for (int w(0); w < cell.cols - 1 - swin_w + 1; ++w) {
-                    for (int h(0); h < cell.rows - 1 - swin_h + 1 ; ++h) {
-                        cv::Mat swin(cell, cv::Rect2d(w, h, swin_w, swin_h));
-                        cv::meanStdDev(swin, mean_mat, sd_mat);
+    // auto draw_margin(
+    //     cv::Mat& std_mat, 
+    //     const chipimgproc::WarpedMat<true, float>& warped_mat, 
+    //     int clw, int clh, 
+    //     int clwn, int clhn, 
+    //     double seg_rate, 
+    //     double um2px_r
+    // ) const {
+    //     cv::Mat_<std::uint16_t> margin_mat(chipimgproc::viewable(std_mat));
+    //     cv::Mat iwarp_mat;
+    //     int swin_w(std::round(clw * seg_rate * um2px_r));
+    //     int swin_h(std::round(clh * seg_rate * um2px_r));
+    //     clw = std::round(clw * um2px_r);
+    //     clh = std::round(clh * um2px_r);
+    //     cv::invertAffineTransform(warped_mat.warp_mat(), iwarp_mat);
 
-                        mean = mean_mat.at<double>(0, 0);
-                        // mean = cv::sum(swin)[0] / swin_size;
-                        sd = sd_mat.at<double>(0, 0);
-                        if (min_cv > sd / mean) {
-                            min_cv = sd / mean;
-                            min_pos = {w, h};
-                        }
-                    }
-                }
+    //     for (int i(0); i < clhn; ++i) {
+    //         for (int j(0); j < clwn; ++j) {
+    //             auto patch(warped_mat.make_at_result());
+    //             warped_mat.at_cell(patch, i, j);
+    //             cv::Point2d center(patch.img_p);
+    //             // cv::Point2d pos(warped_mat.stat_mats_.min_cv_pos(i, j));
+    //             // std::vector<cv::Point2d> src{pos}, dst(1);
 
-                cv::rectangle(
-                    cell, cv::Point2d(min_pos.x, min_pos.y), 
-                    cv::Point2d(min_pos.x + swin_w, min_pos.y + swin_h), 65536/2
-                );
-            }
-        }
-    }
+    //             // src[0].x -= 0.5;
+    //             // src[0].y -= 0.5;
+    //             // cv::transform(src, dst, iwarp_mat);
+    //             // pos = dst[0];
+    //             // chipimgproc::warped_mat::Patch res;
+    //             // warped_mat.at_cell(res, i, j);
+
+    //             int swin_w_px(swin_w * um2px_r), swin_h_px(swin_h * um2px_r);
+    //             cv::rectangle(
+    //                 margin_mat, center, cv::Point2d(center.x + swin_w_px, center.y + swin_h_px), 65536 / 2
+    //             );
+    //         }
+    //     }
+    //     return margin_mat;
+
+    //     // const int swin_w(std::round(cell_w * seg_rate)), swin_h(std::round(cell_h * seg_rate));
+    //     // const int swin_size(swin_w * swin_h);
+    //     // double mean, sd;
+    //     // cv::Mat mean_mat, sd_mat;
+    //     // for (int x(task.xi_rum() + 1); x <= grid_view.cols; x += cell_wd) {
+    //     //     for (int y(task.xi_rum() + 1); y <= grid_view.rows; y += cell_hd) {
+    //     //         //plus 1 on width and height to prevent cut rectangle border off
+    //     //         cv::Mat cell(grid_view, cv::Rect2d(x, y, cell_w + 1, cell_h + 1));
+    //     //         cv::Point2i min_pos(-1, -1);
+    //     //         double min_cv(std::numeric_limits<double>::max());
+    //     //         //minus 1 on width and height to get correct value
+    //     //         for (int w(0); w < cell.cols - 1 - swin_w + 1; ++w) {
+    //     //             for (int h(0); h < cell.rows - 1 - swin_h + 1 ; ++h) {
+    //     //                 cv::Mat swin(cell, cv::Rect2d(w, h, swin_w, swin_h));
+    //     //                 cv::meanStdDev(swin, mean_mat, sd_mat);
+
+    //     //                 mean = mean_mat.at<double>(0, 0);
+    //     //                 // mean = cv::sum(swin)[0] / swin_size;
+    //     //                 sd = sd_mat.at<double>(0, 0);
+    //     //                 if (min_cv > sd / mean) {
+    //     //                     min_cv = sd / mean;
+    //     //                     min_pos = {w, h};
+    //     //                 }
+    //     //             }
+    //     //         }
+
+    //     //         cv::rectangle(
+    //     //             cell, cv::Point2d(min_pos.x, min_pos.y), 
+    //     //             cv::Point2d(min_pos.x + swin_w, min_pos.y + swin_h), 65536/2
+    //     //         );
+    //     //     }
+    //     // }
+    // }
     /**
      * @brief Run FOV level gridding process.
      * 
@@ -154,6 +184,9 @@ constexpr struct FOVAG {
      * @return false Gridding process is failed, the fail reason will store in grid log.
      */
     bool operator()(model::FOV& fov_mod) const {
+        // std::cout << "start fov_ag\n";
+        // auto tmp_timer(std::chrono::steady_clock::now());
+        std::chrono::duration<double, std::milli> d;
         using namespace __alias;
         auto& channel       = fov_mod.channel();
         auto& fov_id        = fov_mod.fov_id();
@@ -177,7 +210,10 @@ constexpr struct FOVAG {
             "{}: start auto gridding process", 
             log_prefix
         );
+        // d = std::chrono::steady_clock::now() - tmp_timer;
+        // std::cout << "fov init: " << d.count() << " ms\n";
         try {
+            // tmp_timer = std::chrono::steady_clock::now();
             summit::grid::log.info("marker pattern number: {}", channel.sh_mk_pats().size());
             // TODO: case for no white marker
             double res_score = 0.0;
@@ -217,6 +253,8 @@ constexpr struct FOVAG {
                     }
                 }
             }
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "estimate_bias: " << d.count() << " ms\n";
             summit::grid::log.info("bias: ({}, {})", res_bias.x, res_bias.y);
             auto warp_mat = ref_warp_mat.clone();
             {
@@ -229,62 +267,58 @@ constexpr struct FOVAG {
             cv::Mat iwarp_mat;
             cv::Mat std_mat;
             cv::invertAffineTransform(warp_mat, iwarp_mat);
-            if (task.model().debug() >= 4) {
-                cv::warpAffine(mat, std_mat, iwarp_mat, cv::Size(
-                    std::round(task.fov_w_rum()),
-                    std::round(task.fov_h_rum())
-                ));
+            cv::warpAffine(mat, std_mat, iwarp_mat, cv::Size(
+                std::round(task.fov_w_rum()),
+                std::round(task.fov_h_rum())
+            ));
+
+            // write raw result
+            auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
+            cv::imwrite(fov_raw_path.string(), std_mat);
                 
-                std::vector<cmk_det::MKRegion> mk_regs;
-                cv::Mat_<std::int16_t> mk_map(
-                    fov_mod.mk_num().y, 
-                    fov_mod.mk_num().x
-                );
-                for(int i = 0; i < fov_mod.mk_num().y; i ++) {
-                    for(int j = 0; j < fov_mod.mk_num().x; j ++) {
-                        cmk_det::MKRegion mkr;
-                        mkr.x = (j * task.mk_wd_rum()) + task.xi_rum();
-                        mkr.y = (i * task.mk_hd_rum()) + task.yi_rum();
-                        mkr.width  = task.mk_w_rum();
-                        mkr.height = task.mk_h_rum();
-                        mkr.x_i = j;
-                        mkr.y_i = i;
-                        mk_regs.emplace_back(std::move(mkr));
-                        mk_map(i, j) = i * fov_mod.mk_num().x + j;
-                    }
+            std::vector<cmk_det::MKRegion> mk_regs;
+            cv::Mat_<std::int16_t> mk_map(
+                fov_mod.mk_num().y, 
+                fov_mod.mk_num().x
+            );
+            for(int i = 0; i < fov_mod.mk_num().y; i ++) {
+                for(int j = 0; j < fov_mod.mk_num().x; j ++) {
+                    cmk_det::MKRegion mkr;
+                    mkr.x = (j * task.mk_wd_rum()) + task.xi_rum();
+                    mkr.y = (i * task.mk_hd_rum()) + task.yi_rum();
+                    mkr.width  = task.mk_w_rum();
+                    mkr.height = task.mk_h_rum();
+                    mkr.x_i = j;
+                    mkr.y_i = i;
+                    mk_regs.emplace_back(std::move(mkr));
+                    mk_map(i, j) = i * fov_mod.mk_num().x + j;
                 }
-                
+            }
+
+            if (task.model().debug() >= 5) {
+                //mk_seg image
                 auto final_mk_seg_view = fov_mod.final_mk_seg_view();
                 if(final_mk_seg_view) {
                     final_mk_seg_view(cmk::view(std_mat, mk_regs));
                 }
-                // gridding
+                // debug grid image
                 auto grid_view = draw_grid_line(std_mat, task);
                 if(fov_mod.pch_grid_view()) {
                     fov_mod.pch_grid_view()(grid_view);
                 }
-                // draw min-cv margin
-                draw_margin(
-                    grid_view, task, 
-                    task.cell_w_rum(), task.cell_h_rum(), 
-                    task.cell_wd_rum(), task.cell_hd_rum(), 0.6
-                );
-                fov_mod.pch_margin_view()(grid_view);
-
-                // write raw result
-                auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
-                cv::imwrite(fov_raw_path.string(), std_mat);
-
-                if(task.model().marker_append()) {
-                    auto mk_append_res = cmk::roi_append(
-                        std_mat, mk_map, mk_regs
-                    );
-                    fov_mod.set_mk_append(
-                        std::move(mk_append_res)
-                    );
-                }
             }
+
+            if(task.model().marker_append()) {                
+                auto mk_append_res = cmk::roi_append(
+                    std_mat, mk_map, mk_regs
+                );
+                fov_mod.set_mk_append(
+                    std::move(mk_append_res)
+                );
+            }
+
             chipimgproc::ip_convert(mat, CV_32F);
+            // tmp_timer = std::chrono::steady_clock::now();
             auto warped_mat = cimp::make_warped_mat(
                 warp_mat, mat, {task.xi_rum(), task.yi_rum()},
                 task.cell_w_rum(), task.cell_h_rum(),
@@ -293,6 +327,22 @@ constexpr struct FOVAG {
                 0.6, task.rum2px_r(),
                 task.fov_w(), task.fov_h()
             );
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "make_warped_mat: " << d.count() << " ms\n";
+
+            // if (task.model().debug() >= 5) {
+            //     // draw min-cv margin
+            //     auto mat_clone(fov_mod.src().clone());
+            //     auto margin_mat = draw_margin(
+            //         mat_clone, warped_mat, task.cell_w_rum(), task.cell_h_rum(), 
+            //         task.fov_w(), task.fov_h(), 0.6, task.rum2px_r()
+            //     );
+            //     cv::warpAffine(margin_mat, margin_mat, iwarp_mat, cv::Size(
+            //         std::round(task.fov_w_rum()),
+            //         std::round(task.fov_h_rum())
+            //     ));
+            //     fov_mod.pch_margin_view()(margin_mat);
+            // }
 
             // // TODO: bgp
             // auto inty_region = tiled_mat.get_image_roi();
@@ -316,6 +366,7 @@ constexpr struct FOVAG {
             //     }
             // );
             // set_bg(margin_res.stat_mats, tiled_mat, surf);
+            // tmp_timer = std::chrono::steady_clock::now();
             summit::grid::log.warn("currently not handle the background");
 
             // fov_mod.set_tiled_mat(std::move(tiled_mat));
@@ -341,6 +392,8 @@ constexpr struct FOVAG {
             fov_log_id[1] = fov_id.y;
 
             grid_done = true;
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "fov statistic: " << d.count() << " ms\n";
         } catch(const std::exception& e) {
             f_grid_log["grid_fail_reason"] = e.what();
             grid_done = false;
@@ -349,9 +402,15 @@ constexpr struct FOVAG {
                 "channel: {}, FOV: ({},{}) process failed, reason: {}", 
                 channel.ch_name(), fov_id.x, fov_id.y, e.what()
             );
+            if (task.model().debug() >= 6) {
+                std::cerr << "An exception thrown while processing fluor channel, and debug level is the highest, program exit.\n";
+                std::exit(-1);
+            }
         }
         f_grid_log["grid_done"] = grid_done;
         f_grid_log["grid_bad"] = grid_bad;
+
+        // std::cout << "end fov_ag\n";
         return grid_done;
     }
     /**

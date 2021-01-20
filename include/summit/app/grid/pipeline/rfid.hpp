@@ -23,6 +23,8 @@ constexpr struct RFID {
      * @return decltype(auto) exit code
      */
     decltype(auto) operator()(model::TaskGroup& task_group) const {
+        // auto tmp_timer(std::chrono::steady_clock::now());
+        // std::chrono::duration<double, std::milli> d;
         int exit_code = 0;
 
         /*
@@ -58,6 +60,8 @@ constexpr struct RFID {
          */
         | nucleona::range::endp
         ;
+        // d = std::chrono::steady_clock::now() - tmp_timer;
+        // std::cout << "rfid: " << d.count() << " ms\n";
         return exit_code;
     }
 } rfid;

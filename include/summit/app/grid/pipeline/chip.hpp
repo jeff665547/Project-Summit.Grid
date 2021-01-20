@@ -270,7 +270,7 @@ struct Chip {
         task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
         task.set_rot_degree(rot_deg);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
-        if(model.marker_append() && task.model().debug() >= 4) {
+        if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
         }
         // TODO: um2px_r
@@ -617,6 +617,8 @@ struct Chip {
      */
     decltype(auto) operator()(model::Task& task) const {
         using namespace __alias;
+        // auto tmp_timer(std::chrono::steady_clock::now());
+        // std::chrono::duration<double, std::milli> d;
         auto& model = task.model();
         auto& executor = task.model().executor();
         try {
@@ -624,6 +626,8 @@ struct Chip {
                 auto du_ms = std::chrono::duration_cast<std::chrono::milliseconds>(du).count();
                 task.set_proc_time(du_ms / 1000.0);
             });
+            // auto tmp_timer(std::chrono::steady_clock::now());
+            // std::chrono::duration<double, std::milli> d;
             task.grid_log()["date"] = summit::utils::datetime("%Y/%m/%d %H:%M:%S", std::chrono::system_clock::now());
             auto& wh_ch_log = task.grid_log()["white_channel_proc"];
             if(task.model().auto_gridding()) {
@@ -649,6 +653,10 @@ struct Chip {
                 task.set_rot_degree(in_grid_log.at("rotate_degree"));
                 task.set_um2px_r(in_grid_log.at("um_to_pixel_rate"));
             }
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "white: " << d.count() << " ms\n";
+
+            // tmp_timer = std::chrono::steady_clock::now();
             task.grid_log()["rotate_degree"] = task.rot_degree().value();
             // task.grid_log()["um_to_pixel_rate"] = task.um2px_r();
             task.probe_channels()
@@ -664,6 +672,9 @@ struct Chip {
             })
             | nucleona::range::p_endp(executor)
             ;
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "fluro: " << d.count() << " ms\n";
+
             task.grid_log()["input"] = task.model().input().string();
             task.grid_log()["chip_dir"] = task.chip_dir().string();
             task.grid_log()["output_formats"] = task.model().FormatDecoder::to_string();
@@ -684,7 +695,7 @@ struct Chip {
                     )
                 );
             }
-            if(task.model().debug() >= 4) {
+            if(task.model().debug() >= 5) {
                 gridline_debug_image_proc(task);
             }
 
@@ -695,6 +706,8 @@ struct Chip {
         }
         task.write_log();
         task.copy_chip_log();
+        // d = std::chrono::steady_clock::now() - tmp_timer;
+        // std::cout << "chip: " << d.count() << " ms\n";
         if(task.grid_done()) {
             return 0;
         } else {

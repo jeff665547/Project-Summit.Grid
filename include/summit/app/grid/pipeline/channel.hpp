@@ -7,6 +7,8 @@
 #pragma once
 #include <summit/app/grid/model.hpp>
 #include <limits>
+#include <iostream>
+#include <cstdlib>
 #include <summit/app/grid/model/type.hpp>
 #include <ChipImgProc/marker/detection/aruco_reg_mat.hpp>
 #include <ChipImgProc/marker/detection/reg_mat.hpp>
@@ -47,8 +49,8 @@ constexpr struct Channel {
      */
     decltype(auto) operator()(model::Channel& channel) const {
         using namespace __alias;
+        auto& task = channel.task();
         try{
-            auto& task = channel.task();
             auto& model = task.model();
             if(!task.rot_degree_done())
                 throw std::runtime_error("[BUG]: no rotation degree, surrender gridding");
@@ -79,6 +81,9 @@ constexpr struct Channel {
             //     task.fov(),
             //     channel.json()
             // );
+
+            // auto tmp_timer(std::chrono::steady_clock::now());
+            // std::chrono::duration<double, std::milli> d;
             fov_mods
             | ranges::view::transform([&](auto&& fov_id_mod){
                 auto& fov_id = fov_id_mod.first;
@@ -93,51 +98,52 @@ constexpr struct Channel {
                 return 0;
             })
             | nucleona::range::p_endp(executor);
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "fov_ag: " << d.count() << " ms\n";
+
             channel.summary_fov_log(fov_mods);
             if(channel.grid_log().at("grid_bad").get<bool>()) {
                 debug_throw(std::runtime_error("bad process FOV exist, channel process stop collect result"));
             }
             channel.collect_fovs(fov_mods);
 
+            // tmp_timer = std::chrono::steady_clock::now();
             // write heatmap
             channel.heatmap_writer()(channel.multi_warped_mat());
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "heatmap_writer: " << d.count() << " ms\n";
 
             // stitch image
             model::GLRawImg stitched_grid_img;
-            if (task.model().debug() >= 4) {
-                auto& std_rum_st_pts = task.stitched_points_rum();
-                std::vector<cv::Mat> std_rum_imgs;
-                for(auto [fov_id, st_pts_cl] : task.stitched_points_cl()) {
-                    std_rum_imgs.push_back(
-                        fov_mods.at(fov_id).std_img()
-                    );
-                }
-                auto stitched_img = chipimgproc::stitch::add(
-                    std_rum_imgs, std_rum_st_pts
+            auto& std_rum_st_pts = task.stitched_points_rum();
+            std::vector<cv::Mat> std_rum_imgs;
+            for(auto [fov_id, st_pts_cl] : task.stitched_points_cl()) {
+                std_rum_imgs.push_back(
+                    fov_mods.at(fov_id).std_img()
                 );
-                auto v_st_img = cimp::viewable(stitched_img);
-                auto st_img_path = channel.stitch_image("norm");
-                cv::imwrite(st_img_path.string(), v_st_img);
-                auto r_st_img_path = channel.stitch_image("raw");
-                cv::imwrite(r_st_img_path.string(), stitched_img);
-
-                std::vector<model::GLID> x_gl(task.spec_w_cl() + 1);
-                std::vector<model::GLID> y_gl(task.spec_h_cl() + 1);
-                for(model::GLID i = 0; i <= task.spec_w_cl(); i ++) {
-                    x_gl[i] = i * task.cell_wd_rum();
-                }
-                for(model::GLID i = 0; i <= task.spec_h_cl(); i ++) {
-                    y_gl[i] = i * task.cell_hd_rum();
-                }
-                stitched_grid_img.mat() = std::move(stitched_img);
-                stitched_grid_img.gl_x() = task.gl_x_rum();
-                stitched_grid_img.gl_y() = task.gl_y_rum();
             }
-            else {
-                stitched_grid_img.gl_x() = task.gl_x_rum();
-                stitched_grid_img.gl_y() = task.gl_y_rum();
-            }
+            auto stitched_img = chipimgproc::stitch::add(
+                std_rum_imgs, std_rum_st_pts
+            );
+            auto v_st_img = cimp::viewable(stitched_img);
+            auto st_img_path = channel.stitch_image("norm");
+            cv::imwrite(st_img_path.string(), v_st_img);
+            auto r_st_img_path = channel.stitch_image("raw");
+            cv::imwrite(r_st_img_path.string(), stitched_img);
 
+            std::vector<model::GLID> x_gl(task.spec_w_cl() + 1);
+            std::vector<model::GLID> y_gl(task.spec_h_cl() + 1);
+            for(model::GLID i = 0; i <= task.spec_w_cl(); i ++) {
+                x_gl[i] = i * task.cell_wd_rum();
+            }
+            for(model::GLID i = 0; i <= task.spec_h_cl(); i ++) {
+                y_gl[i] = i * task.cell_hd_rum();
+            }
+            stitched_grid_img.mat() = std::move(stitched_img);
+            stitched_grid_img.gl_x() = task.gl_x_rum();
+            stitched_grid_img.gl_y() = task.gl_y_rum();
+
+            // tmp_timer = std::chrono::steady_clock::now();
             // gridline
             std::ofstream gl_file(channel.gridline().string());
             Utils::write_gl(gl_file, stitched_grid_img);
@@ -145,6 +151,8 @@ constexpr struct Channel {
                 stitched_grid_img.gl_x(), 
                 stitched_grid_img.gl_y()
             );
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "gridline: " << d.count() << " ms\n";
 
             channel.set_stitched_img(std::move(stitched_grid_img));
 
@@ -158,7 +166,7 @@ constexpr struct Channel {
             // channel.background_writer()(bg_value);
 
             // marker append
-            if(model.marker_append() && task.model().debug() >= 4) {
+            if(model.marker_append()) {
                 channel.mk_append_view()(channel.mk_append_mat());
             }
         } catch (const std::exception& e) {
@@ -166,6 +174,10 @@ constexpr struct Channel {
             summit::grid::log.error(
                 "channel: {} process failed, reason: {}", channel.ch_name(), e.what()
             );
+            if (task.model().debug() >= 6) {
+                std::cerr << "An exception thrown while processing fluor channel, and debug level is the highest, program exit.\n";
+                std::exit(-1);
+            }
         }
         return !channel.grid_log().at("grid_bad").get<bool>();
     }
