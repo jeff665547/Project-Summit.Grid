@@ -4,6 +4,10 @@
 - Feature: Modified structure of warped_mat and other class related to it for the debug mode.
 - Feature: Add param about margin to store related parameters for the debug mode.
 - Feature: Change the procedure to accelerate processing speed in estimate_bias.hpp.
+- Perf: Increase CPU_BASELINE from SSE3 to AVX2 in cmake configuration of opencv
+- Perf: Using OpenBLAS to speed up mathamatic calculations
+- Misc: Only output debug image if logger level > 5, and output more debug message to help tracing
+- Misc: Immediately exit program when error thrown, but only if using highest logger level
 
 ## 1.3.6 - 2021.01.05
 
