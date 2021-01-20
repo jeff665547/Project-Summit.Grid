@@ -122,6 +122,7 @@ constexpr struct FOVNAG {
                 "auto_min_cv",
                 cimp::margin::Param<GridLineID> {
                     0.6,
+                    0.17, 
                     &tiled_mat,
                     task.model().no_bgp(),
                     std::function<void(const cv::Mat&)>(nullptr)
@@ -142,6 +143,7 @@ constexpr struct FOVNAG {
                     "auto_min_cv",
                     cimp::margin::Param<GridLineID> {
                         0.6,
+                        0.17, 
                         &tiled_mat,
                         true,
                         std::function<void(const cv::Mat&)>(nullptr)
