@@ -395,6 +395,7 @@ struct Task {
     VAR_IO(bool,                            est_bias_regulation )
     VAR_IO(bool,                            global_search       )
     VAR_IO(bool,                            ref_from_white_ch   )
+    VAR_IO(bool,                            ref_from_probe_ch   )
 private:
     std::vector<MKRegion>                   mk_regs_cl_;
     

@@ -124,7 +124,7 @@ constexpr struct FOVAG {
         // auto& wh_mk_pos    = task.fov_wh_mk_pos().at(fov_id);
         // auto& wh_warp_mat  = task.white_warp_mat().at(fov_id);
         auto& ref_from_wh   = task.ref_from_white_ch(); 
-        auto& ref_successes = task.fov_ref_ch_successes().at(fov_id);
+        auto& ref_success   = task.fov_ref_ch_successes().at(fov_id);
         auto& ref_mk_pos    = task.fov_ref_ch_mk_pos().at(fov_id);
         auto& ref_warp_mat  = task.ref_ch_warp_mat().at(fov_id);
         auto& mk_pos_spec   = task.fov_mk_pos_spec().at(fov_id);
@@ -151,9 +151,9 @@ constexpr struct FOVAG {
                     task.um2px_r()
                 );
                 
-                if(!ref_from_wh){
+                if(!ref_success /* !ref_from_wh */){
 
-                    // fluorescent process: deal with ref_warp_mat for first-staged finding marker failed.
+                    // fluorescent process: Dealing with ref_warp_mat for first-staged finding marker failed.
                     
                 }else{
                     if(task.est_bias()){

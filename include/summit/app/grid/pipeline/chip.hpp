@@ -7,6 +7,7 @@
 #include "channel.hpp"
 #include <summit/app/grid/model.hpp>
 #include <summit/app/grid/aruco_setter.hpp>
+#include <summit/app/grid/probe_ch_proc_setter.hpp>
 #include <summit/app/grid/model/marker_base.hpp>
 #include <summit/app/grid/white_mk_append.hpp>
 #include <summit/app/grid/fov_mkid_rel.hpp>
@@ -261,7 +262,6 @@ struct Chip {
         ;
         auto rot_deg = Utils::mean(rot_degs);
         task.set_ref_from_white_ch(true);
-        std::cout << task.ref_from_white_ch() << std::endl;
         task.set_ref_ch_warp_mat(std::move(fov_white_warp_mat));
         task.set_fov_ref_ch_mk_pos(std::move(fov_wh_mk_pos));
         task.set_fov_ref_ch_successes(std::move(fov_wh_successes));
@@ -363,61 +363,174 @@ struct Chip {
      * @return true Process finished normally.
      * @return false Current implementation won't return false.
      */
-    // bool probe_channel_proc(model::Task& task) const {
-        // namespace nr = nucleona::range;
-        // using namespace __alias;
-        
-        // int sampled_fov_row   = task.fov_rows() / 2;
+    bool probe_channel_proc(model::Task& task) const {
+
+        namespace nr = nucleona::range;
+        using namespace __alias;
+
+        // * Prepare parameters for reading fluorescent images.
+        // TODO: Sample some FOVs to get the rough information of general marker position and warp matrix.
+        //       Find the actual warp matrix and marker position for each FOV at second stage (fov_ag.hpp).
+        // int sampled_fov_row   = task.fov_rows() / 2; 
         // int sampled_fov_col   = task.fov_cols() / 2;
         // auto [ch_i, ch]       = task.first_probe_channel();
         // auto pb_ch_name       = ch["name"].get<std::string>();
         // std::vector<cv::Point> fov_ids{{sampled_fov_col, sampled_fov_row}, {0, 0}};
-        
-        // task.set_probe_channel_imgs(Utils::read_probe_channel(
-        //     pb_ch_name,
-        //     task.chip_dir(),
-        //     fov_ids,
-        //     task.is_img_enc(),
-        //     task.model()
-        // ));
+        // for-loop  Utils::read_img;
 
-        // auto& executor       = task.model().executor();
-        // auto& model          = task.model();
-        // auto& fov_marker_num = task.fov_marker_num();
-        
-        // std::vector<float> rot_degs (task.probe_channel_imgs().size());
-        // std::vector<bool>  success  (task.probe_channel_imgs().size());
-        // Utils::FOVMarkerRegionMap                   fov_marker_regs;
-        // Utils::FOVMap<cv::Mat>                      fov_mk_append;
-        // Utils::FOVMap<cv::Mat>                      fov_probe_warp_mat;
-        // Utils::FOVMap<std::vector<cv::Point2d>>     fov_pb_mk_pos;
-        // Utils::FOVMap<std::vector<cv::Point2d>>     fov_mk_pos_spec;
-        // std::vector<cv::Mat>                        fov_rum_imgs(task.probe_channel_imgs().size());
+        // * Choose the first probe channel and read all fluorescent images.
+        task.set_probe_channel_imgs(Utils::read_first_probe_channel(
+            task.channels(),
+            task.chip_dir(),
+            task.fov_rows(),
+            task.fov_cols(),
+            task.is_img_enc(),
+            task.model()
+        ));
 
-        // auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
-        // // Initialization
-        // for(auto&& [fov_id, mat] : task.probe_channel_imgs()) {
-        //     fov_marker_regs[fov_id] = {};
-        //     fov_mk_append[fov_id] = cv::Mat();
-        //     fov_wh_mk_pos[fov_id] = {};
-        //     fov_mk_pos_spec[fov_id] = {};
-        //     fov_white_warp_mat[fov_id] = cv::Mat();
+        if(task.probe_channel_imgs().size() == 0) {
+            summit::grid::log.warn("There are no available probe channel (fluorescent) images.");
+            return false;
+        }
+
+        auto&  executor        = task.model().executor();
+        auto&  model           = task.model();
+        auto   [ch_i, ch]      = task.first_probe_channel();
+        
+        auto probe_mk_detector = pb_ch_proc_setter(task, ch);
+
+        Utils::FOVMarkerRegionMap                   fov_marker_regs;
+        Utils::FOVMap<bool>                         fov_pb_successes;
+        Utils::FOVMap<float>                        fov_rot_degs;
+        Utils::FOVMap<cv::Mat>                      fov_mk_append;
+        Utils::FOVMap<cv::Mat>                      fov_probe_warp_mat;
+        Utils::FOVMap<std::vector<cv::Point2d>>     fov_pb_mk_pos;
+        Utils::FOVMap<std::vector<cv::Point2d>>     fov_mk_pos_spec;
+        std::vector<cv::Mat>                        fov_rum_imgs(task.probe_channel_imgs().size());
+
+        // cv::Mat probe_img_template = Utils::get_fov_mat_from(task.probe_channel_imgs(), 0, 0);
+        // cv::imwrite("C:/grid_res/img_template.tiff", probe_img_template);
+    
+
+        // Initialization
+        for(auto&& [fov_id, mat] : task.probe_channel_imgs()) {
+            fov_marker_regs[fov_id] = {};
+            fov_pb_successes[fov_id] = {};
+            fov_rot_degs[fov_id] = {};
+            // fov_mk_append[fov_id] = cv::Mat();
+            fov_pb_mk_pos[fov_id] = {};
+            fov_mk_pos_spec[fov_id] = {};
+            fov_probe_warp_mat[fov_id] = cv::Mat();
+        }
+        auto probe_mk_det = [&, this](
+            cv::Mat mat
+        ) {
+            auto mk_regs = probe_mk_detector(mat);
+            summit::grid::log.debug("Probe marker # = {}", mk_regs.size());
+            return mk_regs;
+        };
+
+        summit::grid::log.debug("Probe channel image nums: {}", task.probe_channel_imgs().size());
+        // auto example1 = Utils::get_fov_mat_from(task.probe_channel_imgs(), 0, 0);
+        // auto mk_pos_des = probe_mk_det(example1);
+        // std::vector<cv::Point2d>    mk_pos_px       ;
+        // std::vector<cv::Point2d>    mk_pos_rum      ;
+        // for(auto& [fov_mk_id, score, pos] : mk_pos_des) {
+        //     auto mk_lt_x  = (fov_mk_id.x * task.mk_wd_rum()) + task.xi_rum();
+        //     auto mk_lt_y  = (fov_mk_id.y * task.mk_hd_rum()) + task.yi_rum();
+        //     auto mk_cen_x = mk_lt_x + (task.mk_w_rum() / 2);
+        //     auto mk_cen_y = mk_lt_y + (task.mk_h_rum() / 2);
+        //     mk_pos_rum.emplace_back(mk_cen_x, mk_cen_y);
+        //     mk_pos_px.push_back(pos);
+        //     summit::grid::log.debug("mk_cen : ({}, {})", mk_cen_x, mk_cen_y);
+        //     summit::grid::log.debug("pos    : ({}, {})", pos.x, pos.y);
         // }
-        // auto mk_det = [&, this](
-        //     cv::Mat mat,
-        //     const cv::Point& fov_id
-        // ) {
-        //     auto mk_regs = mk_detector();
-        //     auto& mk_ids = fov_mk_rel.at(fov_id);
-        //     std::vector<typename decltype(mk_regs)::value_type> tmp;
-        //     for(auto mk : mk_regs) {
-        //         auto& idx = std::get<0>(mk);
-        //         if(idx < 0) continue;
-        //     }
-        // };
+        // auto warp_mat = chipimgproc::warped_mat::estimate_transform_mat(mk_pos_rum, mk_pos_px);
 
-        // summit::grid::log.debug("white channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
 
+        task.probe_channel_imgs()
+        | nucleona::range::indexed()
+        | ranges::view::transform([&](auto&& p){
+            auto& i          = p.first;
+            auto& fov_id_mat = p.second;
+            auto& fov_id     = fov_id_mat.first;
+            auto& path       = std::get<0>(fov_id_mat.second);
+            cv::Mat mat      = std::get<1>(fov_id_mat.second);
+            summit::grid::log.debug("Probe channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
+            try {
+                /* Detect probe markers position */
+                auto mk_pos_des = probe_mk_det(mat);
+                std::vector<cv::Point2d>    mk_pos_px       ;
+                std::vector<cv::Point2d>    mk_pos_rum      ;
+
+                for(auto& [fov_mk_id, score, pos] : mk_pos_des) {
+                    auto mk_lt_x  = (fov_mk_id.x * task.mk_wd_rum()) + task.xi_rum();
+                    auto mk_lt_y  = (fov_mk_id.y * task.mk_hd_rum()) + task.yi_rum();
+                    auto mk_cen_x = mk_lt_x + (task.mk_w_rum() / 2);
+                    auto mk_cen_y = mk_lt_y + (task.mk_h_rum() / 2);
+                    mk_pos_rum.emplace_back(mk_cen_x, mk_cen_y);
+                    mk_pos_px.push_back(pos);
+                    // summit::grid::log.debug("mk_cen : ({}, {})", mk_cen_x, mk_cen_y);
+                    // summit::grid::log.debug("pos    : ({}, {})", pos.x, pos.y);
+                }
+                auto warp_mat = chipimgproc::warped_mat::estimate_transform_mat(mk_pos_rum, mk_pos_px);
+
+                /* Summary */
+                // 1. Warp matrix estimated from the finally filtered marker pos.
+                // 2. Rotation degree computed from the warp matrix.
+                // 3. Marker position inferred from GDS spec (scaled GDS domain).
+                // 4. Marker position detected from image (real image domain).
+                // 5. Deducing flag for success of probe channel FOVs image process for current FOV.
+                fov_probe_warp_mat.at(fov_id) = warp_mat;
+                fov_rot_degs.at(fov_id)       = chipimgproc::rotation::from_warp_mat(warp_mat);
+                fov_mk_pos_spec.at(fov_id)    = std::move(mk_pos_rum);
+                fov_pb_mk_pos.at(fov_id)      = std::move(mk_pos_px);
+                fov_pb_successes.at(fov_id)   = true;
+
+                summit::grid::log.debug("Probe channel, fov id:({}, {}) rotation angle: {} degree.", fov_id.x, fov_id.y, fov_rot_degs.at(fov_id));
+            } catch (...) {
+                summit::grid::log.error(
+                    "Probe channel, fov id:({}, {}) process fialed",
+                    fov_id.x, fov_id.y
+                );
+                fov_pb_successes.at(fov_id) = false;
+            }
+            summit::grid::log.debug("Probe channel, fov id:({}, {}) end process", fov_id.x, fov_id.y);
+            return 0;
+        })
+        | nucleona::range::p_endp(executor)
+        ;
+
+        summit::grid::log.debug("The process for the first probe channel FOVs is finished.");
+
+        /* Some statistics */
+        cv::Mat backup_warp_mat = cv::Mat();
+        std::size_t success_num = 0;
+        for(auto f = fov_pb_successes.begin(); f != fov_pb_successes.end(); f++) {
+            if(f->second) success_num ++;
+            // TODO: Remedy for failed FOVs.
+        }
+        if(success_num == 0) {
+            debug_throw(std::runtime_error("The process for the first probe channel FOVs is failed!"));
+        }
+
+        /* Consensus */
+        auto rot_degs = fov_pb_successes
+            | ranges::view::filter([&](auto&& p ){ return p.second; })
+            | nr::transformed([&](auto&& p){ return fov_rot_degs.at(p.first); })
+            | ranges::to_vector
+        ;
+        auto rot_deg = Utils::mean(rot_degs);
+        task.set_ref_from_probe_ch(true);
+        task.set_ref_ch_warp_mat(std::move(fov_probe_warp_mat));
+        task.set_fov_ref_ch_mk_pos(std::move(fov_pb_mk_pos));
+        task.set_fov_ref_ch_successes(std::move(fov_pb_successes));
+        task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
+        task.set_rot_degree(rot_deg);
+
+    /* 
+     * The following code is for grid one.
+     */
 
     //     using namespace __alias;
     //     cmk_det::RegMat probe_mk_detector       ;
@@ -481,8 +594,8 @@ struct Chip {
     //     );
     //     task.set_rot_degree(theta);
     //     task.set_um2px_r(best_um2px_r);
-    //     return true;
-    // }
+        return true;
+    }
     /**
      * @brief Draw grid line on image
      * 
@@ -628,18 +741,18 @@ struct Chip {
             auto& wh_ch_log = task.grid_log()["white_channel_proc"];
             if(task.model().auto_gridding()) {
                 if(!white_channel_proc(task)) {
-                    // task.set_white_ch_proc_failed(true);
-                    // wh_ch_log = false;
-                    // auto& probe_ch_log = task.grid_log()["probe_channel_proc"];
-                    // if(!task.um_to_px_r_done()) {
-                    //     throw std::runtime_error("no on spec um to pixel rate provided");
-                    // } 
-                    // if(!probe_channel_proc(task)) {
-                    //     probe_ch_log = false;
-                    //     throw std::runtime_error("both white/probe channel are failed");
-                    // } else {
-                    //     probe_ch_log = true;
-                    // }
+                    task.set_white_ch_proc_failed(true);
+                    wh_ch_log = false;
+                    auto& probe_ch_log = task.grid_log()["probe_channel_proc"];
+                    if(!task.um_to_px_r_done()) {
+                        throw std::runtime_error("no on spec um to pixel rate provided");
+                    } 
+                    if(!probe_channel_proc(task)) {
+                        probe_ch_log = false;
+                        throw std::runtime_error("both white/probe channel are failed");
+                    } else {
+                        probe_ch_log = true;
+                    }
                 } else {
                     wh_ch_log = true;
                 }

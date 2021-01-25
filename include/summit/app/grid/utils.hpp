@@ -494,6 +494,15 @@ struct Utils{
         }
         return "";
     }
+    template<class Channels>
+    static std::string search_first_probe_channel(const Channels& channels) {
+        for(auto& ch : channels){
+            if(ch["filter"].template get<int>() != 0) {
+                return ch["name"];
+            }
+        }
+        return "";
+    }
     template<class Int>
     using FOVImages= Utils::FOVMap<
         std::tuple<
@@ -531,29 +540,35 @@ struct Utils{
         }
         return res;
     }
-    template<class Channel>
-    static FOVImages<std::uint16_t> read_probe_channel(
-        const std::string&              ch_name,
+    template<class Channels>
+    static FOVImages<std::uint16_t> read_first_probe_channel(
+        const Channels&                 channels,
         const boost::filesystem::path&  src_path,
-        const std::vector<cv::Point>&   fov_ids,
+        int                             rows,
+        int                             cols,
         bool                            img_enc,
         const Paths&                    data_paths
     ) {
-        if(ch_name.empty()) return {};
+        auto first_probe_ch_name = search_first_probe_channel(channels);
+        if(first_probe_ch_name.empty()) return {};
         FOVImages<std::uint16_t> res;
-        for(auto&& fov_id : fov_ids){
-            std::stringstream ss;
-            ss << std::to_string(fov_id.y) << '-'
-               << std::to_string(fov_id.x) << '-'
-               << ch_name
-            ;
-            auto img_path = src_path / ss.str();
-            cv::Mat_<std::uint16_t> img = Utils::imread(
-                img_path.string(), img_enc, data_paths
-            );
-            res[cv::Point(fov_id.x, fov_id.y)] = std::make_tuple(img_path, img);
+        for ( int r = 0; r < rows; r ++ ) {
+            for ( int c = 0; c < cols; c ++ ) {
+                auto [img, img_path] = Utils::read_img<std::uint16_t>(src_path, r, c, 
+                                                                      first_probe_ch_name, 
+                                                                      img_enc, data_paths);
+                res[cv::Point(c, r)] = std::make_tuple(img_path, img);
+            }
         }
         return res;
+    }
+    template<class cvMatT>
+    static cv::Mat_<cvMatT> get_fov_mat_from(
+        const FOVImages<cvMatT>& all_fov_imgs,
+        int                      row_id,
+        int                      col_id
+    ){
+        return std::get<1>(all_fov_imgs.at(cv::Point(col_id, row_id)));
     }
     static bool is_chip_scan( const boost::filesystem::path& path ) {
         return summit::app::grid::is_chip_dir(path);
