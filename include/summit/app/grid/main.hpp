@@ -23,33 +23,66 @@
 #include <Nucleona/proftool/gprofiler.hpp>
 
 /**
- * Bright-field Gridding Process
+ * Bright-field Images Gridding Process
  * 
- * 0. Load chip images, parameters and configs.
- * 1. Downsample bright field (white channel) images and identify positions of 
- *    ArUco code surrounded by rectangle markers.
- * 2. Filter ArUco code to exclude those who should not be shown in the current 
- *    FOV (field of vision).
- * 3. Search Aruco marker again to estimate the warp matrix for calculating the
- *    rotation angle and getting the relationship between bright-field images 
- *    and the theoretical GDS spec for the corresponding chip type.
- * 4. Estimate the bias between white channel and current probe channel 
- *    (fluorescence) by using the bright-filed warp matrix.
- * 5. Add the bias to the bright-filed warp matrix to get the true position of 
- *    the fluorescent markers and probes due to the invariant of the ratation 
- *    degree among bright-filed images and fluorescent images.
- * 6. By using the information from the updated warp matrix and the theoretical 
- *    GDS spec, grid line can be known and can be mapped into any pixel and 
- *    subpixel domain.
- * 7. For each cell (feature/probe) in every fov, find a fixed size rectangle 
- *    whose coefficient of variation is the smallest to calculate the heatmap 
- *    intensity (mean value of that cell) for the corresponding probe.
- * 8. Rotate and crop the tilt images. Use marker as ancher, stitch all fovs to 
- *    get stitched chip image.
- * 9. Output heatmap, stitched images, and all other images for debug and shown 
- *    only.
+ * 0.  Load chip images, parameters and configs.
+ * 1.  Take the bright-field (BF, white channel) images as the reference for the 
+ *     entire gridding process.
+ * 2.  Downsample bright-field images and identify positions of ArUco code 
+ *     surrounded by rectangle markers.
+ * 3.  Filter ArUco code to exclude those which should not be shown in the current 
+ *     FOV (field of vision).
+ * 4.  Search ArUco marker again to estimate the warp matrix for calculating the
+ *     rotation angle and getting the relationship between bright-field images 
+ *     and the theoretically rescaled GDS spec for the corresponding chip type.
+ * 
+ * ##  For each remaining probe channel:
+ * 
+ * 5.  Estimate the sub-pixel bias from the marker positions between that probe 
+ *     channel and the white channel via the bright-filed warp matrix.
+ * 6.  Add the bias to the bright-filed warp matrix to get the true position of 
+ *     the fluorescent markers and probes due to the invariant of the rotation 
+ *     degree among bright-filed images and fluorescent images.
+ * 7.  By using the information from the updated warp matrix and the theoretical 
+ *     GDS spec, grid line can be known and can be mapped into any pixel and 
+ *     subpixel domain.
+ * 8.  For each cell (feature/probe) in every FOV, find a fixed size rectangle 
+ *     whose coefficient of variation is the smallest to calculate the heatmap 
+ *     intensity (mean value of that rectangle) for the corresponding probe.
+ * 9.  Rotate and crop the tilt images. Use markers as anchers, and stitch all FOVs
+ *     together to get the stitched chip image.
+ * 10. Output heatmap for downstream analysis, and all other images (marker-append 
+ *     images, stitched images, gridline images, etc.) for debug and shown only.
  * 
  */
+
+/**
+ * Probe Channel (Fluorescent) Images Gridding Process
+ * 
+ * 0.  Load chip images, parameters and configs.
+ * 1.  Take images of some probe channel as the reference channel for the entire 
+ *     gridding process. 
+ * 2.  Downsample referenced-channel images and identify positions of each fluorescent 
+ *     marker.
+ * 3.  Estimate the warp matrix from the referenced-channel marker positions for 
+ *     calculating the rotation angle and getting the relationship between the 
+ *     referenced-channel images and the theoretically rescaled GDS spec for the 
+ *     corresponding chip type.
+ * 
+ * ##  For each remaining probe channel:
+ * 
+ * 4.  Estimate the sub-pixel bias from the marker positions between that probe channel
+ *     and the referenced channel via the referenced-channel warp matrix.
+ * 5.  Add the bias to the referenced-channel warp matrix to get the true positions of 
+ *     fluorescent markers and probes under that probe channel due to the invariant of 
+ *     the rotation degree among referenced-channel images and remaining probe channel 
+ *     images.
+ * 
+ * ##  The subsequent process is similar to that in the bright-field images gridding 
+ *     process.
+ * 
+ */
+ 
 namespace summit::app::grid{
 
 /**
