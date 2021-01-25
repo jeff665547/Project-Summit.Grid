@@ -1,5 +1,7 @@
 # ChangeLog
 
+- Feature: Add fluorescent images gridding process.
+
 ## 1.3.7 - 2021.01.20
 
 - Feature: Using bilinear interpolation during getting the ROI from the boundary of the score matrix.
