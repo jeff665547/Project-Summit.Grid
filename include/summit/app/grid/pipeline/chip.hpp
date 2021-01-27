@@ -200,7 +200,7 @@ struct Chip {
                 // );
 
                 /* count theta */
-                fov_rot_degs.at(fov_id) = chipimgproc::rotation::from_warp_mat(warp_mat);
+                fov_rot_degs.at(fov_id) = chipimgproc::rotation::rot_deg_from_warp(warp_mat);
                 summit::grid::log.debug("white channel, fov id:({}, {}) theta: {}", fov_id.x, fov_id.y, fov_rot_degs.at(fov_id));
 
                 cv::Mat iwarp_mat;
@@ -482,7 +482,7 @@ struct Chip {
                 // 4. Marker position detected from image (real image domain).
                 // 5. Deducing flag for success of probe channel FOVs image process for current FOV.
                 fov_probe_warp_mat.at(fov_id) = warp_mat;
-                fov_rot_degs.at(fov_id)       = chipimgproc::rotation::from_warp_mat(warp_mat);
+                fov_rot_degs.at(fov_id)       = chipimgproc::rotation::rot_deg_from_warp(warp_mat);
                 fov_mk_pos_spec.at(fov_id)    = std::move(mk_pos_rum);
                 fov_pb_mk_pos.at(fov_id)      = std::move(mk_pos_px);
                 fov_pb_successes.at(fov_id)   = true;

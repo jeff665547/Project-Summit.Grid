@@ -116,6 +116,11 @@ struct Channel {
     auto gridline() const {
         return task_->gridline(ch_name_);
     }
+    auto stitch_gridline(
+        const std::string& tag
+    ) const {
+        return task_->stitch_gridline(tag, ch_name_);
+    }
     template<class FOVMod>
     void collect_fovs_mk_append(Utils::FOVMap<FOVMod>& fov_mods) {
         Utils::FOVMap<cv::Mat> fov_mats;

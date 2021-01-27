@@ -8,6 +8,8 @@
 #include <Nucleona/range.hpp>
 #include <optional>
 #include <iostream>
+#include <iomanip>
+#include <type_traits>
 #include <ChipImgProc/marker/txt_to_img.hpp>
 #include <summit/crypto/scan_image.hpp>
 #include <ChipImgProc/utils.h>
@@ -412,7 +414,11 @@ struct Utils{
         return res;
     }
     template<class GLID>
-    static auto write_gl( std::ostream& gl_file, const chipimgproc::GridRawImg<GLID>& grid_image) {
+    static auto write_gl( std::ostream& gl_file, const chipimgproc::GridRawImg<GLID>& grid_image, const int& decimal = 3) {
+        constexpr bool is_float{std::is_floating_point<GLID>::value};
+        if constexpr (is_float) {
+            gl_file << std::fixed << std::setprecision(decimal);
+        } 
         gl_file << "x";
         for( auto& l : grid_image.gl_x() ) {
             gl_file << ',' << l;

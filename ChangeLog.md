@@ -1,5 +1,8 @@
 # ChangeLog
 
+
+- Feature: Output files adjustment: For each channel, viewable_raw contains cropped and raw scaled (e.g. 1 Feature corresponds to about 9.6 pixels in YZ01 chip) FOV images, stitched image and its corresponding gridline x and y positions.
+- Feature: Output files adjustment: For each channel, original viewable_raw folder => viewable_rescale folder (Only generate in debug >= 5)
 - Feature: Add fluorescent images gridding process.
 
 ## 1.3.7 - 2021.01.20

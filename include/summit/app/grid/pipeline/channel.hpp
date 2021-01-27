@@ -103,7 +103,7 @@ constexpr struct Channel {
 
             channel.summary_fov_log(fov_mods);
             if(channel.grid_log().at("grid_bad").get<bool>()) {
-                debug_throw(std::runtime_error("bad process FOV exist, channel process stop collect result"));
+                debug_throw(std::runtime_error("bad process FOV exist, channel process stop collecting result"));
             }
             channel.collect_fovs(fov_mods);
 
@@ -125,11 +125,37 @@ constexpr struct Channel {
             auto stitched_img = chipimgproc::stitch::add(
                 std_rum_imgs, std_rum_st_pts
             );
-            auto v_st_img = cimp::viewable(stitched_img);
-            auto st_img_path = channel.stitch_image("norm");
-            cv::imwrite(st_img_path.string(), v_st_img);
-            auto r_st_img_path = channel.stitch_image("raw");
-            cv::imwrite(r_st_img_path.string(), stitched_img);
+
+            {
+                // stitch-[channel].png @ viewable_norm folder
+                auto v_st_img = cimp::viewable(stitched_img);
+                auto st_img_path = channel.stitch_image("norm");
+                cv::imwrite(st_img_path.string(), v_st_img);
+            }
+            {
+                // stitch-[channel].tiff @ viewable_raw folder
+                auto raw_st_img_path = channel.stitch_image("raw");
+                auto std2raw = task.std2raw_warp();
+                cv::Mat raw_stitched_img;
+                cv::warpAffine(stitched_img, raw_stitched_img, std2raw, cv::Size(
+                    std::round(task.chip_w_rum()*task.rum2px_r()), 
+                    std::round(task.chip_h_rum()*task.rum2px_r())
+                ));
+                cv::imwrite(raw_st_img_path.string(), raw_stitched_img);
+                
+                // stitch_img_gridline.csv @ viewable_raw folder
+                model::GLRawImgFlt raw_stitched_grid_img;
+                raw_stitched_grid_img.mat() = std::move(raw_stitched_img);
+                raw_stitched_grid_img.gl_x() = task.gl_x_raw();
+                raw_stitched_grid_img.gl_y() = task.gl_y_raw();
+                std::ofstream gl_raw_file(channel.stitch_gridline("raw").string());
+                Utils::write_gl(gl_raw_file, raw_stitched_grid_img);
+            }
+
+            if (task.model().debug() >= 5) {
+                auto std_st_img_path = channel.stitch_image("rescale");
+                cv::imwrite(std_st_img_path.string(), stitched_img);
+            }
 
             std::vector<model::GLID> x_gl(task.spec_w_cl() + 1);
             std::vector<model::GLID> y_gl(task.spec_h_cl() + 1);

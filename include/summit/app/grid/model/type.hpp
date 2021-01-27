@@ -13,6 +13,7 @@ namespace summit::app::grid::model {
     using MTMat         = chipimgproc::MultiTiledMat<Float, GLID>;
     using OptMTMat      = std::optional<MTMat>;
     using GLRawImg      = chipimgproc::GridRawImg<GLID>;
+    using GLRawImgFlt   = chipimgproc::GridRawImg<Float>;
 
     using WarpedMat     = chipimgproc::WarpedMat<>;
     using MWMat         = chipimgproc::MultiWarpedMat<WarpedMat>;

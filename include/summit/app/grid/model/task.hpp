@@ -14,6 +14,7 @@
 #include "marker_base.hpp"
 #include <Nucleona/util/remove_const.hpp>
 #include <ChipImgProc/multi_tiled_mat.hpp>
+#include <ChipImgProc/warped_mat/rescale_warp_mat.hpp>
 #include "type.hpp"
 #include <summit/app/grid/utils.hpp>
 #include "model.hpp"
@@ -26,10 +27,11 @@ namespace summit::app::grid::model {
  *    in the chip level and the level lower than the chip.
  * 
  */
+namespace cmw = chipimgproc::warped_mat;
 struct Task {
     using This = Task;
     template<class T>
-    using ChnMap = std::map<std::string, T>;
+    using ChnMap   = std::map<std::string, T>;
     using MKRegion = chipimgproc::marker::detection::MKRegion;
     void set_model(const Model& _model) {
         model_ = &_model;
@@ -171,6 +173,12 @@ struct Task {
     auto gridline(const std::string& ch_name) const {
         return model_->gridline(id_, ch_name);
     }
+    auto stitch_gridline(
+        const std::string& tag,
+        const std::string& ch_name
+    ) const {
+        return model_->stitch_gridline(id_, tag, ch_name);
+    }
     void set_proc_time(float time) {
         proc_time_ = time;
     }
@@ -258,6 +266,9 @@ struct Task {
     }
     double rum2px_r() const {
         return um2px_r_ / rescale_;
+    }
+    auto std2raw_warp() const {
+        return cmw::rescale_warp_mat(rum2px_r());
     }
     const std::vector<MKRegion>& mk_regs_cl() const {
         if(mk_regs_cl_.empty()) {
@@ -349,6 +360,8 @@ struct Task {
     VAR_GET(double,                         mk_h_rum            )
     VAR_GET(double,                         fov_w_rum           )
     VAR_GET(double,                         fov_h_rum           )
+    VAR_GET(double,                         chip_w_rum          )
+    VAR_GET(double,                         chip_h_rum          )
     VAR_GET(double,                         xi_rum              )
     VAR_GET(double,                         yi_rum              )
 
@@ -387,6 +400,8 @@ struct Task {
     VAR_IO(std::vector<cv::Point>,          stitched_points_rum )
     VAR_IO(std::vector<model::GLID>,        gl_x_rum            )
     VAR_IO(std::vector<model::GLID>,        gl_y_rum            )
+    VAR_IO(std::vector<model::Float>,       gl_x_raw            )
+    VAR_IO(std::vector<model::Float>,       gl_y_raw            )
 
     VAR_GET(cv::Size2d,                     basic_cover_size    )
     VAR_IO(double,                          highP_cover_extend_r)
@@ -545,6 +560,8 @@ private:
         mk_h_rum_      = mk_h_cl_  * cell_hd_rum_;
         fov_w_rum_     = fov_w_    * cell_wd_rum_;
         fov_h_rum_     = fov_h_    * cell_hd_rum_;
+        chip_w_rum_    = spec_w_cl_ * cell_wd_rum_;
+        chip_h_rum_    = spec_h_cl_ * cell_hd_rum_;
 
         set_stitched_points_cl(Utils::generate_stitch_points(fov()));
 
@@ -557,11 +574,15 @@ private:
 
         gl_x_rum_.resize(spec_w_cl() + 1);
         gl_y_rum_.resize(spec_h_cl() + 1);
+        gl_x_raw_.resize(spec_w_cl() + 1);
+        gl_y_raw_.resize(spec_h_cl() + 1);
         for(model::GLID i = 0; i <= spec_w_cl(); i ++) {
             gl_x_rum_[i] = i * cell_wd_rum();
+            gl_x_raw_[i] = i * cell_wd_rum() * rum2px_r();
         }
         for(model::GLID i = 0; i <= spec_h_cl(); i ++) {
             gl_y_rum_[i] = i * cell_hd_rum();
+            gl_y_raw_[i] = i * cell_hd_rum() * rum2px_r();
         }
 
         // auto tmp = ScanMode::from_string(scan_mode_);

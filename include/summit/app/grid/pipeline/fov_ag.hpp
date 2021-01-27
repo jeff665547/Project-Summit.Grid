@@ -274,8 +274,14 @@ constexpr struct FOVAG {
 
             // write raw result
             auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
-            cv::imwrite(fov_raw_path.string(), std_mat);
-                
+            auto std2raw = task.std2raw_warp();
+            cv::Mat raw_mat;
+            cv::warpAffine(std_mat, raw_mat, std2raw, cv::Size(
+                std::round(task.fov_w_rum()*task.rum2px_r()), 
+                std::round(task.fov_h_rum()*task.rum2px_r())
+            ));
+            cv::imwrite(fov_raw_path.string(), raw_mat);
+            
             std::vector<cmk_det::MKRegion> mk_regs;
             cv::Mat_<std::int16_t> mk_map(
                 fov_mod.mk_num().y, 
@@ -296,7 +302,10 @@ constexpr struct FOVAG {
             }
 
             if (task.model().debug() >= 5) {
-                //mk_seg image
+                // rescale domain images
+                auto fov_rescale_path = channel.fov_image("rescale", fov_id.y, fov_id.x);
+                cv::imwrite(fov_rescale_path.string(), std_mat);
+                // debug mk_seg image
                 auto final_mk_seg_view = fov_mod.final_mk_seg_view();
                 if(final_mk_seg_view) {
                     final_mk_seg_view(cmk::view(std_mat, mk_regs));

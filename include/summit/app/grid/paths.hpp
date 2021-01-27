@@ -271,6 +271,14 @@ struct Paths {
     ) const {
         return check_path(general_prefix(task_id, channel) / "gridline.csv");
     }
+    boost::filesystem::path stitch_gridline(
+        const TaskID& task_id,
+        const std::string& tag,
+        const std::string& channel
+    ) const {
+        boost::filesystem::path viewable_tag("viewable_" + tag);
+        return check_path(general_prefix(task_id, channel) / viewable_tag / "stitch_img_gridline.csv");
+    }
     /**
      * @brief Create the complete file.
      * 
@@ -446,7 +454,8 @@ private:
         const std::string& ch
     ) const {
         boost::filesystem::path viewable_tag("viewable_" + tag);
-        std::string ext = (tag == "raw") ? ".tiff" : ".png";
+        std::set<std::string> tag_set {"raw", "rescale"};
+        std::string ext = (tag_set.find(tag) != tag_set.end()) ? ".tiff" : ".png";
         return ( viewable_tag / ("stitch-" + ch + ext )).string();
     }
     /**
