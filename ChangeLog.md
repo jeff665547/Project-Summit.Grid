@@ -1,8 +1,14 @@
 # ChangeLog
 
 
-- Feature: Output files adjustment: For each channel, viewable_raw contains cropped and raw scaled (e.g. 1 Feature corresponds to about 9.6 pixels in YZ01 chip) FOV images, stitched image and its corresponding gridline x and y positions.
-- Feature: Output files adjustment: For each channel, original viewable_raw folder => viewable_rescale folder (Only generate in debug >= 5)
+- Feature: Generate WARNING file for reference when one of the following conditions is met:
+               1. The gridding program detect some unexpected error.
+               2. The value of "grid_done" in the grid_log.json is false.
+               3. The value of "grid_bad" in the grid_log.json is true.
+               4. The quality of BF or fluorescent marker_append images are lower than the expected threshold.
+- Feature: Automatically evaluate the gridding quality from denosied marker_append images. (For BF images gridding process, evaluate the BF marker_append image only.)
+- Feature: Output files adjustment: For each channel, viewable_raw folder contains cropped and raw scaled (e.g. 1 Feature corresponds to about 9.6 pixels in YZ01 chip) FOV images, stitched image and its corresponding gridline x and y positions (floating-point format).
+- Feature: Output files adjustment: For each channel, original data in the viewable_raw folder will be moved into viewable_rescale folder (viewable_rescale folder only generate in debug >= 5).
 - Feature: Add fluorescent images gridding process.
 
 ## 1.3.7 - 2021.01.20

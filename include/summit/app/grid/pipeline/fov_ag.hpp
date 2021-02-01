@@ -8,6 +8,7 @@
 #include <summit/app/grid/model.hpp>
 #include <summit/app/grid/model/type.hpp>
 #include <summit/app/grid/model/fov.hpp>
+#include <summit/app/grid/denoise_mk_append.hpp>
 #include <ChipImgProc/marker/detection/aruco_reg_mat.hpp>
 #include <ChipImgProc/marker/detection/reg_mat.hpp>
 #include <ChipImgProc/gridding/reg_mat.hpp>
@@ -198,7 +199,7 @@ constexpr struct FOVAG {
         auto& task          = fov_mod.channel().task();
         // auto& wh_mk_pos    = task.fov_wh_mk_pos().at(fov_id);
         // auto& wh_warp_mat  = task.white_warp_mat().at(fov_id);
-        auto& ref_from_wh   = task.ref_from_white_ch(); 
+        auto& ref_from_pb   = task.ref_from_probe_ch(); 
         auto& ref_success   = task.fov_ref_ch_successes().at(fov_id);
         auto& ref_mk_pos    = task.fov_ref_ch_mk_pos().at(fov_id);
         auto& ref_warp_mat  = task.ref_ch_warp_mat().at(fov_id);
@@ -321,6 +322,17 @@ constexpr struct FOVAG {
                 auto mk_append_res = cmk::roi_append(
                     std_mat, mk_map, mk_regs
                 );
+                if(ref_from_pb) {
+                    auto mk_append_denoised = denoise_mk_append(
+                        mk_append_res,
+                        task.bit_ms_wd_rum(), task.bit_ms_hd_rum(),
+                        task.mk_w_rum(),      task.mk_h_rum(),
+                        fov_mod.mk_num().y,   fov_mod.mk_num().x
+                    );
+                    fov_mod.set_mk_append_denoised(
+                        std::move(mk_append_denoised)
+                    );
+                }
                 fov_mod.set_mk_append(
                     std::move(mk_append_res)
                 );

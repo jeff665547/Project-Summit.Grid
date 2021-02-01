@@ -763,6 +763,26 @@ struct Utils{
         }
         return data;
     }
+    static auto count_bad_fov_mk_append(
+        Utils::FOVMap<cv::Mat>& fov_mk_append, 
+        cv::Mat& benchmark_img,
+        const int& fov_rows,
+        const int& fov_cols,
+        const float& bad_threshold
+    ) {
+        int bads = 0;
+        for(auto y : nucleona::range::irange_0(fov_rows)) {
+            for(auto x : nucleona::range::irange_0(fov_cols)) {
+                cv::Point fov_id(x, y);
+                auto& mk_a_dn = fov_mk_append.at(fov_id);
+                cv::Mat1f PCC = chipimgproc::match_template(mk_a_dn, benchmark_img, cv::TM_CCOEFF_NORMED);
+                int bad = PCC(0, 0) < bad_threshold;
+                bads += bad;
+                // bad.convertTo(bad, bads.type());
+            }
+        }
+        return bads;
+    }
 };
 
 }

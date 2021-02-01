@@ -10,6 +10,7 @@
 #include <summit/app/grid/probe_ch_proc_setter.hpp>
 #include <summit/app/grid/model/marker_base.hpp>
 #include <summit/app/grid/white_mk_append.hpp>
+#include <summit/app/grid/denoise_mk_append.hpp>
 #include <summit/app/grid/fov_mkid_rel.hpp>
 #include <summit/grid/version.hpp>
 #include <ChipImgProc/algo/um2px_auto_scale.hpp>
@@ -114,6 +115,7 @@ struct Chip {
         Utils::FOVMap<bool>                       fov_wh_successes;
         Utils::FOVMap<float>                      fov_rot_degs;
         Utils::FOVMap<cv::Mat>                    fov_mk_append;
+        Utils::FOVMap<cv::Mat>                    fov_mk_append_dn;
         Utils::FOVMap<cv::Mat>                    fov_white_warp_mat;
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_wh_mk_pos;
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_mk_pos_spec;
@@ -129,6 +131,7 @@ struct Chip {
             fov_wh_successes[fov_id] = {};
             fov_rot_degs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
+            fov_mk_append_dn[fov_id] = cv::Mat();
             fov_wh_mk_pos[fov_id] = {};
             fov_mk_pos_spec[fov_id] = {};
             fov_white_warp_mat[fov_id] = cv::Mat();
@@ -202,6 +205,8 @@ struct Chip {
                 /* count theta */
                 fov_rot_degs.at(fov_id) = chipimgproc::rotation::rot_deg_from_warp(warp_mat);
                 summit::grid::log.debug("white channel, fov id:({}, {}) theta: {}", fov_id.x, fov_id.y, fov_rot_degs.at(fov_id));
+                auto slope = chipimgproc::rotation::slope_from_warp(warp_mat);
+                summit::grid::log.debug("white channel, fov id:({}, {}) slope: {}", fov_id.x, fov_id.y, slope);
 
                 cv::Mat iwarp_mat;
                 cv::Mat std_mat;
@@ -219,9 +224,16 @@ struct Chip {
                     mk_num.y, mk_num.x
                 );
                 summit::grid::log.debug("white channel, fov id:({}, {}) marker append done", fov_id.x, fov_id.y);
+                auto fov_mk_append_denoised = denoise_mk_append(
+                    fov_wh_mk_append,
+                    task.bit_ms_wd_rum(), task.bit_ms_hd_rum(),
+                    task.mk_w_rum(),      task.mk_h_rum(),
+                    mk_num.y,             mk_num.x
+                );
                 fov_white_warp_mat.at(fov_id) = warp_mat;
                 if(model.marker_append()) {
                     fov_mk_append.at(fov_id) = fov_wh_mk_append;
+                    fov_mk_append_dn.at(fov_id) = fov_mk_append_denoised;
                 }
                 fov_marker_regs.at(fov_id)  = std::move(mk_regs);
                 fov_wh_mk_pos.at(fov_id)    = std::move(mk_pos_px);
@@ -272,6 +284,10 @@ struct Chip {
         task.set_fov_mk_regs(std::move(fov_marker_regs));
         if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
+            task.check_fovs_mk_append(
+                fov_mk_append_dn, 
+                task.wh_mk_append_eval()
+            );
         }
         // TODO: um2px_r
         model::GLRawImg stitched_grid_img(
@@ -402,7 +418,7 @@ struct Chip {
         Utils::FOVMarkerRegionMap                   fov_marker_regs;
         Utils::FOVMap<bool>                         fov_pb_successes;
         Utils::FOVMap<float>                        fov_rot_degs;
-        Utils::FOVMap<cv::Mat>                      fov_mk_append;
+        // Utils::FOVMap<cv::Mat>                      fov_mk_append;
         Utils::FOVMap<cv::Mat>                      fov_probe_warp_mat;
         Utils::FOVMap<std::vector<cv::Point2d>>     fov_pb_mk_pos;
         Utils::FOVMap<std::vector<cv::Point2d>>     fov_mk_pos_spec;
@@ -488,6 +504,8 @@ struct Chip {
                 fov_pb_successes.at(fov_id)   = true;
 
                 summit::grid::log.debug("Probe channel, fov id:({}, {}) rotation angle: {} degree.", fov_id.x, fov_id.y, fov_rot_degs.at(fov_id));
+                auto slope = chipimgproc::rotation::slope_from_warp(warp_mat);
+                summit::grid::log.debug("white channel, fov id:({}, {}) slope: {}", fov_id.x, fov_id.y, slope);
             } catch (...) {
                 summit::grid::log.error(
                     "Probe channel, fov id:({}, {}) process fialed",
@@ -807,6 +825,7 @@ struct Chip {
                         "several channel gridding failed, stop process(gridline image not generated)"
                     )
                 );
+                task.create_warning_file();
             }
             if(task.model().debug() >= 5) {
                 gridline_debug_image_proc(task);

@@ -109,6 +109,7 @@ struct FOV {
     VAR_IO(std::vector<cv::Point>,              low_score_marker_idx    );
     VAR_IO(std::string,                         mk_reg_src              ); // white channel, probe channel
     VAR_IO(cv::Mat,                             mk_append               );
+    VAR_IO(cv::Mat,                             mk_append_denoised      );
     VAR_IO(cv::Mat,                             warp_mat                );
     VAR_IO(WarpedMat,                           warped_mat              );
     VAR_IO(cv::Mat,                             std_img                 );

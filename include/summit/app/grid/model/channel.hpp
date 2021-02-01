@@ -133,6 +133,11 @@ struct Channel {
                 return (mat * 8.192) + 8.192;
             }
         );
+        if(task_->ref_from_probe_ch()) {
+            for(auto&& [fov_id, mod] : fov_mods) {
+                fov_mk_append_dn_[fov_id] = mod.mk_append_denoised();
+            }
+        }
     }
     // template<class FOVMod>
     // void collect_fovs(Utils::FOVMap<FOVMod>& fov_mods) {
@@ -199,6 +204,7 @@ struct Channel {
     VAR_GET(std::string,                            ch_name             )
     VAR_GET(std::vector<const MKPat*>,              sh_mk_pats          )
     VAR_IO(cv::Mat,                                 mk_append_mat       )
+    VAR_IO(Utils::FOVMap<cv::Mat>,                  fov_mk_append_dn    )
     VAR_IO(nlohmann::json,                          grid_log            )
 
     VAR_PTR_GET(Task,                               task)

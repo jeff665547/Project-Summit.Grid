@@ -52,6 +52,9 @@ constexpr struct RFID {
                 summit::grid::log.error("BUG: {}", e.what());
                 exit_code = 1;
             }
+            if(exit_code) {
+                task.create_warning_file();
+            }
             task.create_complete_file();
             return 0;
         })

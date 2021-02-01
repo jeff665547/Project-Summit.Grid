@@ -188,6 +188,9 @@ struct Task {
     void create_complete_file() const {
         model_->create_complete_file(id_);
     }
+    void create_warning_file() const {
+        model_->create_warning_file(id_);
+    }
     void copy_chip_log() const {
         std::ofstream grid_cl(model_->grid_chip_log(id_).string());
         grid_cl << chip_log_;
@@ -210,6 +213,20 @@ struct Task {
             id_, ""
         );
         cv::imwrite(path.string(), wh_mk_append_mat);
+    }
+    void check_fovs_mk_append(
+        Utils::FOVMap<cv::Mat>& fov_mk_append_dn, 
+        const double& thresh
+        ) const {
+        auto& bm_mk_a_dn = fov_mk_append_dn.at(cv::Point(fov_rows()/2, fov_cols()/2));
+        auto  bads       = Utils::count_bad_fov_mk_append(
+            fov_mk_append_dn, bm_mk_a_dn,
+            fov_rows(),       fov_cols(),
+            thresh
+        );
+        if(bads){
+            create_warning_file();
+        }
     }
     boost::filesystem::path debug_img(
         const std::string& ch_name, 
@@ -308,6 +325,8 @@ struct Task {
     VAR_GET(int,                            fov_hd              )
     VAR_GET(Utils::FOVImages<std::uint8_t>, white_channel_imgs  )
     VAR_GET(Utils::FOVImages<std::uint16_t>,probe_channel_imgs  )
+    VAR_GET(double,                         wh_mk_append_eval   )
+    VAR_GET(double,                         pb_mk_append_eval   )
     VAR_GET(std::int32_t,                   pyramid_level       )
     VAR_GET(std::int32_t,                   border_bits         )
     VAR_GET(std::int32_t,                   fringe_bits         )
@@ -349,6 +368,8 @@ struct Task {
     VAR_GET(std::uint32_t,                  tm_padding          )
     VAR_GET(std::uint32_t,                  tm_margin           )
 
+    VAR_GET(double,                         bit_ms_wd_rum       )
+    VAR_GET(double,                         bit_ms_hd_rum       )
     VAR_GET(double,                         cell_wd_rum         )
     VAR_GET(double,                         cell_hd_rum         )
     VAR_GET(double,                         cell_w_rum          )
@@ -554,6 +575,8 @@ private:
         cell_w_rum_    = cell_w_um_ * rescale_;
         cell_h_rum_    = cell_h_um_ * rescale_;
         space_rum_     = space_um_ * rescale_;
+        bit_ms_wd_rum_ =    6.0    * cell_wd_rum_ + space_rum_;
+        bit_ms_hd_rum_ =    6.0    * cell_hd_rum_ + space_rum_;
         mk_wd_rum_     = mk_wd_cl_ * cell_wd_rum_;
         mk_hd_rum_     = mk_hd_cl_ * cell_hd_rum_;
         mk_w_rum_      = mk_w_cl_  * cell_wd_rum_;
@@ -584,6 +607,17 @@ private:
             gl_y_rum_[i] = i * cell_hd_rum();
             gl_y_raw_[i] = i * cell_hd_rum() * rum2px_r();
         }
+
+        // Set the evaluation for the marker append image gridding result.
+        wh_mk_append_eval_ = 0.98;
+        pb_mk_append_eval_ = 0.94;
+        // float thresh     = 0.98;  // for BF images
+        // 0.95 for good fluor images
+        // 0.85, 0.8 for bad fluo images.
+
+        // Initialize the indicator for the source of the referenced image.
+        ref_from_white_ch_ = false;
+        ref_from_probe_ch_ = false;
 
         // auto tmp = ScanMode::from_string(scan_mode_);
         // Generate scan mode related parameters for ChipImgProc marker detection estimate_bias.

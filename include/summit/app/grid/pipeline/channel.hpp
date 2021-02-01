@@ -194,6 +194,11 @@ constexpr struct Channel {
             // marker append
             if(model.marker_append()) {
                 channel.mk_append_view()(channel.mk_append_mat());
+                if(task.ref_from_probe_ch()) 
+                    task.check_fovs_mk_append(
+                        channel.fov_mk_append_dn(),
+                        task.pb_mk_append_eval()
+                    );
             }
         } catch (const std::exception& e) {
             channel.set_grid_failed(e.what());
