@@ -385,6 +385,7 @@ struct Task {
     VAR_GET(double,                         chip_h_rum          )
     VAR_GET(double,                         xi_rum              )
     VAR_GET(double,                         yi_rum              )
+    VAR_GET(double,                         stat_window_size_r  )
 
     VAR_PTR_GET(Model,                      model               )
     VAR_PTR_GET(nlohmann::json,             chipinfo            )
@@ -551,6 +552,7 @@ private:
         }
 
         // chipinfo_->erase("spec");
+        stat_window_size_r_ = 0.6;
 
 
         // TODO: all use cache

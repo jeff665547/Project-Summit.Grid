@@ -207,7 +207,7 @@ constexpr struct FOVAG {
         auto log_prefix  = fmt::format("[{}-{}-({},{})]", 
             task.id().chip_id(), channel.ch_name(), fov_id.x, fov_id.y
         );
-        summit::grid::log.trace(
+        summit::grid::log.info(
             "{}: start auto gridding process", 
             log_prefix
         );
@@ -338,6 +338,9 @@ constexpr struct FOVAG {
                 );
             }
 
+            summit::grid::log.info("stats window size -- width: {} pxs, height: {} pxs", 
+                                    std::round(task.cell_w_rum() * task.stat_window_size_r()), 
+                                    std::round(task.cell_h_rum() * task.stat_window_size_r()));
             chipimgproc::ip_convert(mat, CV_32F);
             // tmp_timer = std::chrono::steady_clock::now();
             auto warped_mat = cimp::make_warped_mat(
@@ -345,7 +348,7 @@ constexpr struct FOVAG {
                 task.cell_w_rum(), task.cell_h_rum(),
                 task.cell_wd_rum(), task.cell_hd_rum(),
                 task.fov_w_rum(), task.fov_h_rum(),
-                0.6, task.rum2px_r(),
+                task.stat_window_size_r(), task.rum2px_r(),
                 task.fov_w(), task.fov_h()
             );
             // d = std::chrono::steady_clock::now() - tmp_timer;

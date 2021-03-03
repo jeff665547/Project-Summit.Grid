@@ -1,5 +1,8 @@
 # ChangeLog
 
+- Feature: Parameterize the statistics window size ratio for evluating the probe intensity whose coefficient of variation is the smallest.
+- Feature: Change the logger shown type for chip id, fov id and channel information in fov_ag.hpp (trace -> info).
+
 ## 1.3.8 - 2021.02.23
 
 - Feature: Generate WARNING file for reference when one of the following conditions is met:
