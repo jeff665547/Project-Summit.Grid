@@ -339,8 +339,8 @@ constexpr struct FOVAG {
             }
 
             summit::grid::log.info("stats window size -- width: {} pxs, height: {} pxs", 
-                                    std::round(task.cell_w_rum() * task.stat_window_size_r()), 
-                                    std::round(task.cell_h_rum() * task.stat_window_size_r()));
+                                    std::round(std::round(task.cell_w_rum() * task.stat_window_size_r()) * task.rum2px_r()), 
+                                    std::round(std::round(task.cell_h_rum() * task.stat_window_size_r()) * task.rum2px_r()));
             chipimgproc::ip_convert(mat, CV_32F);
             // tmp_timer = std::chrono::steady_clock::now();
             auto warped_mat = cimp::make_warped_mat(
