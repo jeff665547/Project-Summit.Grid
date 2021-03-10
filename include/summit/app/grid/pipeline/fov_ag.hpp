@@ -338,7 +338,7 @@ constexpr struct FOVAG {
                 );
             }
 
-            summit::grid::log.info("stats window size -- width: {} pxs, height: {} pxs", 
+            summit::grid::log.debug("stats window size -- width: {} pxs, height: {} pxs", 
                                     std::round(std::round(task.cell_w_rum() * task.stat_window_size_r()) * task.rum2px_r()), 
                                     std::round(std::round(task.cell_h_rum() * task.stat_window_size_r()) * task.rum2px_r()));
             chipimgproc::ip_convert(mat, CV_32F);
