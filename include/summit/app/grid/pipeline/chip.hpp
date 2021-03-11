@@ -268,7 +268,7 @@ struct Chip {
 
         /* consensus */
         auto rot_degs = fov_wh_successes 
-            | ranges::view::filter([&](auto&& p ){ return p.second; }) 
+            | ranges::view::filter([&](auto&& p ){ return p.second; })
             | nr::transformed([&](auto&& p){ return fov_rot_degs.at(p.first); })
             | ranges::to_vector
         ;
@@ -311,10 +311,10 @@ struct Chip {
 
         auto& executor        = task.model().executor();
         auto& model           = task.model();
-        auto [id, wh_ch]      = task.white_channel();             // (*)
-        auto wh_ch_name       = wh_ch["name"].get<std::string>(); // (*)
+        auto [id, wh_ch]      = task.white_channel();
+        auto wh_ch_name       = wh_ch["name"].get<std::string>();
 
-        auto gen_mk_detector  = gen_mk_proc_setter(task);         // (*)
+        auto gen_mk_detector  = gen_mk_proc_setter(task);
 
         auto& fov_marker_num = task.fov_marker_num();
         Utils::FOVMarkerRegionMap                fov_marker_regs;
@@ -348,7 +348,7 @@ struct Chip {
 
         summit::grid::log.debug("white channel images nums: {}", task.white_channel_imgs().size());
 
-        /* start to find markers */
+        /* Start to find markers */
         task.white_channel_imgs()
         | nucleona::range::indexed()
         | ranges::view::transform([&](auto&& p){
@@ -401,7 +401,7 @@ struct Chip {
                 summit::grid::log.debug("white channel, fov id:({}, {}) marker append done", fov_id.x, fov_id.y);
                 auto fov_mk_append_denoised = denoise_mk_append(
                     fov_wh_mk_append,
-                    0,                    0,
+                    task.bit_ms_wd_rum(), task.bit_ms_hd_rum(),
                     task.mk_w_rum(),      task.mk_h_rum(),
                     mk_num.y,             mk_num.x
                 );
