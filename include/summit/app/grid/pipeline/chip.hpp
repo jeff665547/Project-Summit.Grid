@@ -434,7 +434,7 @@ struct Chip {
             if(f->second) success_num++;
         }
         if(success_num == 0) {
-            debug_throw(std::runtime_error("white channel general markers process failed"));
+            debug_throw(std::runtime_error("white channel general markers detection process failed"));
         }
 
         auto stitched_img = chipimgproc::stitch::add(
