@@ -2,8 +2,8 @@
 
 ## 1.3.9 - 2021.03.10
 
-- Feature: Improve stability for general and fluorescent markers gridding process.
-- Feature: Support for general marker chip (e.g. ZION (Z1C), Kenai (K1B)) gridding process.
+- Feature: Improve the stability for general and fluorescent markers gridding process.
+- Feature: Support for general-markered chip (e.g. ZION (Z1C), Kenai (K1B)) gridding process.
 - Feature: Parameterize the statistics window size ratio for evluating the probe intensity whose coefficient of variation is the smallest.
 - Feature: Change the logger shown type for chip id, fov id and channel information in fov_ag.hpp (trace -> info).
 
