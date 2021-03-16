@@ -349,7 +349,8 @@ constexpr struct FOVAG {
                 task.cell_wd_rum(), task.cell_hd_rum(),
                 task.fov_w_rum(), task.fov_h_rum(),
                 task.stat_window_size_r(), task.rum2px_r(),
-                task.fov_w(), task.fov_h()
+                task.fov_w(), task.fov_h(),
+                fov_mod.pch_margin_view()
             );
             // d = std::chrono::steady_clock::now() - tmp_timer;
             // std::cout << "make_warped_mat: " << d.count() << " ms\n";
