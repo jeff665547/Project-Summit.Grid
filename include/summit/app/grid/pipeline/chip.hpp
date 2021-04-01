@@ -78,9 +78,17 @@ struct Chip {
             task.chip_dir(),
             task.fov_rows(),
             task.fov_cols(),
-            task.is_img_enc(),
-            task.model()
+            task.is_img_enc()
         ));
+        auto white_ch_name = Utils::search_white_channel(task.channels());
+        std::future<void> write_future;
+        if (!white_ch_name.empty()) {
+            write_future = Utils::get_future_write_imgs(
+                    task, white_ch_name, 
+                    task.white_channel_imgs()
+                );
+        }
+
         if(task.white_channel_imgs().size() == 0) return false;
         try {
             white_channel_proc_aruco(task);
@@ -561,9 +569,16 @@ struct Chip {
             task.chip_dir(),
             task.fov_rows(),
             task.fov_cols(),
-            task.is_img_enc(),
-            task.model()
+            task.is_img_enc()
         ));
+        auto first_probe_ch_name = Utils::search_first_probe_channel(task.channels());
+        std::future<void> write_future;
+        if (!first_probe_ch_name.empty()) {
+            write_future = Utils::get_future_write_imgs(
+                    task, first_probe_ch_name, 
+                    task.probe_channel_imgs()
+                );
+        }
 
         if(task.probe_channel_imgs().size() == 0) {
             summit::grid::log.warn("There are no available probe channel (fluorescent) images.");
@@ -723,6 +738,7 @@ struct Chip {
     //         task.is_img_enc(),
     //         task.model()
     //     );
+    //     // should add Utils::imwrite manully
     //     auto mks                 = task.get_marker_patterns_by_marker_type(ch.at("marker_type"));
     //     auto& marker             = mks.at(0)->marker;
     //     auto& mask               = mks.at(0)->mask;
@@ -909,8 +925,8 @@ struct Chip {
      */
     decltype(auto) operator()(model::Task& task) const {
         using namespace __alias;
-        // auto tmp_timer(std::chrono::steady_clock::now());
-        // std::chrono::duration<double, std::milli> d;
+        auto tmp_timer(std::chrono::steady_clock::now());
+        std::chrono::duration<double, std::milli> d;
         auto& model = task.model();
         auto& executor = task.model().executor();
         try {
@@ -918,8 +934,8 @@ struct Chip {
                 auto du_ms = std::chrono::duration_cast<std::chrono::milliseconds>(du).count();
                 task.set_proc_time(du_ms / 1000.0);
             });
-            // auto tmp_timer(std::chrono::steady_clock::now());
-            // std::chrono::duration<double, std::milli> d;
+            auto tmp_timer(std::chrono::steady_clock::now());
+            std::chrono::duration<double, std::milli> dd;
             task.grid_log()["date"] = summit::utils::datetime("%Y/%m/%d %H:%M:%S", std::chrono::system_clock::now());
             auto& wh_ch_log = task.grid_log()["white_channel_proc"];
             if(task.model().auto_gridding()) {
@@ -945,10 +961,10 @@ struct Chip {
                 task.set_rot_degree(in_grid_log.at("rotate_degree"));
                 task.set_um2px_r(in_grid_log.at("um_to_pixel_rate"));
             }
-            // d = std::chrono::steady_clock::now() - tmp_timer;
-            // std::cout << "white: " << d.count() << " ms\n";
+            dd = std::chrono::steady_clock::now() - tmp_timer;
+            std::cout << "white: " << dd.count() << " ms\n";
 
-            // tmp_timer = std::chrono::steady_clock::now();
+            tmp_timer = std::chrono::steady_clock::now();
             task.grid_log()["rotate_degree"] = task.rot_degree().value();
             // task.grid_log()["um_to_pixel_rate"] = task.um2px_r();
             task.probe_channels()
@@ -964,8 +980,8 @@ struct Chip {
             })
             | nucleona::range::p_endp(executor)
             ;
-            // d = std::chrono::steady_clock::now() - tmp_timer;
-            // std::cout << "fluro: " << d.count() << " ms\n";
+            dd = std::chrono::steady_clock::now() - tmp_timer;
+            std::cout << "fluro: " << dd.count() << " ms\n";
 
             task.grid_log()["input"] = task.model().input().string();
             task.grid_log()["chip_dir"] = task.chip_dir().string();
@@ -999,8 +1015,8 @@ struct Chip {
         }
         task.write_log();
         task.copy_chip_log();
-        // d = std::chrono::steady_clock::now() - tmp_timer;
-        // std::cout << "chip: " << d.count() << " ms\n";
+        d = std::chrono::steady_clock::now() - tmp_timer;
+        std::cout << "chip: " << d.count() << " ms\n";
         if(task.grid_done()) {
             return 0;
         } else {

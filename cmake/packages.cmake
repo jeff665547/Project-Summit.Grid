@@ -42,16 +42,16 @@ hunter_config(
 )
 hunter_config(
     OpenCV
-    VERSION "3.4.0-p0"
+    VERSION "4.5.1"
     CMAKE_ARGS 
         BUILD_SHARED_LIBS=ON
         CPU_BASELINE=AVX2
-        WITH_LAPACK=ON
+        WITH_PROTOBUF=OFF
         ENABLE_PRECOMPILED_HEADERS=${OpenCV_ENABLE_PRECOMPILED_HEADERS}
 )
 hunter_config(
     OpenCV-Extra
-    VERSION "3.4.0"
+    VERSION "4.5.1"
 )
 hunter_config(SummitCrypto GIT_SUBMODULE "lib/Summit.Crypto"
     CMAKE_ARGS
@@ -64,16 +64,10 @@ hunter_config(cryptopp
     VERSION "5.6.5-p0"
 )
 hunter_config(ChipImgProc
-    VERSION ${HUNTER_ChipImgProc_VERSION}
+    #VERSION ${HUNTER_ChipImgProc_VERSION}
+    VERSION "0.9.22a"
     CMAKE_ARGS
         ENABLE_LOG=ON
-)
-hunter_config(
-    OpenBLAS 
-    VERSION ${HUNTER_OpenBLAS_VERSION}
-    CMAKE_ARGS
-        BUILD_SHARED_LIBS=ON
-        BUILD_TESTS=OFF 
 )
 # hunter_config(ChipImgProc GIT_SUBMODULE "lib/ChipImgProc"
 #     CMAKE_ARGS

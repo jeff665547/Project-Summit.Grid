@@ -46,8 +46,3 @@ find_package(spdlog)
 # fmt
 hunter_add_package(fmt)
 find_package(fmt)
-
-# OpenBLAS
-hunter_add_package(OpenBLAS)
-find_package(OpenBLAS)
-

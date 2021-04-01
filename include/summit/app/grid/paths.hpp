@@ -6,6 +6,7 @@
 #pragma once
 #include <boost/filesystem.hpp>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include "output_format.hpp"
 #include <summit/grid/logger.hpp>
