@@ -65,7 +65,7 @@ hunter_config(cryptopp
 )
 hunter_config(ChipImgProc
     #VERSION ${HUNTER_ChipImgProc_VERSION}
-    VERSION "0.9.22a"
+    VERSION "0.9.24"
     CMAKE_ARGS
         ENABLE_LOG=ON
 )
