@@ -185,9 +185,9 @@ constexpr struct FOVAG {
      * @return false Gridding process is failed, the fail reason will store in grid log.
      */
     bool operator()(model::FOV& fov_mod) const {
-        std::cout << "start fov_ag\n";
-        auto tmp_timer(std::chrono::steady_clock::now());
-        std::chrono::duration<double, std::milli> d;
+        // std::cout << "start fov_ag\n";
+        // auto tmp_timer(std::chrono::steady_clock::now());
+        // std::chrono::duration<double, std::milli> d;
         using namespace __alias;
         auto& channel       = fov_mod.channel();
         auto& fov_id        = fov_mod.fov_id();
@@ -211,10 +211,10 @@ constexpr struct FOVAG {
             "{}: start auto gridding process", 
             log_prefix
         );
-        d = std::chrono::steady_clock::now() - tmp_timer;
-        std::cout << "fov init: " << d.count() << " ms\n";
+        // d = std::chrono::steady_clock::now() - tmp_timer;
+        // std::cout << "fov init: " << d.count() << " ms\n";
         try {
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             summit::grid::log.info("marker pattern number: {}", channel.sh_mk_pats().size());
             // TODO: case for no white marker
             double res_score = 0.0;
@@ -254,9 +254,10 @@ constexpr struct FOVAG {
                     }
                 }
             }
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "estimate_bias: " << d.count() << " ms\n";
-            tmp_timer = std::chrono::steady_clock::now();
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "estimate_bias: " << d.count() << " ms\n";
+
+            // tmp_timer = std::chrono::steady_clock::now();
             summit::grid::log.info("bias: ({}, {})", res_bias.x, res_bias.y);
             auto warp_mat = ref_warp_mat.clone();
             {
@@ -269,18 +270,19 @@ constexpr struct FOVAG {
             cv::Mat iwarp_mat;
             cv::Mat std_mat;
             cv::invertAffineTransform(warp_mat, iwarp_mat);
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "bias & invertAffine: " << d.count() << " ms\n";
-            tmp_timer = std::chrono::steady_clock::now();
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "bias & invertAffine: " << d.count() << " ms\n";
+
+            // tmp_timer = std::chrono::steady_clock::now();
             cv::warpAffine(mat, std_mat, iwarp_mat, cv::Size(
                 std::round(task.fov_w_rum()),
                 std::round(task.fov_h_rum())
             ));
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "warpAffind std_mat: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "warpAffind std_mat: " << d.count() << " ms\n";
 
             // write raw result
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             auto fov_raw_path = channel.fov_image("raw", fov_id.y, fov_id.x);
             auto std2raw = task.std2raw_warp();
             cv::Mat raw_mat;
@@ -289,10 +291,10 @@ constexpr struct FOVAG {
                 std::round(task.fov_h_rum()*task.rum2px_r())
             ));
             cv::imwrite(fov_raw_path.string(), raw_mat);
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "write raw: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "write raw: " << d.count() << " ms\n";
             
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             std::vector<cmk_det::MKRegion> mk_regs;
             cv::Mat_<std::int16_t> mk_map(
                 fov_mod.mk_num().y, 
@@ -327,10 +329,10 @@ constexpr struct FOVAG {
                     fov_mod.pch_grid_view()(grid_view);
                 }
             }
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "mkr_region & debug_view: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "mkr_region & debug_view: " << d.count() << " ms\n";
 
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             if(task.model().marker_append()) {                
                 auto mk_append_res = cmk::roi_append(
                     std_mat, mk_map, mk_regs
@@ -350,17 +352,18 @@ constexpr struct FOVAG {
                     std::move(mk_append_res)
                 );
             }
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "flouro marker_append: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "flouro marker_append: " << d.count() << " ms\n";
 
             summit::grid::log.debug("stats window size -- width: {} pxs, height: {} pxs", 
                                     std::round(std::round(task.cell_w_rum() * task.stat_window_size_r()) * task.rum2px_r()), 
                                     std::round(std::round(task.cell_h_rum() * task.stat_window_size_r()) * task.rum2px_r()));
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             chipimgproc::ip_convert(mat, CV_32F);
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "ip_convert: " << d.count() << " ms\n";
-            tmp_timer = std::chrono::steady_clock::now();
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "ip_convert: " << d.count() << " ms\n";
+
+            // tmp_timer = std::chrono::steady_clock::now();
             auto warped_mat = cimp::make_warped_mat(
                 warp_mat, mat, {task.xi_rum(), task.yi_rum()},
                 task.cell_w_rum(), task.cell_h_rum(),
@@ -370,8 +373,8 @@ constexpr struct FOVAG {
                 task.fov_w(), task.fov_h(),
                 fov_mod.pch_margin_view()
             );
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "make_warped_mat: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "make_warped_mat: " << d.count() << " ms\n";
 
             // if (task.model().debug() >= 5) {
             //     // draw min-cv margin
@@ -435,8 +438,8 @@ constexpr struct FOVAG {
             fov_log_id[1] = fov_id.y;
 
             grid_done = true;
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "fov statistic: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "fov statistic: " << d.count() << " ms\n";
         } catch(const std::exception& e) {
             f_grid_log["grid_fail_reason"] = e.what();
             grid_done = false;

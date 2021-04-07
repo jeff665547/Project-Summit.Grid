@@ -146,18 +146,18 @@ struct Channel {
     // }
     template<class FOVMod>
     void collect_fovs(Utils::FOVMap<FOVMod>& fov_mods) {
-        std::chrono::duration<double, std::milli> d;
-        auto timer(std::chrono::steady_clock::now());
+        // std::chrono::duration<double, std::milli> d;
+        // auto timer(std::chrono::steady_clock::now());
         nucleona::remove_const(*task_).set_multi_warped_mat(
             ch_name_, summit::app::grid::make_multi_warped_mat(fov_mods, *task_)
         );
-        d = std::chrono::steady_clock::now() - timer;
-        std::cout << "make_multi_warped_mat: " << d.count() << " ms\n";
+        // d = std::chrono::steady_clock::now() - timer;
+        // std::cout << "make_multi_warped_mat: " << d.count() << " ms\n";
 
-        timer = std::chrono::steady_clock::now();
+        // timer = std::chrono::steady_clock::now();
         collect_fovs_mk_append(fov_mods);
-        d = std::chrono::steady_clock::now() - timer;
-        std::cout << "collect_fovs_mk_append: " << d.count() << " ms\n";
+        // d = std::chrono::steady_clock::now() - timer;
+        // std::cout << "collect_fovs_mk_append: " << d.count() << " ms\n";
     }
     template<class FOVMod>
     void summary_fov_log(Utils::FOVMap<FOVMod>& fov_mods) {

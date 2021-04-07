@@ -83,8 +83,8 @@ constexpr struct Channel {
             //     channel.json()
             // );
 
-            auto tmp_timer(std::chrono::steady_clock::now());
-            std::chrono::duration<double, std::milli> d, d1;
+            // auto tmp_timer(std::chrono::steady_clock::now());
+            // std::chrono::duration<double, std::milli> d, d1;
             // read all fov image by using std::async to prevent subsequent I/O blockage
             using FutureMap = std::map<
                     decltype(fov_mods)::key_type, std::future<void>, chipimgproc::PointLess
@@ -121,27 +121,27 @@ constexpr struct Channel {
                 return 0;
             })
             | nucleona::range::p_endp(executor);
-            d = std::chrono::steady_clock::now() - tmp_timer;
+            // d = std::chrono::steady_clock::now() - tmp_timer;
             // std::cout << "fov_mod init: " << d1.count() << " ms\n";
-            std::cout << "fov: " << d.count() << " ms\n";
+            // std::cout << "fov: " << d.count() << " ms\n";
 
             channel.summary_fov_log(fov_mods);
             if(channel.grid_log().at("grid_bad").get<bool>()) {
                 debug_throw(std::runtime_error("bad process FOV exist, channel process stop collecting result"));
             }
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             channel.collect_fovs(fov_mods);
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "collect_fovs: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "collect_fovs: " << d.count() << " ms\n";
 
             // write heatmap
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             channel.heatmap_writer()(channel.multi_warped_mat());
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "heatmap_writer: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "heatmap_writer: " << d.count() << " ms\n";
 
             // stitch image
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             model::GLRawImg stitched_grid_img;
             auto& std_rum_st_pts = task.stitched_points_rum();
             std::vector<cv::Mat> std_rum_imgs;
@@ -153,10 +153,10 @@ constexpr struct Channel {
             auto stitched_img = chipimgproc::stitch::add(
                 std_rum_imgs, std_rum_st_pts
             );
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "stitched: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "stitched: " << d.count() << " ms\n";
 
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             {
                 // stitch-[channel].png @ viewable_norm folder
                 auto v_st_img = cimp::viewable(stitched_img);
@@ -182,8 +182,8 @@ constexpr struct Channel {
                 std::ofstream gl_raw_file(channel.stitch_gridline("raw").string());
                 Utils::write_gl(gl_raw_file, raw_stitched_grid_img);
             }
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "weite_viewable: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "write_viewable: " << d.count() << " ms\n";
 
             if (task.model().debug() >= 5) {
                 auto std_st_img_path = channel.stitch_image("rescale");
@@ -202,7 +202,7 @@ constexpr struct Channel {
             stitched_grid_img.gl_x() = task.gl_x_rum();
             stitched_grid_img.gl_y() = task.gl_y_rum();
 
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             // gridline
             std::ofstream gl_file(channel.gridline().string());
             Utils::write_gl(gl_file, stitched_grid_img);
@@ -210,8 +210,8 @@ constexpr struct Channel {
                 stitched_grid_img.gl_x(), 
                 stitched_grid_img.gl_y()
             );
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "gridline: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "gridline: " << d.count() << " ms\n";
 
             channel.set_stitched_img(std::move(stitched_grid_img));
 
@@ -225,7 +225,7 @@ constexpr struct Channel {
             // channel.background_writer()(bg_value);
 
             // marker append
-            tmp_timer = std::chrono::steady_clock::now();
+            // tmp_timer = std::chrono::steady_clock::now();
             if(model.marker_append()) {
                 channel.mk_append_view()(channel.mk_append_mat());
                 if(task.ref_from_probe_ch()) 
@@ -234,8 +234,8 @@ constexpr struct Channel {
                         task.pb_mk_append_eval()
                     );
             }
-            d = std::chrono::steady_clock::now() - tmp_timer;
-            std::cout << "white marker_append: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - tmp_timer;
+            // std::cout << "white marker_append: " << d.count() << " ms\n";
         } catch (const std::exception& e) {
             channel.set_grid_failed(e.what());
             summit::grid::log.error(

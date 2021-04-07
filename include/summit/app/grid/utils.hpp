@@ -457,12 +457,12 @@ struct Utils{
             en_img.load(fin);
             res = summit::crypto::scan_image_de(en_img, "qsefthukkuhtfesq");
         } else {
-            #include <chrono>
-            std::chrono::duration<double, std::milli> d;
-            auto timer = std::chrono::steady_clock::now();
+            // #include <chrono>
+            // std::chrono::duration<double, std::milli> d;
+            // auto timer = std::chrono::steady_clock::now();
             res = chipimgproc::imread(fname_no_ext + ".tiff");
-            d = std::chrono::steady_clock::now() - timer;
-            std::cout << "fov_image read: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - timer;
+            // std::cout << "fov_image read: " << d.count() << " ms\n";
         }
         // if( data_paths.secure_output_enabled()) {
         //     boost::filesystem::path fname_path_no_ext(fname_no_ext);
@@ -504,15 +504,15 @@ struct Utils{
             //         / (fname_path_no_ext.stem().string() + ".png")).string(), 
             //     small_image
             // );
-            std::chrono::duration<double, std::milli> d;
-            auto timer = std::chrono::steady_clock::now();
+            // std::chrono::duration<double, std::milli> d;
+            // auto timer = std::chrono::steady_clock::now();
             cv::imwrite(
                 (data_paths.sc_raw_img_dir() 
                     / (fname_path_no_ext.stem().string() + ".png")).string(), 
                 res
             );
-            d = std::chrono::steady_clock::now() - timer;
-            std::cout << "fov_image write: " << d.count() << " ms\n";
+            // d = std::chrono::steady_clock::now() - timer;
+            // std::cout << "fov_image write: " << d.count() << " ms\n";
         }
     }
     static auto imread(const std::string& fname) {

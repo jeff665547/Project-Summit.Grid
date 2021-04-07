@@ -293,7 +293,7 @@ class Main
      * @return int exit code, 0 is success, otherwise failed.
      */
     int operator()() {
-        auto tmp_timer(std::chrono::steady_clock::now());
+        // auto tmp_timer(std::chrono::steady_clock::now());
         std::chrono::duration<double, std::milli> d;
         nucleona::proftool::GProfiler profiler("summit-grid-prof.out");
         /*
@@ -381,8 +381,8 @@ class Main
         | nucleona::range::endp
         ;
         summit::grid::log.info("process done");
-        d = std::chrono::steady_clock::now() - tmp_timer;
-        std::cout << "main: " << d.count() << " ms\n";
+        // d = std::chrono::steady_clock::now() - tmp_timer;
+        // std::cout << "main: " << d.count() << " ms\n";
         return exit_code;
     }
 };
