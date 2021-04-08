@@ -1,5 +1,7 @@
 # ChangeLog
 
+- Feature: Draw minCV rectangle on the raw image in the debug mode.
+
 ## 1.3.9 - 2021.03.10
 
 - Feature: Improve the stability for general and fluorescent markers gridding process.
