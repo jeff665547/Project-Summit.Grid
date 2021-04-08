@@ -1,6 +1,10 @@
 # ChangeLog
 
 - Feature: Draw minCV rectangle on the raw image in the debug mode.
+- Feature: Speed up by async image IO
+- Feature: Apply GPU speed up and GAPI structure from ChipImgProc
+- Feature: Update OpenCV from v3.4.1 to v4.5.1
+- Misc: Patch cmake script to correctly get include directory of OpenCV
 
 ## 1.3.9 - 2021.03.10
 
