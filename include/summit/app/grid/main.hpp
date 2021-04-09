@@ -284,8 +284,12 @@ class Main
         }
     }
     static int no_cv_error(
-        int status, const char *func_name, const char *err_msg, const char *file_name, int line, void *userdata
-    ) {}
+        int status, const char *func_name, const char *err_msg, 
+        const char *file_name, int line, void *userdata)
+    {
+        //Do nothing -- will suppress console output
+        return 0;
+    }
 
     /**
      * @brief Summit.Grid start point.
