@@ -101,6 +101,8 @@ constexpr struct Channel {
                     )
                 );
             }
+            for (auto& fov_id_mod : fov_mods)
+                read_futures.at(fov_id_mod.first).wait();
             std::future<void> write_future(
                 Utils::get_future_write_imgs(task, channel.ch_name(), fov_mods)
             );
@@ -110,7 +112,6 @@ constexpr struct Channel {
                 auto& fov_mod = fov_id_mod.second;
                 // auto tmp_timer1(std::chrono::steady_clock::now());
                 // fov_mod.init(channel, fov_id);
-                read_futures.at(fov_id).wait();
                 // d1 += std::chrono::steady_clock::now() - tmp_timer1;
                 // fov_mod.set_mk_layout(std::move(tmp_fov_mk_layouts.at(fov_id)));
                 if(model.auto_gridding()) {
