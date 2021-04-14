@@ -1,5 +1,7 @@
 # ChangeLog
 
+## 1.3.10 - 2021.04.14
+
 - Feature: Draw minCV rectangle on the raw image in the debug mode.
 - Feature: Speed up by async image IO
 - Feature: Apply GPU speed up and GAPI structure from ChipImgProc
