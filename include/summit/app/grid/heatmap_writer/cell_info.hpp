@@ -28,6 +28,7 @@ struct CellInfo {
     , stddev      ( ele.stddev     )
     , cv          ( ele.cv         )
     , bg          ( ele.bg         )
+    , num         ( ele.num        )
     , img_x       ( ele.img_p.x    )
     , img_y       ( ele.img_p.y    )
     , probe       ( ele.patch      )
@@ -44,6 +45,7 @@ struct CellInfo {
     int         cl_y        ;
     int         width       ;
     int         height      ;
+    int         num         ;
     double      mean        ;
     double      stddev      ;
     double      cv          ;

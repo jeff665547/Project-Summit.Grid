@@ -1,5 +1,8 @@
 # ChangeLog
 
+- Feature: Use minCV to compute the probe intensity instead of using the mean of the entire probe. 
+- Feature: Refine the algorithm to remove unnecessary operation to accelerate the speed performance.
+
 ## 1.3.9 - 2021.03.10
 
 - Feature: Improve the stability for general and fluorescent markers gridding process.
