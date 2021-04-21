@@ -150,6 +150,10 @@ struct Task {
         for(auto&& ch : *channel_log_) {
             grid_bad_ = grid_bad_ || ch.at("grid_bad").get<bool>();
         }
+
+        for(auto&& ch : *channel_log_) {
+            warn_ = warn_ || ch.at("warning").get<bool>();
+        }
     }
     void write_log() {
         grid_log_["proc_time"] = proc_time_;
@@ -203,6 +207,13 @@ struct Task {
     bool support_aruco() const {
         return origin_infer_algo_ == "aruco_detection";
     }
+    void collect_fovs_warnings(Utils::FOVMap<bool>& fovs_warnings, bool& warn) {
+        bool flag = false;
+        for(auto&& [fov_id, warning] : fovs_warnings) {
+            flag = flag || warning;
+        }
+        warn = warn || flag;
+    }
     void collect_fovs_mk_append(Utils::FOVMap<cv::Mat>& fov_mk_append) {
         auto wh_mk_append_mat = Utils::make_fovs_mk_append(
             fov_mk_append, 
@@ -216,7 +227,8 @@ struct Task {
     }
     void check_fovs_mk_append(
         Utils::FOVMap<cv::Mat>& fov_mk_append_dn, 
-        const double& thresh
+        const double& thresh,
+        bool& warn
         ) const {
         auto& bm_mk_a_dn = fov_mk_append_dn.at(cv::Point(fov_rows()/2, fov_cols()/2));
         auto  bads       = Utils::count_bad_fov_mk_append(
@@ -224,9 +236,10 @@ struct Task {
             fov_rows(),       fov_cols(),
             thresh
         );
-        if(bads){
-            create_warning_file();
-        }
+        warn = warn || bads;
+        // if(bads){
+        //     create_warning_file();
+        // }
     }
     boost::filesystem::path debug_img(
         const std::string& ch_name, 
@@ -433,6 +446,7 @@ struct Task {
     VAR_IO(bool,                            global_search       )
     VAR_IO(bool,                            ref_from_white_ch   )
     VAR_IO(bool,                            ref_from_probe_ch   )
+    VAR_IO(bool,                            warn                )
 private:
     std::vector<MKRegion>                   mk_regs_cl_;
     
@@ -620,6 +634,9 @@ private:
         // Initialize the indicator for the source of the referenced image.
         ref_from_white_ch_ = false;
         ref_from_probe_ch_ = false;
+
+        // Initialize the warning indicator.
+        warn_              = false;
 
         // auto tmp = ScanMode::from_string(scan_mode_);
         // Generate scan mode related parameters for ChipImgProc marker detection estimate_bias.

@@ -27,6 +27,7 @@ namespace summit::app::grid::model {
 struct Channel {
 
     void init(const Task& _task, const nlohmann::json& jch) {
+        warn_ = false;
         task_ = &_task;
         json_ = &jch;
         ch_name_ = json_->at("name");
@@ -197,6 +198,9 @@ struct Channel {
         grid_log_["grid_bad"] = true;
         grid_log_["grid_fail_reason"] = reason;
     }
+    void set_warning() {
+        grid_log_["warning"] = warn_;
+    }
     auto& in_grid_log() const {
         return task_->channel_in_grid_log(id_);
     }
@@ -206,6 +210,7 @@ struct Channel {
     VAR_IO(cv::Mat,                                 mk_append_mat       )
     VAR_IO(Utils::FOVMap<cv::Mat>,                  fov_mk_append_dn    )
     VAR_IO(nlohmann::json,                          grid_log            )
+    VAR_IO(bool,                                    warn                )
 
     VAR_PTR_GET(Task,                               task)
     VAR_PTR_GET(nlohmann::json,                     json)

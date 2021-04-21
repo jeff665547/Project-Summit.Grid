@@ -197,9 +197,11 @@ constexpr struct Channel {
                 if(task.ref_from_probe_ch()) 
                     task.check_fovs_mk_append(
                         channel.fov_mk_append_dn(),
-                        task.pb_mk_append_eval()
+                        task.pb_mk_append_eval(),
+                        channel.warn()
                     );
             }
+            channel.set_warning();
         } catch (const std::exception& e) {
             channel.set_grid_failed(e.what());
             summit::grid::log.error(

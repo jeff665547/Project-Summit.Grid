@@ -1,5 +1,6 @@
 # ChangeLog
 
+- Feature: Trigger the warning file generating mechanism when the number of detected (ArUco) markers do not match the spec.
 - Feature: Use minCV to compute the probe intensity instead of using the mean of the entire probe. 
 - Feature: Refine the algorithm to remove unnecessary operation to accelerate the speed performance.
 
