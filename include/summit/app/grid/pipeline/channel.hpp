@@ -86,32 +86,33 @@ constexpr struct Channel {
             // auto tmp_timer(std::chrono::steady_clock::now());
             // std::chrono::duration<double, std::milli> d, d1;
             // read all fov image by using std::async to prevent subsequent I/O blockage
-            using FutureMap = std::map<
-                    decltype(fov_mods)::key_type, std::future<void>, chipimgproc::PointLess
-                >;
-            FutureMap read_futures;
-            for (auto& fov_id_mod : fov_mods) {
-                read_futures.emplace(
-                    fov_id_mod.first, 
-                    std::async(
-                        std::launch::async, 
-                        [&channel, &fov_id = fov_id_mod.first, &fov_mod = fov_id_mod.second](){
-                            fov_mod.init(channel, fov_id);
-                        }
-                    )
-                );
-            }
-            for (auto& fov_id_mod : fov_mods)
-                read_futures.at(fov_id_mod.first).wait();
-            std::future<void> write_future(
-                Utils::get_future_write_imgs(task, channel.ch_name(), fov_mods)
-            );
+            // using FutureMap = std::map<
+            //         decltype(fov_mods)::key_type, std::future<void>, chipimgproc::PointLess
+            //     >;
+            // FutureMap read_futures;
+            // for (auto& fov_id_mod : fov_mods) {
+            //     read_futures.emplace(
+            //         fov_id_mod.first, 
+            //         std::async(
+            //             std::launch::async, 
+            //             [&channel, &fov_id = fov_id_mod.first, &fov_mod = fov_id_mod.second](){
+            //                 fov_mod.init(channel, fov_id);
+            //             }
+            //         )
+            //     );
+            // }
+            // for (auto& fov_id_mod : fov_mods)
+            //     read_futures.at(fov_id_mod.first).wait();
+            // std::future<void> write_future(
+            //     Utils::get_future_write_imgs(task, channel.ch_name(), fov_mods)
+            // );
             fov_mods
             | ranges::view::transform([&](auto&& fov_id_mod){
                 auto& fov_id = fov_id_mod.first;
                 auto& fov_mod = fov_id_mod.second;
                 // auto tmp_timer1(std::chrono::steady_clock::now());
-                // fov_mod.init(channel, fov_id);
+                fov_mod.init(channel, fov_id);
+                
                 // d1 += std::chrono::steady_clock::now() - tmp_timer1;
                 // fov_mod.set_mk_layout(std::move(tmp_fov_mk_layouts.at(fov_id)));
                 if(model.auto_gridding()) {

@@ -449,7 +449,7 @@ struct Utils{
         bg_file << '\n';
         bg_file << std::flush;
     }
-    static auto imread(const std::string& fname_no_ext, bool img_enc) {
+    static auto imread(const std::string& fname_no_ext, bool img_enc, const Paths& data_paths) {
         cv::Mat res;
         if(img_enc) {
             std::ifstream fin(fname_no_ext + ".srl", std::ios::binary);
@@ -464,29 +464,29 @@ struct Utils{
             // d = std::chrono::steady_clock::now() - timer;
             // std::cout << "fov_image read: " << d.count() << " ms\n";
         }
-        // if( data_paths.secure_output_enabled()) {
-        //     boost::filesystem::path fname_path_no_ext(fname_no_ext);
-        //     // cv::Mat small_image = res;
-        //     // if( res.depth() == CV_8U ) {
-        //     //     small_image = res;
-        //     // } else if( res.depth() == CV_16U) {
-        //     //     res.convertTo(small_image, CV_8U, 0.00390625);
-        //     // }
-        //     // cv::imwrite(
-        //     //     (data_paths.sc_raw_img_dir() 
-        //     //         / (fname_path_no_ext.stem().string() + ".png")).string(), 
-        //     //     small_image
-        //     // );
-        //     std::chrono::duration<double, std::milli> d;
-        //     auto timer = std::chrono::steady_clock::now();
-        //     cv::imwrite(
-        //         (data_paths.sc_raw_img_dir() 
-        //             / (fname_path_no_ext.stem().string() + ".png")).string(), 
-        //         res
-        //     );
-        //     d = std::chrono::steady_clock::now() - timer;
-        //     std::cout << "fov_image write: " << d.count() << " ms\n";
-        // }
+        if( data_paths.secure_output_enabled()) {
+            boost::filesystem::path fname_path_no_ext(fname_no_ext);
+            // cv::Mat small_image = res;
+            // if( res.depth() == CV_8U ) {
+            //     small_image = res;
+            // } else if( res.depth() == CV_16U) {
+            //     res.convertTo(small_image, CV_8U, 0.00390625);
+            // }
+            // cv::imwrite(
+            //     (data_paths.sc_raw_img_dir() 
+            //         / (fname_path_no_ext.stem().string() + ".png")).string(), 
+            //     small_image
+            // );
+            // std::chrono::duration<double, std::milli> d;
+            // auto timer = std::chrono::steady_clock::now();
+            cv::imwrite(
+                (data_paths.sc_raw_img_dir() 
+                    / (fname_path_no_ext.stem().string() + ".png")).string(), 
+                res
+            );
+            // d = std::chrono::steady_clock::now() - timer;
+            // std::cout << "fov_image write: " << d.count() << " ms\n";
+        }
         return res;
     }
     // seperated from imread
@@ -558,7 +558,8 @@ struct Utils{
         const boost::filesystem::path&  src_path,
         int                             rows, 
         int                             cols,
-        bool                            img_enc
+        bool                            img_enc, 
+        const Paths&                    data_paths
     ) {
         auto white_ch_name = search_white_channel(channels);
         if(white_ch_name.empty()) return {};
@@ -573,7 +574,7 @@ struct Utils{
                 auto img_path = src_path / ss.str();
                 // std::cout << "read white channel image: " << img_path << std::endl;
                 cv::Mat_<std::uint8_t> img = Utils::imread(
-                    img_path.string(), img_enc
+                    img_path.string(), img_enc, data_paths
                 );
                 // chipimgproc::info(std::cout, img);
                 res[cv::Point(c, r)] = std::make_tuple(img_path, img);
@@ -587,7 +588,8 @@ struct Utils{
         const boost::filesystem::path&  src_path,
         int                             rows,
         int                             cols,
-        bool                            img_enc
+        bool                            img_enc, 
+        const Paths&                    data_paths
     ) {
         auto first_probe_ch_name = search_first_probe_channel(channels);
         if(first_probe_ch_name.empty()) return {};
@@ -596,7 +598,7 @@ struct Utils{
             for ( int c = 0; c < cols; c ++ ) {
                 auto [img, img_path] = Utils::read_img<std::uint16_t>(src_path, r, c, 
                                                                       first_probe_ch_name, 
-                                                                      img_enc);
+                                                                      img_enc, data_paths);
                 res[cv::Point(c, r)] = std::make_tuple(img_path, img);
             }
         }
@@ -666,7 +668,8 @@ struct Utils{
         const boost::filesystem::path& src_path,
         int row, int col,
         const std::string& postfix,
-        bool img_enc
+        bool img_enc, 
+        const Paths&                    data_paths
     ) {
         std::stringstream ss;
         ss  << std::to_string(row) << '-' 
@@ -675,7 +678,7 @@ struct Utils{
         auto img_path = src_path / ss.str();
         // std::cout << "read image: " << img_path << std::endl;
         cv::Mat_<Int> img = Utils::imread(
-            img_path.string(), img_enc
+            img_path.string(), img_enc, data_paths
         );
         // chipimgproc::info(std::cout, img);
         return nucleona::make_tuple(std::move(img), std::move(img_path));
@@ -685,12 +688,13 @@ struct Utils{
         const boost::filesystem::path& src_path,
         int rows, int cols,
         const std::string& postfix,
-        bool img_enc
+        bool img_enc, 
+        const Paths&                    data_paths
     ) {
         Utils::FOVImages<Int> res;
         for ( int r = 0; r < rows; r ++ ) {
             for ( int c = 0; c < cols; c ++ ) {
-                auto [img, img_path] = Utils::read_img<Int>(src_path, r, c, postfix, img_enc);
+                auto [img, img_path] = Utils::read_img<Int>(src_path, r, c, postfix, img_enc, data_paths);
                 res[cv::Point(c, r)] = nucleona::make_tuple(
                     img_path.string(), std::move(img)
                 );

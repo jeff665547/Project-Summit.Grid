@@ -34,11 +34,13 @@ struct FOV {
     ) {
         channel_ = &ch;
         auto& task = channel_->task();
+        auto& model = task.model();
         auto [img, img_path] = Utils::read_img<std::uint16_t>(
             task.chip_dir(),
             _fov_id.y, _fov_id.x,
             channel_->ch_name(),
-            task.is_img_enc()
+            task.is_img_enc(), 
+            model
         );
         src_path_ = std::move(img_path);
         src_ = img;

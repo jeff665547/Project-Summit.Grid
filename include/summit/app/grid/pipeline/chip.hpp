@@ -78,17 +78,9 @@ struct Chip {
             task.chip_dir(),
             task.fov_rows(),
             task.fov_cols(),
-            task.is_img_enc()
+            task.is_img_enc(), 
+            task.model()
         ));
-        auto white_ch_name = Utils::search_white_channel(task.channels());
-        std::future<void> write_future;
-        if (!white_ch_name.empty()) {
-            write_future = Utils::get_future_write_imgs(
-                    task, white_ch_name, 
-                    task.white_channel_imgs()
-                );
-        }
-
         if(task.white_channel_imgs().size() == 0) return false;
         try {
             white_channel_proc_aruco(task);
@@ -569,16 +561,9 @@ struct Chip {
             task.chip_dir(),
             task.fov_rows(),
             task.fov_cols(),
-            task.is_img_enc()
+            task.is_img_enc(), 
+            task.model()
         ));
-        auto first_probe_ch_name = Utils::search_first_probe_channel(task.channels());
-        std::future<void> write_future;
-        if (!first_probe_ch_name.empty()) {
-            write_future = Utils::get_future_write_imgs(
-                    task, first_probe_ch_name, 
-                    task.probe_channel_imgs()
-                );
-        }
 
         if(task.probe_channel_imgs().size() == 0) {
             summit::grid::log.warn("There are no available probe channel (fluorescent) images.");
