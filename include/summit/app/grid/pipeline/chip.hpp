@@ -105,8 +105,10 @@ struct Chip {
         using namespace __alias;
         using MKRegion = chipimgproc::marker::detection::MKRegion;
 
-        auto& executor  = task.model().executor();
-        auto& model     = task.model();
+        auto& executor   = task.model().executor();
+        auto& model      = task.model();
+        auto [id, wh_ch] = task.white_channel();
+        auto wh_ch_name  = wh_ch["name"].get<std::string>();
 
         auto aruco_mk_detector = aruco_setter(task);
 
@@ -121,8 +123,6 @@ struct Chip {
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_wh_mk_pos;
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_mk_pos_spec;
         std::vector<cv::Mat>                      fov_rum_imgs(task.white_channel_imgs().size());
-        auto [id, wh_ch] = task.white_channel();
-        auto wh_ch_name = wh_ch["name"].get<std::string>();
 
         chipimgproc::aruco::MarkerMap mk_map(task.id_map());
         

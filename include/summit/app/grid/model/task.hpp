@@ -8,6 +8,7 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <summit/app/grid/task_id.hpp>
+#include <summit/app/grid/pixel_format.hpp>
 #include <summit/config/cell_fov.hpp>
 #include <summit/config/chip.hpp>
 #include <summit/utils.h>
@@ -69,6 +70,8 @@ struct Task {
         for(int i = 0; i < channels_.size(); i ++){
             auto& ch = channels_.at(i);
             if(ch["filter"].get<int>() != 0) {
+                auto px_fmt = ch["pixel_format"].get<std::string>();
+                ref_ch_theor_max_val_ = PixelFormat::to_theor_max_val(px_fmt);
                 return nucleona::make_tuple(std::move(i), ch);
             }
         }
@@ -78,6 +81,8 @@ struct Task {
         for(int i = 0; i < channels_.size(); i ++){
             auto& ch = channels_.at(i);
             if(ch["filter"].get<int>() == 0) {
+                auto px_fmt = ch["pixel_format"].get<std::string>();
+                ref_ch_theor_max_val_ = PixelFormat::to_theor_max_val(px_fmt);
                 return nucleona::make_tuple(std::move(i), ch);
             }
         }
@@ -324,6 +329,7 @@ struct Task {
     VAR_GET(boost::filesystem::path,        chip_dir            )
     VAR_GET(bool,                           is_img_enc          )
     VAR_GET(double,                         um2px_r             )
+    VAR_GET(double,                         ref_ch_theor_max_val)
     VAR_GET(std::string,                    scan_mode           )
     VAR_GET(std::string,                    chip_info_name      )
     VAR_GET(std::string,                    chip_spec_name      )

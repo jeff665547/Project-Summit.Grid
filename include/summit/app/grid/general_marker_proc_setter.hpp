@@ -25,8 +25,9 @@ public:
         // cv::imwrite("img_template.tiff", probe_img_template);
 
         // Generate the marker template and its corresponding mask for the white channel (mk: rum, templ/mask: pixel).
-        auto  markers      = task.get_marker_patterns("filter", 0);
-        auto& mk           = *markers.at(0);
+        auto  theor_max_val = task.ref_ch_theor_max_val();
+        auto  markers       = task.get_marker_patterns("filter", 0);
+        auto& mk            = *markers.at(0);
         cv::Mat_<std::uint8_t> templ, mask;
         chipimgproc::aruco::Utils::resize(mk.marker, templ, task.rum2px_r(), task.rum2px_r());
         chipimgproc::aruco::Utils::resize(mk.mask,   mask,  task.rum2px_r(), task.rum2px_r());
@@ -56,6 +57,7 @@ public:
             templ,
             mask,
             2,
+            theor_max_val,
             white_img_template,
             general_mk_layout
         ));

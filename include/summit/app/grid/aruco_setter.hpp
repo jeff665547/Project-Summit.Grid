@@ -84,6 +84,7 @@ public:
             templ, mask,
             task.aruco_width() * task.um2px_r(),
             2, 
+            task.ref_ch_theor_max_val(),
             task.nms_count() + task.nms_tolerance(), 
             task.nms_radius() * task.um2px_r(),
             task.ext_width()
