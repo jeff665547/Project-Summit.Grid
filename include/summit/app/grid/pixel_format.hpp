@@ -71,7 +71,7 @@ struct PixelFormat {
      * @return double The maximum value for the corresponding image pixel format.
      */
     static double to_theor_max_val(const std::string& str) {
-        static Formats fmt = from_string(str);
+        Formats fmt = from_string(str);
         static std::map<Formats, double> mapper {
             { Mono8,   std::pow(2,  8) - 1  },
             { Mono10,  std::pow(2, 10) - 1  },
