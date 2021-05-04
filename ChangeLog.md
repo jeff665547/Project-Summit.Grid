@@ -1,6 +1,6 @@
 # ChangeLog
 
-- Feature: Support for the Sequoia chip unique FOV (S2C) (for the MiniSUMMIT).
+- Feature: Support for the Sequoia chip unique FOV (S1C_TL) (for the MiniSUMMIT).
 - Feature: Adaptation for images with different kinds of pixel format (MiniSUMMIT) (Mono8 ~ Mono16).
 - Feature: Adaptation on the preprocessing algorithm of the fluorescent images for Illumination Corrector.
 - Feature: Trigger the warning file generating mechanism when the number of detected (ArUco) markers do not match the spec.
