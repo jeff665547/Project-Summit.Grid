@@ -105,13 +105,16 @@ struct Chip {
         using namespace __alias;
         using MKRegion = chipimgproc::marker::detection::MKRegion;
 
-        auto& executor  = task.model().executor();
-        auto& model     = task.model();
+        auto& executor   = task.model().executor();
+        auto& model      = task.model();
+        auto [id, wh_ch] = task.white_channel();
+        auto wh_ch_name  = wh_ch["name"].get<std::string>();
 
         auto aruco_mk_detector = aruco_setter(task);
 
         auto& fov_marker_num = task.fov_marker_num();
         Utils::FOVMarkerRegionMap                 fov_marker_regs;
+        Utils::FOVMap<bool>                       fov_wh_warnings;
         Utils::FOVMap<bool>                       fov_wh_successes;
         Utils::FOVMap<float>                      fov_rot_degs;
         Utils::FOVMap<cv::Mat>                    fov_mk_append;
@@ -120,14 +123,13 @@ struct Chip {
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_wh_mk_pos;
         Utils::FOVMap<std::vector<cv::Point2d>>   fov_mk_pos_spec;
         std::vector<cv::Mat>                      fov_rum_imgs(task.white_channel_imgs().size());
-        auto [id, wh_ch] = task.white_channel();
-        auto wh_ch_name = wh_ch["name"].get<std::string>();
 
         chipimgproc::aruco::MarkerMap mk_map(task.id_map());
         
         auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
             fov_marker_regs[fov_id] = {};
+            fov_wh_warnings[fov_id] = {};
             fov_wh_successes[fov_id] = {};
             fov_rot_degs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
@@ -188,6 +190,11 @@ struct Chip {
                     // std::cout << mk_x << ',' << mk_y << '\n';
                     mk_pos_px.push_back(pos);
                     mk_pos_rum.emplace_back(mk_x, mk_y);
+                }
+                auto mk_num_match_spec = mk_pos_px.size() == mk_num.x * mk_num.y;
+                if(!mk_num_match_spec) {
+                    fov_wh_warnings.at(fov_id) = true;
+                    // task.create_warning_file();
                 }
                 auto aruco_ch_mk_seg_view = task.aruco_ch_mk_seg_view(fov_id.y, fov_id.x);
                 if(aruco_ch_mk_seg_view) {
@@ -282,11 +289,13 @@ struct Chip {
         task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
         task.set_rot_degree(rot_deg);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
+        task.collect_fovs_warnings(fov_wh_warnings, task.warn());
         if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
             task.check_fovs_mk_append(
                 fov_mk_append_dn, 
-                task.wh_mk_append_eval()
+                task.wh_mk_append_eval(),
+                task.warn()
             );
         }
         // TODO: um2px_r
@@ -316,8 +325,9 @@ struct Chip {
 
         auto gen_mk_detector  = gen_mk_proc_setter(task);
 
-        auto& fov_marker_num = task.fov_marker_num();
+        auto& fov_marker_num  = task.fov_marker_num();
         Utils::FOVMarkerRegionMap                fov_marker_regs;
+        Utils::FOVMap<bool>                      fov_wh_warnings;
         Utils::FOVMap<bool>                      fov_wh_successes;
         Utils::FOVMap<float>                     fov_rot_degs;
         Utils::FOVMap<cv::Mat>                   fov_mk_append;
@@ -330,6 +340,7 @@ struct Chip {
         // Initialization
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
             fov_marker_regs[fov_id] = {};
+            fov_wh_warnings[fov_id] = {};
             fov_wh_successes[fov_id] = {};
             fov_rot_degs[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
@@ -374,6 +385,11 @@ struct Chip {
                     mk_pos_px.push_back(pos);
                     // summit::grid::log.debug("mk_cen : ({}, {})", mk_cen_x, mk_cen_y);
                     // summit::grid::log.debug("pos    : ({}, {})", pos.x, pos.y);
+                }
+                auto mk_num_match_spec = mk_pos_px.size() == mk_num.x * mk_num.y;
+                if(!mk_num_match_spec) {
+                    fov_wh_warnings.at(fov_id) = true;
+                    // task.create_warning_file();
                 }
                 auto warp_mat = chipimgproc::warped_mat::estimate_transform_mat(mk_pos_rum, mk_pos_px);
 
@@ -455,11 +471,13 @@ struct Chip {
         task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
         task.set_rot_degree(rot_deg);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
+        task.collect_fovs_warnings(fov_wh_warnings, task.warn());
         if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
             task.check_fovs_mk_append(
                 fov_mk_append_dn,
-                task.wh_mk_append_eval()
+                task.wh_mk_append_eval(),
+                task.warn()
             );
         }
         model::GLRawImg stitched_grid_img(
@@ -576,7 +594,9 @@ struct Chip {
         
         auto probe_mk_detector = pb_ch_proc_setter(task, ch);
 
+        auto& fov_marker_num   = task.fov_marker_num();
         Utils::FOVMarkerRegionMap                   fov_marker_regs;
+        Utils::FOVMap<bool>                         fov_pb_warnings;
         Utils::FOVMap<bool>                         fov_pb_successes;
         Utils::FOVMap<float>                        fov_rot_degs;
         // Utils::FOVMap<cv::Mat>                      fov_mk_append;
@@ -592,6 +612,7 @@ struct Chip {
         // Initialization
         for(auto&& [fov_id, mat] : task.probe_channel_imgs()) {
             fov_marker_regs[fov_id] = {};
+            fov_pb_warnings[fov_id] = {};
             fov_pb_successes[fov_id] = {};
             fov_rot_degs[fov_id] = {};
             // fov_mk_append[fov_id] = cv::Mat();
@@ -635,6 +656,7 @@ struct Chip {
             cv::Mat mat      = std::get<1>(fov_id_mat.second);
             summit::grid::log.debug("Probe channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
             try {
+                auto& mk_num = fov_marker_num.at(fov_id);
                 /* Detect probe markers position */
                 auto mk_pos_des = probe_mk_det(mat);
                 std::vector<cv::Point2d>    mk_pos_px       ;
@@ -649,6 +671,11 @@ struct Chip {
                     mk_pos_px.push_back(pos);
                     // summit::grid::log.debug("mk_cen : ({}, {})", mk_cen_x, mk_cen_y);
                     // summit::grid::log.debug("pos    : ({}, {})", pos.x, pos.y);
+                }
+                auto mk_num_match_spec = mk_pos_px.size() == mk_num.x * mk_num.y;
+                if(!mk_num_match_spec) {
+                    fov_pb_warnings.at(fov_id) = true;
+                    // task.create_warning_file();
                 }
                 auto warp_mat = chipimgproc::warped_mat::estimate_transform_mat(mk_pos_rum, mk_pos_px);
 
@@ -706,6 +733,7 @@ struct Chip {
         task.set_fov_ref_ch_successes(std::move(fov_pb_successes));
         task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
         task.set_rot_degree(rot_deg);
+        task.collect_fovs_warnings(fov_pb_warnings, task.warn());
 
     /* 
      * The following code is for grid one.
@@ -923,6 +951,7 @@ struct Chip {
             // std::chrono::duration<double, std::milli> dd;
             task.grid_log()["date"] = summit::utils::datetime("%Y/%m/%d %H:%M:%S", std::chrono::system_clock::now());
             auto& wh_ch_log = task.grid_log()["white_channel_proc"];
+            auto& wh_ch_warning = task.grid_log()["white_channel_warning"];
             if(task.model().auto_gridding()) {
                 if(!white_channel_proc(task)) {
                     task.set_white_ch_proc_failed(true);
@@ -939,6 +968,7 @@ struct Chip {
                     }
                 } else {
                     wh_ch_log = true;
+                    wh_ch_warning = task.warn();
                 }
             } else {
                 wh_ch_log = false;
@@ -981,6 +1011,9 @@ struct Chip {
             task.grid_log()["version"] = summit::grid::version().to_string();
             task.summary_channel_log();
             task.model().heatmap_writer().flush();
+            if(task.warn()) {
+                task.create_warning_file();
+            }
             if(task.grid_bad()) {
                 debug_throw(
                     std::runtime_error(

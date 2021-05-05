@@ -8,6 +8,7 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <summit/app/grid/task_id.hpp>
+#include <summit/app/grid/pixel_format.hpp>
 #include <summit/config/cell_fov.hpp>
 #include <summit/config/chip.hpp>
 #include <summit/utils.h>
@@ -69,6 +70,8 @@ struct Task {
         for(int i = 0; i < channels_.size(); i ++){
             auto& ch = channels_.at(i);
             if(ch["filter"].get<int>() != 0) {
+                auto px_fmt = ch["pixel_format"].get<std::string>();
+                ref_ch_theor_max_val_ = PixelFormat::to_theor_max_val(px_fmt);
                 return nucleona::make_tuple(std::move(i), ch);
             }
         }
@@ -78,6 +81,8 @@ struct Task {
         for(int i = 0; i < channels_.size(); i ++){
             auto& ch = channels_.at(i);
             if(ch["filter"].get<int>() == 0) {
+                auto px_fmt = ch["pixel_format"].get<std::string>();
+                ref_ch_theor_max_val_ = PixelFormat::to_theor_max_val(px_fmt);
                 return nucleona::make_tuple(std::move(i), ch);
             }
         }
@@ -150,6 +155,10 @@ struct Task {
         for(auto&& ch : *channel_log_) {
             grid_bad_ = grid_bad_ || ch.at("grid_bad").get<bool>();
         }
+
+        for(auto&& ch : *channel_log_) {
+            warn_ = warn_ || ch.at("warning").get<bool>();
+        }
     }
     void write_log() {
         grid_log_["proc_time"] = proc_time_;
@@ -203,6 +212,13 @@ struct Task {
     bool support_aruco() const {
         return origin_infer_algo_ == "aruco_detection";
     }
+    void collect_fovs_warnings(Utils::FOVMap<bool>& fovs_warnings, bool& warn) {
+        bool flag = false;
+        for(auto&& [fov_id, warning] : fovs_warnings) {
+            flag = flag || warning;
+        }
+        warn = warn || flag;
+    }
     void collect_fovs_mk_append(Utils::FOVMap<cv::Mat>& fov_mk_append) {
         auto wh_mk_append_mat = Utils::make_fovs_mk_append(
             fov_mk_append, 
@@ -216,7 +232,8 @@ struct Task {
     }
     void check_fovs_mk_append(
         Utils::FOVMap<cv::Mat>& fov_mk_append_dn, 
-        const double& thresh
+        const double& thresh,
+        bool& warn
         ) const {
         auto& bm_mk_a_dn = fov_mk_append_dn.at(cv::Point(fov_rows()/2, fov_cols()/2));
         auto  bads       = Utils::count_bad_fov_mk_append(
@@ -224,9 +241,10 @@ struct Task {
             fov_rows(),       fov_cols(),
             thresh
         );
-        if(bads){
-            create_warning_file();
-        }
+        warn = warn || bads;
+        // if(bads){
+        //     create_warning_file();
+        // }
     }
     boost::filesystem::path debug_img(
         const std::string& ch_name, 
@@ -311,6 +329,7 @@ struct Task {
     VAR_GET(boost::filesystem::path,        chip_dir            )
     VAR_GET(bool,                           is_img_enc          )
     VAR_GET(double,                         um2px_r             )
+    VAR_GET(double,                         ref_ch_theor_max_val)
     VAR_GET(std::string,                    scan_mode           )
     VAR_GET(std::string,                    chip_info_name      )
     VAR_GET(std::string,                    chip_spec_name      )
@@ -433,6 +452,7 @@ struct Task {
     VAR_IO(bool,                            global_search       )
     VAR_IO(bool,                            ref_from_white_ch   )
     VAR_IO(bool,                            ref_from_probe_ch   )
+    VAR_IO(bool,                            warn                )
 private:
     std::vector<MKRegion>                   mk_regs_cl_;
     
@@ -620,6 +640,9 @@ private:
         // Initialize the indicator for the source of the referenced image.
         ref_from_white_ch_ = false;
         ref_from_probe_ch_ = false;
+
+        // Initialize the warning indicator.
+        warn_              = false;
 
         // auto tmp = ScanMode::from_string(scan_mode_);
         // Generate scan mode related parameters for ChipImgProc marker detection estimate_bias.

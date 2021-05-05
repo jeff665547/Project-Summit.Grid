@@ -42,7 +42,7 @@ struct TsvWriter : public CellInfoWriter {
         os_ <<
             fields(
                 task_id, ci.cl_x, ci.cl_y,
-                ci.height * ci.width, ci.mean, ci.stddev, ci.cv, ci.bg,
+                ci.num, ci.mean, ci.stddev, ci.cv, ci.bg, 
                 ci.img_x, ci.img_y, bool_str(ci.marker_info.is_marker), 
                 ci.marker_info.mk_id_x, ci.marker_info.mk_id_y,
                 ci.marker_info.sub_x, ci.marker_info.sub_y

@@ -48,6 +48,7 @@ struct FOV {
         proc_bad_ = false;
         proc_done_ = false;
         mk_num_ = &task.fov_marker_num().at(fov_id_);
+        theor_max_val_ = channel_->ch_theor_max_val();
     }
 
     auto pch_rot_view() const {
@@ -97,6 +98,7 @@ struct FOV {
     VAR_GET(boost::filesystem::path,            src_path                );
     VAR_GET(cv::Mat_<std::uint16_t>,            src                     );
     VAR_GET(cv::Point,                          fov_id                  );
+    VAR_GET(double,                             theor_max_val           );
 
     VAR_IO(chipimgproc::marker::Layout,         mk_layout               );
     VAR_IO(bool,                                proc_bad                );

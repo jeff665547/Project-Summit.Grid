@@ -193,6 +193,7 @@ constexpr struct FOVAG {
         auto& fov_id        = fov_mod.fov_id();
         auto& path          = fov_mod.src_path();
         auto  mat           = fov_mod.src().clone();
+        auto& theor_max_val = fov_mod.theor_max_val();
         auto& f_grid_log    = fov_mod.grid_log();
         auto& grid_bad      = fov_mod.proc_bad();
         auto& grid_done     = fov_mod.proc_done();
@@ -356,8 +357,8 @@ constexpr struct FOVAG {
             // std::cout << "flouro marker_append: " << d.count() << " ms\n";
 
             summit::grid::log.debug("stats window size -- width: {} pxs, height: {} pxs", 
-                                    std::round(std::round(task.cell_w_rum() * task.stat_window_size_r()) * task.rum2px_r()), 
-                                    std::round(std::round(task.cell_h_rum() * task.stat_window_size_r()) * task.rum2px_r()));
+                                    std::round(task.cell_w_rum() * task.stat_window_size_r() * task.rum2px_r()), 
+                                    std::round(task.cell_h_rum() * task.stat_window_size_r() * task.rum2px_r()));
             // tmp_timer = std::chrono::steady_clock::now();
             chipimgproc::ip_convert(mat, CV_32F);
             // d = std::chrono::steady_clock::now() - tmp_timer;
@@ -370,7 +371,7 @@ constexpr struct FOVAG {
                 task.cell_wd_rum(), task.cell_hd_rum(),
                 task.fov_w_rum(), task.fov_h_rum(),
                 task.stat_window_size_r(), task.rum2px_r(),
-                task.fov_w(), task.fov_h(),
+                theor_max_val, task.fov_w(), task.fov_h(),
                 fov_mod.pch_margin_view()
             );
             // d = std::chrono::steady_clock::now() - tmp_timer;

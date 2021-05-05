@@ -52,7 +52,7 @@ struct HtmlTableWriter : public CellInfoWriter {
         os_ << htag("tr",
             htag(
                 "td", task_id, img_tag(ci.probe), ci.cl_x, ci.cl_y,
-                ci.height * ci.width, ci.mean, ci.stddev, ci.cv,
+                ci.num, ci.mean, ci.stddev, ci.cv,
                 bool_str(ci.marker_info.is_marker), ci.marker_info.mk_id_x, ci.marker_info.mk_id_y,
                 ci.marker_info.sub_x, ci.marker_info.sub_y
             )

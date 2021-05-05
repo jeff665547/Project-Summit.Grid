@@ -25,9 +25,10 @@ public:
         // cv::imwrite("img_template.tiff", probe_img_template);
 
         // Generate the marker template and its corresponding mask for the input channel (mk_pat: cell, templ/mask: pixel).
-        auto  markers      = task.get_marker_patterns_by_marker_type(jch.at("marker_type"));
-        auto& mk_pat       = *markers.at(0);
-        auto [templ, mask] = cmk::txt_to_img(
+        auto  theor_max_val = task.ref_ch_theor_max_val();
+        auto  markers       = task.get_marker_patterns_by_marker_type(jch.at("marker_type"));
+        auto& mk_pat        = *markers.at(0);
+        auto [templ, mask]  = cmk::txt_to_img(
             mk_pat.marker,
             mk_pat.mask,
             task.cell_h_um(),
@@ -56,6 +57,7 @@ public:
             templ,
             mask,
             2,
+            theor_max_val,
             probe_img_template,
             probe_mk_layout
         ));
