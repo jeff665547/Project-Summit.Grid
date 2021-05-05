@@ -2,8 +2,8 @@
 
 ## 1.3.11 - 2021.05.05
 
-- Feature: Support for the Sequoia chip unique FOV (S1C_TL) (for the MiniSUMMIT).
-- Feature: Adaptation for images with different kinds of pixel format (MiniSUMMIT) (Mono8 ~ Mono16).
+- Feature: Support for the Sequoia chip unique FOV (S1C_TL) (for the SUMMIT and PGD).
+- Feature: Adaptation for images with different kinds of pixel format (PGD) (Mono8 ~ Mono16).
 - Feature: Adaptation on the preprocessing algorithm of the fluorescent images for Illumination Corrector.
 - Feature: Trigger the warning file generating mechanism when the number of detected (ArUco) markers do not match the spec.
 - Feature: Use minCV to compute the probe intensity instead of using the mean of the entire probe. 
