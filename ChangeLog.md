@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.12 - 2021.05.06
+
+- Feature: Eastlake chip (E1C) support.
+
 ## 1.3.11 - 2021.05.05
 
 - Feature: Support for the Sequoia chip unique FOV (S1C_TL) (for the SUMMIT and PGD).
