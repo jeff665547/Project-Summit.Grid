@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.13 - 2021.06.17
+
+- Feature: DF1000 chip (D1B) support.
+
 ## 1.3.12 - 2021.05.06
 
 - Feature: Eastlake chip (E1C) support.
