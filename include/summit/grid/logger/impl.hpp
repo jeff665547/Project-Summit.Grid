@@ -4,17 +4,18 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <Nucleona/language.hpp>
+#include <string>
 #include <memory>
 namespace summit::grid {
 
-constexpr struct Logger {
+struct Logger {
 private:
     auto& console_sink() const {
         static auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         return console_sink;
     }
     auto& file_sink() const {
-        static auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("summit-grid.log", true);
+        static auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_path, true);
         return file_sink;
     }
     auto create_logger() const {
@@ -27,7 +28,12 @@ private:
         static auto log(create_logger());
         return *log;
     }
+    std::string log_path = "summit-grid.log";
 public:
+    void setup_log_path(const std::string& dst_dir) {
+        log_path = dst_dir + "/" + log_path;
+    }
+
     template<class... Args>
     void trace(Args&&... args) const {
         core().trace(FWD(args)...);

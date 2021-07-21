@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.14
+
+- Feature: Generate the log of the gridding program to each chip folder when the corresponding argument (-g / --enable_log) is given in the command line.
+
 ## 1.3.13 - 2021.06.17
 
 - Feature: DF1000 chip (D1B) support.

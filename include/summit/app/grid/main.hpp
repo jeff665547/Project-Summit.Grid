@@ -119,6 +119,10 @@ struct Parameters
     /**
      * @brief See @ref doc/command-line.md for more details. 
      */
+    bool enable_log;
+    /**
+     * @brief See @ref doc/command-line.md for more details. 
+     */
     bool no_bgp;
     /**
      * @brief See @ref doc/command-line.md for more details. 
@@ -176,6 +180,7 @@ public:
             ("debug,d"          ,       po::value<int>()->required()
                                                         ->default_value(0),                    "Verbose levels, can be [0,6] and if the level >= 2, the program will generate debug image."
             )
+            ("enable_log,g"     ,       "Show program log file (summit-grid.log).")
             ("no_bgp,b"         ,       "No background process.")
             ("shared_dir,a"     ,       po::value<std::string>()->default_value(""),           "The share directory from reader IPC to image server")
             ("secure_dir,e"     ,       po::value<std::string>()->default_value(""),           "The private directory on image server")
@@ -202,6 +207,7 @@ public:
         Base::get_parameter( "filter"            , filter            );
         Base::get_parameter( "output"            , output            );
         Base::get_parameter( "debug"             , debug             );
+        Base::get_parameter( "enable_log"        , enable_log        );
         Base::get_parameter( "no_bgp"            , no_bgp            );
         Base::get_parameter( "shared_dir"        , shared_dir        );
         Base::get_parameter( "secure_dir"        , secure_dir        );
@@ -213,6 +219,8 @@ public:
         auto output_      = boost::filesystem::absolute(output);
         input_path = input_path_.make_preferred().string();
         output     = output_.make_preferred().string();
+
+        if(enable_log) view_log_at(output_.make_preferred() / "grid");
 
         if(debug < 0 || debug > 7) {
             throw std::runtime_error("debug level should be [0,7], but " + std::to_string(debug));
@@ -238,6 +246,16 @@ public:
                 vm[parameter_name].template as<ParType>(), ","
             );
         }
+    }
+
+    void view_log_at(
+        const boost::filesystem::path& log_dst_dir
+    ) {
+        // auto log_dst_dir(boost::filesystem::absolute(args_.output).make_preferred() / "grid");
+        if(!boost::filesystem::exists(log_dst_dir)) {
+            boost::filesystem::create_directories(log_dst_dir);
+        }
+        summit::grid::log.setup_log_path(log_dst_dir.string());
     }
 };
 
@@ -309,6 +327,8 @@ class Main
         Model model;
         model.set_executor(args_.thread_num - 1);
         model.set_debug(args_.debug);
+
+        summit::grid::log.info("Program version: {}", summit::grid::version().to_string());
 
         boost::filesystem::path grid_log_path; 
         std::vector<boost::filesystem::path> task_paths;
