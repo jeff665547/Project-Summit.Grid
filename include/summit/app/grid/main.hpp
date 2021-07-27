@@ -404,7 +404,7 @@ class Main
         })
         | nucleona::range::endp
         ;
-        summit::grid::log.info("process done");
+        summit::grid::log.info("process done"); 
         // d = std::chrono::steady_clock::now() - tmp_timer;
         // std::cout << "Time cost: " << d.count() << " ms\n";
         return exit_code;

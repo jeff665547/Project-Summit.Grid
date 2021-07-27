@@ -1,7 +1,8 @@
 # ChangeLog
 
-## 1.3.14
+## 1.3.14 - 2021.07.27
 
+- Feature: Jasper chip (J1C, J2C) support.
 - Feature: Generate the log of the gridding program to each chip folder when the corresponding argument (-g / --enable_log) is given in the command line.
 
 ## 1.3.13 - 2021.06.17

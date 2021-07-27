@@ -693,7 +693,7 @@ struct Chip {
 
                 summit::grid::log.debug("Probe channel, fov id:({}, {}) rotation angle: {} degree.", fov_id.x, fov_id.y, fov_rot_degs.at(fov_id));
                 auto slope = chipimgproc::rotation::slope_from_warp(warp_mat);
-                summit::grid::log.debug("white channel, fov id:({}, {}) slope: {}", fov_id.x, fov_id.y, slope);
+                summit::grid::log.debug("Probe channel, fov id:({}, {}) slope: {}", fov_id.x, fov_id.y, slope);
             } catch (...) {
                 summit::grid::log.error(
                     "Probe channel, fov id:({}, {}) process fialed",
