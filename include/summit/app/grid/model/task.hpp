@@ -447,6 +447,7 @@ struct Task {
     VAR_GET(cv::Size2d,                     basic_cover_size    )
     VAR_IO(double,                          highP_cover_extend_r)
     VAR_IO(double,                          regu_cover_extend_r )
+    VAR_IO(double,                          ref_ch_rescue_r     )
     VAR_IO(bool,                            est_bias            )
     VAR_IO(bool,                            est_bias_regulation )
     VAR_IO(bool,                            global_search       )

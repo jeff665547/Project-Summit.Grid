@@ -233,8 +233,25 @@ constexpr struct FOVAG {
                 
                 if(!ref_success /* !ref_from_wh */){
 
-                    // fluorescent process: Dealing with ref_warp_mat for first-staged finding marker failed.
-                    
+                    // Correct the warp_mat for first-staged finding marker failed.
+                    // Estimate the rough bias from the referenced warp matrix.
+                    if(task.est_bias()){
+                        auto [bias, score] = cmk_det::estimate_bias(
+                            mat, templ, mask, mk_pos_spec, ref_warp_mat, 
+                            task.global_search(),
+                            task.basic_cover_size(),
+                            task.ref_ch_rescue_r()
+                        );
+                        if(res_score < score) {
+                            res_score = score;
+                            res_bias = bias;
+                        }
+                    }else{
+                        res_bias.x = 0;
+                        res_bias.y = 0;
+                    }
+
+                    // Record the bad FOV no (*)
                 }else{
                     if(task.est_bias()){
                         auto [bias, score] = cmk_det::estimate_bias(

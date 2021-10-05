@@ -1,2 +1,2 @@
-screw_add_version( 1 3 14 "${CMAKE_SOURCE_DIR}/include/summit/grid/version.h")
+screw_add_version( 1 3 15 "${CMAKE_SOURCE_DIR}/include/summit/grid/version.h")
 message(STATUS "${PROJECT_NAME} v${${PROJECT_NAME}_VERSION}")

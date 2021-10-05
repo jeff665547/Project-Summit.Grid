@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.15 - 2021.10.05
+
+- Feature: Gridding support for some bad FOV images at the white ArUco channel.
+
 ## 1.3.14 - 2021.07.27
 
 - Feature: Jasper chip (J1C, J2C) support.
