@@ -293,10 +293,12 @@ struct Chip {
         auto rot_deg = Utils::mean(rot_degs);
         task.set_rot_degree(rot_deg);        
 
+        /* Rescuing Process (Activated only when some FOV images unsuccessfully estimate the warp matrix from ArUco markers.) */
         if (rescue_proc && success_num) {
             summit::grid::log.debug("activating the rescuing process...");
             summit::grid::log.debug("[Rescuing Process] collecting parameter information from successful FOV images.");
 
+            // Collect parameters from successful FOV images.
             cv::Point2d scale, sum_fov_scale{0, 0}, tmp, translate, translate_max, translate_min, sum_fov_translate{0, 0};
             std::vector<cv::Point2d> ref_mk_pos_spec;
             double ct = success_num;
@@ -341,6 +343,7 @@ struct Chip {
             double cover      = std::max(3.0 * max_dev, 350.0); // pixels
             double cover_r    = cover / templ.cols; // ratio
             
+            // Show collected parameters from successful FOV images.
             summit::grid::log.debug("[Rescuing Process] poor image nums: {}", ct);
             summit::grid::log.debug("[Rescuing Process] rotation degs: {}", rot_deg);
             summit::grid::log.debug("[Rescuing Process] scale x: {}, y: {}", scale.x, scale.y);
@@ -370,12 +373,14 @@ struct Chip {
                 auto& mk_num = fov_marker_num.at(fov_id);
 
                 std::vector<cv::Point2d> mk_pos_rum = ref_mk_pos_spec;
+                // Estimate the warp matrix from the bad FOV image with the use of the referenced information (from the above Info).
                 auto [warp_mat, score] = mk_detector_rescuer(mat, templ, mask, ref_mk_pos_spec, ref_warp_mat, cover_r);
 
                 /* count theta */
                 // fov_rot_degs.at(fov_id) = chipimgproc::warp_mat::rot_deg_from_warp(warp_mat);
                 // summit::grid::log.debug("[Rescuing Process] white channel, fov id:({}, {}) theta: {}.", fov_id.x, fov_id.y, fov_rot_degs.at(fov_id));
 
+                // The following procedure is the same as the above one.
                 cv::Mat iwarp_mat;
                 cv::Mat std_mat;
                 cv::invertAffineTransform(warp_mat, iwarp_mat);
