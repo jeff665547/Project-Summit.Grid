@@ -32,7 +32,6 @@
 #include <ChipImgProc/warp_mat/from_warp_mat.hpp>
 #include <ChipImgProc/warp_mat/to_warp_mat.hpp>
 #include <ChipImgProc/warped_mat/estimate_transform_mat.hpp>
-#include <cstdio>
 
 namespace summit::app::grid::pipeline {
 namespace __alias {

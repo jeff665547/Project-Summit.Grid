@@ -4,7 +4,6 @@
 #include <ChipImgProc/marker/detection/fusion_array.hpp>
 #include "model/task.hpp"
 #include "utils.hpp"
-#include <cstdio>
 namespace summit::app::grid{
 
 constexpr class GeneralMarkerProcSetter {
