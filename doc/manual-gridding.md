@@ -2,10 +2,12 @@
 Manual gridding
 ===============
 
-[TOC]
 
 Overview
 ========
+
+The current program (Summit.Grid 1.3.x) does not support this feature.
+The following instructions are for the Summit.Grid 1.2.x.
 
 Due to the Summit.Grid auto-gridding algorithm is not perfect gridding algorithm, the user may want to fine-tune the gridding result. The Summit.Grid provide the manual gridding function for user to manually **optimize** the gridding result.
 

@@ -7,16 +7,17 @@ Command-line
 Overview
 ========
 
-Summit.Grid is a command-line tool which includes the options:
+Summit.Grid is an image-processing tool designed for transformimg chip images captured from the SUMMIT scanner into the probe intensity. The executable, summit-app-grid, is the command-line interface of this cross-platform program. The following options table lists various actions the tool can perform:
 
-| option           | parameter type  | default        | shortcut | function                                                                                                                                                       |
+| Option           | Parameter Type  | Default Value  | Shortcut | Description                                                                                                                                                    |
 |------------------|-----------------|----------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| help           | (none)          | (none)         | -h       | Show help message                                                                                                                                              |
-| input_path     | path            | (none)         | -i       | The input path, can be directory or file. If the path is a directory, a chip_log.json file must in the directory. If the path is a file, it must be grid_log.json |
-| output_formats | string[,string] | csv_probe_list | -r       | Identify the output file format see [output specification](@ref doc/output-spec.md) for more details                                                                                                                              |
+| help           | (none)          | (none)         | -h       | Display the help information about the Summit.Grid program.                                                                                                      |
+| input_path     | path            | (none)         | -i       | The input path that specifies the directory where the chip_log.json and chip images are stored. |
+| output_formats | string[,string] | csv_probe_list | -r       | Identify the output file format. See the [output specification](@ref doc/output-spec.md) for more infomation.                                                                                                                              |
 | filter         | string          | all            | -l       | The output feature filter                                                                                                                                      |
 | output         | path            | (none)         | -o       | The output path                                                                                                                                                |
 | debug          | int [0, 6]      | 0              | -d       | Verbose levels, can be [0,6] and if the level >= 5, the program will generate debug image                                                                      |
+| enable_log     | (none)          | (none)         | -g       | Output the terminal debug log to the file (summit-grid.log)                                                                                                             |
 | no_bgp         | (none)          | (none)         | -b       | No image background subtraction                                                                                                                                |
 | shared_dir     | path            | (none)         | -a       | The shared directory from reader IPC to image server                                                                                                           |
 | secure_dir     | path            | (none)         | -e       | The private directory on image server                                                                                                                          |
@@ -25,7 +26,7 @@ Summit.Grid is a command-line tool which includes the options:
 | marker_append  | (none)          | (none)         | -m       | Generate marker append image                                                                                                                                   |
 | version        | (none)          | (none)         | -v       | Show version info                                                                                                                                              |
 
-This description can viewed by call ```summit-app-grid --help```
+This information can also be viewed by calling ```summit-app-grid --help``` in the terminal.
 
 input_path details
 ------------------
