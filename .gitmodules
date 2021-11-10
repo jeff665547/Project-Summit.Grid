@@ -9,4 +9,4 @@
 	url = ../../centrillion/Summit.Crypto.git
 [submodule "lib/Summit.Grid-CI-data"]
 	path = lib/Summit.Grid-CI-data
-	url = ../../centrillion/Summit.Grid-CI-data.git
+	url = ssh://git@gitlab.centrilliontech.com.tw:10022/centrillion/Summit.Grid-CI-data.git
