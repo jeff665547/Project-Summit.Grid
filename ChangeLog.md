@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.16 - 2021.12.23
+
+- Feature: Shasta chip (S2B) support.
+
 ## 1.3.15 - 2021.10.05
 
 - Feature: Gridding support for some bad FOV images at the white ArUco channel.
