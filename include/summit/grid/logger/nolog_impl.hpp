@@ -3,6 +3,7 @@
 namespace summit::grid {
 
 constexpr struct Logger{
+    void setup_log_path(const std::string& dst_dir) const {}
     template<class... Args>
     void trace(Args&&... args) const {}
     template<class... Args>
