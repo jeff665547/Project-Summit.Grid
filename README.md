@@ -37,7 +37,7 @@ cd build
 
 ## Configure
 ```
-cmake -G "MinGW Makefiles" ..\ -DCMAKE_INSTALL_PREFIX="..\stage" -DCMAKE_BUILD_TYPE="Release" -DENABLE_LOG=ON
+cmake .. -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="..\stage" -DINSTALL_DEPS=ON -DCMAKE_BUILD_TYPE="Release" -DENABLE_LOG=ON
 ```
 
 ## Build
