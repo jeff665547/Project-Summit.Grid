@@ -40,6 +40,21 @@ struct CellInfo {
     }
     { }
 
+    CellInfo()
+    : cl_x        ()
+    , cl_y        ()
+    , width       ()
+    , height      ()
+    , mean        ()
+    , stddev      ()
+    , cv          ()
+    , bg          ()
+    , num         ()
+    , img_x       ()
+    , img_y       ()
+    , probe       ()
+    , marker_info ()
+    {}
 
     int         cl_x        ;
     int         cl_y        ;

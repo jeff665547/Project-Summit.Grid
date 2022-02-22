@@ -50,6 +50,31 @@ struct TsvWriter : public CellInfoWriter {
         ;
 
     }
+    virtual void write_heatmap(const CellInfo& ci, const std::string& task_id) override {
+        os_ << task_id << delim_
+            << ci.cl_x << delim_
+            << ci.cl_y << delim_
+
+            << ci.num << delim_
+            << ci.mean << delim_
+            << ci.stddev << delim_
+            << ci.cv << delim_
+            << ci.bg << delim_
+
+            << ci.img_x << delim_
+            << ci.img_y << delim_
+            << bool_str(ci.marker_info.is_marker) << delim_
+
+            << ci.marker_info.mk_id_x << delim_
+            << ci.marker_info.mk_id_y << delim_
+            << ci.marker_info.sub_x << delim_
+            << ci.marker_info.sub_y << "\n";
+    }
+    // virtual void merge_heatmap_rdbuf(const std::string& path) override {
+    //     std::ifstream stream( path, std::ios_base::binary );
+    //     stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    //     os_ << stream.rdbuf();
+    // }
     virtual bool is_write_entire_mat() { return false; }
     virtual void write(
         const model::MWMat&   mat, 

@@ -106,6 +106,7 @@ struct Model
      * @param thread_num Executor thread number.
      */
     void set_executor(std::size_t thread_num) {
+        thread_num_ = thread_num;
         executor_.reset(
             new Executor(thread_num)
         );
@@ -203,6 +204,7 @@ struct Model
     VAR_GET(bool,                auto_gridding  )
     VAR_GET(nlohmann::json,      in_grid_log    )
     VAR_GET(std::string,         method         )
+    VAR_GET(std::size_t,         thread_num     )
 private:
     std::unique_ptr<HmWriter>         heatmap_writer_       ;
     std::unique_ptr<BackgroundWriter> background_writer_    ;

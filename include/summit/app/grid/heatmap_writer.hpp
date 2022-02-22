@@ -178,26 +178,53 @@ private:
         // raw_image_norm(mat);
         
         auto filter = make_filter(filter_type);
-        auto full_cellinfo = mat.make_at_result();
+
+        auto& executor = task.model().executor();
+        auto& thread_num = task.model().thread_num();
+        std::vector< std::vector< int >> index; // idx, r, c
+
         for( auto r = 0; r < mat.rows(); r ++ ) {
             for( auto c = 0; c < mat.cols(); c ++ ) {
-                if(!mat.at_cell(full_cellinfo, r, c)) {
-                    debug_throw(std::runtime_error(
-                        fmt::format("at_cell: ({},{}) unable to access", r, c)
-                    ));
-                }
-                cv::Rect mk_reg;
-                int mk_id_x;
-                int mk_id_y;
-                bool is_marker = mk_index.search(c, r, mk_reg, mk_id_x, mk_id_y);
-                heatmap_writer::CellInfo o_cell_info(
-                    r, c, full_cellinfo,
-                    is_marker, mk_id_x, mk_id_y,
-                    mk_reg
-                );
-                if( filter(o_cell_info) ) {
-                    writer.write(o_cell_info, task_id);
-                }
+                index.emplace_back( std::vector< int >{ (int)index.size(), r, c });
+            }
+        }
+
+        std::vector< heatmap_writer::CellInfo > cell_info_temps( index.size() );
+
+        index
+        | nucleona::range::transformed([&]( auto&& v ) {
+
+            auto& i = v[0];
+            auto& r = v[1];
+            auto& c = v[2];
+
+            auto full_cellinfo = mat.make_at_result();
+
+            if(!mat.at_cell(full_cellinfo, r, c)) {
+                debug_throw(std::runtime_error(
+                    fmt::format("at_cell: ({},{}) unable to access", r, c)
+                ));
+            }
+
+            cv::Rect mk_reg;
+            int mk_id_x;
+            int mk_id_y;
+            bool is_marker = mk_index.search(c, r, mk_reg, mk_id_x, mk_id_y);
+
+            cell_info_temps[i] = heatmap_writer::CellInfo(
+                r, c, full_cellinfo,
+                is_marker, mk_id_x, mk_id_y,
+                mk_reg
+            );
+
+            return 0;
+        })
+        | nucleona::range::p_endp( executor )
+        ;
+
+        for( auto& o_cell_info : cell_info_temps ){
+            if( filter(o_cell_info) ) {
+                writer.write_heatmap(o_cell_info, task_id);
             }
         }
     }
