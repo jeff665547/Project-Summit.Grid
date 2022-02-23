@@ -1,5 +1,9 @@
 # ChangeLog
 
+
+
+- Feature: Support intensity extraction automatically fixing some unexpected value caused from other preprocessing programs and algorithms.
+
 ## 1.3.16 - 2021.12.23
 
 - Feature: Shasta chip (S2B) support.
