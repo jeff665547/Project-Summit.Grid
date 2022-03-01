@@ -59,7 +59,6 @@ struct HtmlTableWriter : public CellInfoWriter {
         );
 
     }
-    virtual void write_heatmap(const CellInfo& ci, const std::string& task_id) override {}
     virtual void write(
         const model::MWMat& mat, 
         const std::string&  task_id, 

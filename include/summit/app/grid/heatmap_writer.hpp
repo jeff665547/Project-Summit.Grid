@@ -224,7 +224,7 @@ private:
 
         for( auto& o_cell_info : cell_info_temps ){
             if( filter(o_cell_info) ) {
-                writer.write_heatmap(o_cell_info, task_id);
+                writer.write(o_cell_info, task_id);
             }
         }
     }

@@ -24,7 +24,6 @@ struct CENWriter
         array_.feature_rows()    = task.spec_h_cl();
     }
     virtual void write(const CellInfo& ci, const std::string& task_id) override {}
-    virtual void write_heatmap(const CellInfo& ci, const std::string& task_id) override {}
     virtual bool is_write_entire_mat() override { return true; }
     virtual void write(
         const model::MWMat& mat, 

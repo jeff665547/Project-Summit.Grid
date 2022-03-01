@@ -10,71 +10,40 @@ struct TsvWriter : public CellInfoWriter {
     : os_   (    os )
     , delim_( delim )
     {
-        os_ << fields(
-                "task_id", "x", "y", 
-                "num", "mean", "stddev", "cv", "bg",
-                "img_x", "img_y", "is_mk", 
-                "mk_x", "mk_y", 
-                "mk_sub_x", "mk_sub_y" 
-            );
+        fields(
+            "task_id", "x", "y", 
+            "num", "mean", "stddev", "cv", "bg",
+            "img_x", "img_y", "is_mk", 
+            "mk_x", "mk_y", 
+            "mk_sub_x", "mk_sub_y" 
+        );
     }
-    template<class T>
-    std::string fields_(const T& str) {
-        std::stringstream ss;
-        ss << str;
-        return ss.str();
-    }
-    std::string fields__() {
-        return "";
+    void fields__() {
     }
     template<class ARG1, class... ARGS>
-    std::string fields__(ARG1&& arg1, ARGS&&... args ) {
-        return delim_ + fields_(arg1) + fields__(args...);
+    void fields__(ARG1&& arg1, ARGS&&... args ) {
+        os_ << delim_ << arg1;
+        fields__(args...);
     }
     template<class ARG1, class... ARGS>
-    std::string fields(ARG1&& arg1, ARGS&&... args ) {
-        return fields_(arg1) + fields__(args...) + "\n";
+    void fields(ARG1&& arg1, ARGS&&... args ) {
+        os_ << arg1;
+        fields__(args...);
+        os_ << "\n";
     }
     std::string bool_str(bool b) {
         return b ? "true" : "false";
     }
     virtual void write(const CellInfo& ci, const std::string& task_id) override {
-        os_ <<
-            fields(
-                task_id, ci.cl_x, ci.cl_y,
-                ci.num, ci.mean, ci.stddev, ci.cv, ci.bg, 
-                ci.img_x, ci.img_y, bool_str(ci.marker_info.is_marker), 
-                ci.marker_info.mk_id_x, ci.marker_info.mk_id_y,
-                ci.marker_info.sub_x, ci.marker_info.sub_y
-            )
-        ;
+        fields(
+            task_id, ci.cl_x, ci.cl_y,
+            ci.num, ci.mean, ci.stddev, ci.cv, ci.bg, 
+            ci.img_x, ci.img_y, bool_str(ci.marker_info.is_marker), 
+            ci.marker_info.mk_id_x, ci.marker_info.mk_id_y,
+            ci.marker_info.sub_x, ci.marker_info.sub_y
+        );
 
     }
-    virtual void write_heatmap(const CellInfo& ci, const std::string& task_id) override {
-        os_ << task_id << delim_
-            << ci.cl_x << delim_
-            << ci.cl_y << delim_
-
-            << ci.num << delim_
-            << ci.mean << delim_
-            << ci.stddev << delim_
-            << ci.cv << delim_
-            << ci.bg << delim_
-
-            << ci.img_x << delim_
-            << ci.img_y << delim_
-            << bool_str(ci.marker_info.is_marker) << delim_
-
-            << ci.marker_info.mk_id_x << delim_
-            << ci.marker_info.mk_id_y << delim_
-            << ci.marker_info.sub_x << delim_
-            << ci.marker_info.sub_y << "\n";
-    }
-    // virtual void merge_heatmap_rdbuf(const std::string& path) override {
-    //     std::ifstream stream( path, std::ios_base::binary );
-    //     stream.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    //     os_ << stream.rdbuf();
-    // }
     virtual bool is_write_entire_mat() { return false; }
     virtual void write(
         const model::MWMat&   mat, 

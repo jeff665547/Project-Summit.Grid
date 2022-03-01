@@ -6,7 +6,6 @@ namespace summit::app::grid::heatmap_writer{
 
 struct CellInfoWriter {
     virtual void write(const CellInfo& ci, const std::string& task_id) = 0;
-    virtual void write_heatmap(const CellInfo& ci, const std::string& task_id) = 0;
     virtual void flush() = 0;
     virtual void close() = 0;
     virtual bool is_write_entire_mat() = 0;
