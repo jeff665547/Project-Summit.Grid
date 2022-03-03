@@ -1,6 +1,6 @@
 # ChangeLog
 
-
+## 1.3.17 - 2022.3.3
 
 - Feature: Support intensity extraction automatically fixing some unexpected value caused from other preprocessing programs and algorithms.
 - Feature: Update the heatmap CSV writer without stringstream to speedup the heatmap CSV outputting
