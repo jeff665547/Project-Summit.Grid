@@ -84,7 +84,6 @@ Package_CI:
         - cmake --build . --target install -- -j 6
         - cpack
         - ..\stage\bin\summit-app-grid.exe --version
-        - cd ..
         - python -m venv testing
         - testing\Scripts\pip install requests
         - testing\Scripts\python ..\build.py %PERSONAL_ACCESS_TOKEN%
