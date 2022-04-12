@@ -74,7 +74,6 @@ Package_CI:
     before_script:
         - echo %USERPROFILE%
         - echo %CI_PROJECT_DIR%
-        - echo %version%
         - echo %PERSONAL_ACCESS_TOKEN%
     script: 
         - rmdir stage /s /q
@@ -84,7 +83,10 @@ Package_CI:
         - cmake -G "MinGW Makefiles" .. -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DINSTALL_DEPS=ON -DBUILD_TESTS=OFF -DENABLE_LOG=ON -DENABLE_CPACK=ON -DHUNTER_ROOT="C:\.hunter"
         - cmake --build . --target install -- -j 6
         - cpack
-        - ..\stage\bin\summit-app-grid.exe --help
+        - ..\stage\bin\summit-app-grid.exe --version
+        - python -m venv testing
+        - testing\Scripts\pip install requests
+        - testing\Scripts\python bundle\build.py %PERSONAL_ACCESS_TOKEN%
     only:
         - web
     tags:
