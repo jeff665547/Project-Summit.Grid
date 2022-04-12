@@ -18,7 +18,7 @@ if __name__ == "__main__":
     proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
 
     build_dir = path.join( proj_dir, "build" )
-    nsis_path = gb.iglob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
+    nsis_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
     version = nsis_path.split( "-" )[-1][:-4]
 
