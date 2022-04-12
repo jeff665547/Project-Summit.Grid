@@ -15,15 +15,15 @@ if __name__ == "__main__":
     now     = datetime.now()
     
     exe_path  = path.realpath( __file__ )
-    print( exe_path )
-    proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
-    print( proj_dir )
+    proj_dir  = path.realpath( path.dirname( exe_path ))
 
     build_dir = path.join( proj_dir, "build" )
     print( build_dir )
     nsis_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
+    print( nsis_path )
 
     version = nsis_path.split( "-" )[-1][:-4]
+    print( version )
 
     access_token = sys.argv[1]
     time_suffix  = now.strftime( "-%m%d%H%M%W" )
