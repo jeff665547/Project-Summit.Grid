@@ -86,7 +86,7 @@ Package_CI:
         - ..\stage\bin\summit-app-grid.exe --version
         - python -m venv testing
         - testing\Scripts\pip install requests
-        - testing\Scripts\python ..\build.py %PERSONAL_ACCESS_TOKEN%
+        - testing\Scripts\python ..\bundle.py %PERSONAL_ACCESS_TOKEN%
     only:
         - web
     tags:
