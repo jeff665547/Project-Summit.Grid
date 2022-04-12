@@ -18,12 +18,9 @@ if __name__ == "__main__":
     proj_dir  = path.realpath( path.dirname( exe_path ))
 
     build_dir = path.join( proj_dir, "build" )
-    print( build_dir )
     nsis_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
-    print( nsis_path )
 
     version = nsis_path.split( "-" )[-1][:-4]
-    print( version )
 
     access_token = sys.argv[1]
     time_suffix  = now.strftime( "-%m%d%H%M%W" )
@@ -31,7 +28,7 @@ if __name__ == "__main__":
 
     print( "\n=== post a tag " + version_time + " ===\n", flush=True )
 
-    tag_uri  = "http://gitlab.centrilliontech.com.tw:10088/api/v4/projects/147/repository/tags?tag_name=" + version_time + "&ref=master"
+    tag_uri  = "http://gitlab.centrilliontech.com.tw:10088/api/v4/projects/147/repository/tags?tag_name=" + version_time + "&ref=1.3.x"
     tag_head = { "PRIVATE-TOKEN": access_token}
 
     r = requests.post( tag_uri, headers=tag_head )
