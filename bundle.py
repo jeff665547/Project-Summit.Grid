@@ -20,7 +20,8 @@ if __name__ == "__main__":
     build_dir = path.join( proj_dir, "build" )
     nsis_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
-    version = nsis_path.split( "-" )[-1][:-4]
+    nsis_name = path.basename( nsis_path )
+    version = nsis_name.split( "_" )[-1][:-4]
 
     access_token = sys.argv[1]
     time_suffix  = now.strftime( "-%m%d%H%M%W" )
@@ -51,9 +52,7 @@ if __name__ == "__main__":
                 raise RuntimeError( "can't find: {}".format( temp_share ))
 
         print( "copy to " + temp_share, flush=True )
-
-        dst_name = path.join( temp_share, "SummitGrid_{}.exe".format( version ))
-        sh.copyfile( nsis_path, dst_name )
+        sh.copyfile( nsis_path, path.join( temp_share, nsis_name ))
 
     else:
         raise RuntimeError( "currently only support windows bundle" )
