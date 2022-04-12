@@ -15,9 +15,12 @@ if __name__ == "__main__":
     now     = datetime.now()
     
     exe_path  = path.realpath( __file__ )
+    print( exe_path )
     proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
+    print( proj_dir )
 
     build_dir = path.join( proj_dir, "build" )
+    print( build_dir )
     nsis_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
     version = nsis_path.split( "-" )[-1][:-4]
