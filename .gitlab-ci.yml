@@ -81,8 +81,9 @@ Package_CI:
         - rmdir build /s /q
         - mkdir build
         - cd build
-        - cmake -G "MinGW Makefiles" .. -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DINSTALL_DEPS=ON -DBUILD_TESTS=OFF -DENABLE_LOG=ON -DHUNTER_ROOT="C:\.hunter" -DENABLE_CPACK=ON
+        - cmake -G "MinGW Makefiles" .. -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DINSTALL_DEPS=ON -DBUILD_TESTS=OFF -DENABLE_LOG=ON -DENABLE_CPACK=ON -DHUNTER_ROOT="C:\.hunter"
         - cmake --build . --target install -- -j 6
+        - cpack
         - ..\stage\bin\summit-app-grid.exe --help
     only:
         - web
