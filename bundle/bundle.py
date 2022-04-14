@@ -17,7 +17,8 @@ if __name__ == "__main__":
     proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
 
     build_dir = path.join( proj_dir, "build" )
-    bin_path  = path.join( proj_dir, "Summit-Grid/bin/summit-app-grid.exe" )
+    stage_dir = path.join( proj_dir, "stage" )
+    bin_path  = path.join( stage_dir, "bin\summit-app-grid.exe" )
     #cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
     grid_ver = sp.run([ bin_path, "--version" ], capture_output=True, text=True, shell=True )
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 
     print( "\n=== post a tag " + version + " ===\n", flush=True )
 
-    tag_uri  = "http://gitlab.centrilliontech.com.tw:10088/api/v4/projects/147/repository/tags?tag_name=" + version + "&ref=1.3.x"
+    tag_uri  = "http://gitlab.centrilliontech.com.tw:10088/api/v4/projects/147/repository/tags?tag_name=" + version + ".test&ref=1.3.x"
     tag_head = { "PRIVATE-TOKEN": access_token}
 
     r = requests.post( tag_uri, headers=tag_head )

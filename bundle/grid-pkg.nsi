@@ -15,6 +15,7 @@
 !define REG_ROOT "HKCU"
 !define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
 !define UNINSTALL_PATH "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
+!define INPUT_DIR_NAME "stage"
 
 ######################################################################
 
@@ -87,7 +88,7 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
-File /r ".\${APP_NAME}"
+File /r ".\*"
 Var /GLOBAL double_slash_instdir
 ${StrRep} $double_slash_instdir $INSTDIR '\' '\\'
 SectionEnd
