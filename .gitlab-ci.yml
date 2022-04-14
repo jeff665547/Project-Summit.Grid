@@ -86,10 +86,10 @@ Package_CI:
         - bin\summit-app-grid.exe --version
         - copy ..\bundle\icon.ico .\
         - makensis ..\bundle\grid-pkg.nsi
-        - #cd ..\
-        - #python -m venv deploy
-        - #deploy\Scripts\pip install requests
-        - #deploy\Scripts\python ..\bundle.py %PERSONAL_ACCESS_TOKEN
+        - cd ..\
+        - python -m venv deploy
+        - deploy\Scripts\pip install requests
+        - deploy\Scripts\python ..\bundle.py %PERSONAL_ACCESS_TOKEN
     only:
         - web
     tags:
