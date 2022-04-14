@@ -14,14 +14,15 @@ if __name__ == "__main__":
     access_token = sys.argv[1]
     
     exe_path  = path.realpath( __file__ )
-    proj_dir  = path.realpath( path.dirname( exe_path ))
+    proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
 
     build_dir = path.join( proj_dir, "build" )
     stage_dir = path.join( proj_dir, "stage" )
     bin_path  = path.join( stage_dir, "bin\summit-app-grid.exe" )
     #cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
-    version = sp.run([ bin_path, "--version" ], capture_output=True, text=True, shell=True).stdout
+    grid_ver = sp.run([ bin_path, "--version" ], capture_output=True, text=True, shell=True )
+    version  = grid_ver.stdout
 
     print( "\n=== post a tag " + version + " ===\n", flush=True )
 
