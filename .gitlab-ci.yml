@@ -82,7 +82,6 @@ Package_CI:
         - cd build
         - cmake -G "MinGW Makefiles" .. -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DINSTALL_DEPS=ON -DBUILD_TESTS=OFF -DENABLE_LOG=ON -DENABLE_CPACK=ON -DHUNTER_ROOT="C:\.hunter"
         - cmake --build . --target install -- -j 6
-        - cpack
         - cd ..\
         - copy bundle\icon.ico stage\
         - python -m venv deploy

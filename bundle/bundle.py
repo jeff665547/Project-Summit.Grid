@@ -21,7 +21,7 @@ if __name__ == "__main__":
     bin_path  = path.join( stage_dir, "bin\summit-app-grid.exe" )
     #cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
-    version = sp.check_output([ bin_path, "--version" ],  universal_newlines=False, shell=True )
+    version = sp.run([ bin_path, "--version" ], capture_output=True, text=True, universal_newlines=False, shell=True).stdout
 
     print( "\n=== post a tag " + version + " ===\n", flush=True )
 
