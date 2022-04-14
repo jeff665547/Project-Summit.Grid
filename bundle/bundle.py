@@ -17,8 +17,7 @@ if __name__ == "__main__":
     proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
 
     build_dir = path.join( proj_dir, "build" )
-    stage_dir = path.join( proj_dir, "stage" )
-    bin_path  = path.join( stage_dir, "bin\summit-app-grid.exe" )
+    bin_path  = path.join( proj_dir, "Summit-Grid/bin/summit-app-grid.exe" )
     #cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
     grid_ver = sp.run([ bin_path, "--version" ], capture_output=True, text=True, shell=True )
@@ -41,7 +40,7 @@ if __name__ == "__main__":
         with open( nsis_tpl_path ) as fp:
 
             content = fp.read()
-            content = content.replace( "<%{}%>".format( "version" ), ( version + ".0" ))
+            content = content.replace( "<%{}%>".format( "version" ), ( version + "." ))
 
         nsi_file.write( content )
 

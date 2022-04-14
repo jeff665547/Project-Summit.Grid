@@ -76,14 +76,14 @@ Package_CI:
         - echo %CI_PROJECT_DIR%
         - echo %PERSONAL_ACCESS_TOKEN%
     script: 
-        - rmdir stage /s /q
+        - rmdir Summit-Grid /s /q
         - rmdir build /s /q
         - mkdir build
         - cd build
-        - cmake -G "MinGW Makefiles" .. -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../stage -DINSTALL_DEPS=ON -DBUILD_TESTS=OFF -DENABLE_LOG=ON -DENABLE_CPACK=ON -DHUNTER_ROOT="C:\.hunter"
+        - cmake -G "MinGW Makefiles" .. -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=../Summit-Grid -DINSTALL_DEPS=ON -DBUILD_TESTS=OFF -DENABLE_LOG=ON -DENABLE_CPACK=ON -DHUNTER_ROOT="C:\.hunter"
         - cmake --build . --target install -- -j 6
         - cd ..\
-        - copy bundle\icon.ico stage\
+        - copy bundle\icon.ico Summit-Grid\
         - python -m venv deploy
         - deploy\Scripts\pip install requests
         - deploy\Scripts\python bundle\bundle.py %PERSONAL_ACCESS_TOKEN
