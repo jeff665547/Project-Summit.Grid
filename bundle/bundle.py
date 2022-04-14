@@ -6,6 +6,8 @@ import os.path as path
 
 import glob as gb
 import shutil as sh
+import subprocess as sp
+
 
 if __name__ == "__main__":
 
@@ -14,10 +16,11 @@ if __name__ == "__main__":
     exe_path  = path.realpath( __file__ )
     proj_dir  = path.realpath( path.dirname( exe_path ))
 
-    build_dir = path.join( proj_dir, "build" )
-    nsis_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
+    build_dir  = path.join( proj_dir, "build" )
+    stage_dir  = path.join( proj_dir, "stage" )
+    cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
-    nsis_name = path.basename( nsis_path )
+    nsis_name = path.basename( cpack_path )
     version = nsis_name.split( "_" )[-1][:-4]
 
     print( "\n=== post a tag " + version + " ===\n", flush=True )
@@ -27,6 +30,25 @@ if __name__ == "__main__":
 
     r = requests.post( tag_uri, headers=tag_head )
     print( r.content )
+
+    print( "\n=== bundle package ===\n", flush=True )
+
+    nsis_tpl_path  = path.join( proj_dir, "bundle\grid-pkg.nsi" )
+    nsis_run_path  = path.join( proj_dir, "bundle\grid-pkg-run.nsi" )
+
+    with open( nsis_run_path,"w" ) as nsi_file:
+        with open( nsis_tpl_path ) as fp:
+
+            content = fp.read()
+            content = content.replace( "<%{}%>".format( "version" ), version )
+
+        nsi_file.write( content )
+
+    child = sp.Popen([ "makensis", nsis_run_path ], cwd=proj_dir, universal_newlines=False, shell=True )
+    child.wait()
+
+    if child.returncode != 0: 
+        raise RuntimeError( "makensis failed" )
 
     print( "\n=== deploy package ===\n", flush=True )
 
