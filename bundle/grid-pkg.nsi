@@ -35,7 +35,7 @@ OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
 InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
-InstallDir "C:\${PROGRAMFILES}\${COMP_NAME}\${APP_NAME}"
+InstallDir "C:\$PROGRAMFILES\${COMP_NAME}\${APP_NAME}"
 
 ######################################################################
 

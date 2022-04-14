@@ -26,8 +26,11 @@ if __name__ == "__main__":
 
     print( "\n=== post a tag " + version + " ===\n", flush=True )
 
-    tag_uri  = "http://gitlab.centrilliontech.com.tw:10088/api/v4/projects/147/repository/tags?tag_name=" + version + ".test&ref=1.3.x"
-    tag_head = { "PRIVATE-TOKEN": access_token}
+    tag_uri  = "http://gitlab.centrilliontech.com.tw:10088/api/v4/projects/147/repository/tags?tag_name=" + version + "&ref=1.3.x"
+    tag_head = { "PRIVATE-TOKEN": access_token }
+
+    print( "\n" + tag_uri + "\n", flush=True )
+    print( "\n" + access_token + "\n", flush=True )
 
     r = requests.post( tag_uri, headers=tag_head )
     print( r.content )
@@ -41,7 +44,7 @@ if __name__ == "__main__":
         with open( nsis_tpl_path ) as fp:
 
             content = fp.read()
-            content = content.replace( "<%{}%>".format( "version" ), ( version + "." ))
+            content = content.replace( "<%{}%>".format( "version" ), ( version + ".0" ))
 
         nsi_file.write( content )
 
