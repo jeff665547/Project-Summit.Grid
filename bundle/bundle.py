@@ -18,10 +18,9 @@ if __name__ == "__main__":
 
     build_dir  = path.join( proj_dir, "build" )
     stage_dir  = path.join( proj_dir, "stage" )
-    cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
+    #cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
-    nsis_name = path.basename( cpack_path )
-    version = nsis_name.split( "_" )[-1][:-4]
+    version = sp.check_output([ "bin\summit-app-grid.exe", "--version" ], cwd=stage_dir, universal_newlines=False, shell=True )
 
     print( "\n=== post a tag " + version + " ===\n", flush=True )
 
@@ -65,4 +64,4 @@ if __name__ == "__main__":
             raise RuntimeError( "can't find: {}".format( temp_share ))
 
     print( "copy to " + temp_share, flush=True )
-    sh.copyfile( nsis_path, path.join( temp_share, nsis_name ))
+    # sh.copyfile( nsis_path, path.join( temp_share, nsis_name ))

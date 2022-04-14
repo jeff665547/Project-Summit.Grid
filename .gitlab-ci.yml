@@ -84,8 +84,6 @@ Package_CI:
         - cmake --build . --target install -- -j 6
         - cpack
         - cd ..\
-        - for /F "delims=" %L in ('stage\bin\summit-app-grid.exe --version') do (set "version=%L")
-        - echo version
         - copy bundle\icon.ico stage\
         - python -m venv deploy
         - deploy\Scripts\pip install requests
