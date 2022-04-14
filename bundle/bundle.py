@@ -14,7 +14,7 @@ if __name__ == "__main__":
     access_token = sys.argv[1]
     
     exe_path  = path.realpath( __file__ )
-    proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
+    proj_dir  = path.realpath( path.join( path.dirname( exe_path ), "..\.." ))
 
     build_dir = path.join( proj_dir, "build" )
     stage_dir = path.join( proj_dir, "stage" )
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     print( "\n=== bundle package ===\n", flush=True )
 
     nsis_tpl_path  = path.join( proj_dir, "bundle\grid-pkg.nsi" )
-    nsis_run_path  = path.join( proj_dir, "bundle\grid-pkg-run.nsi" )
+    nsis_run_path  = path.join( proj_dir, "build\grid-pkg-run.nsi" )
 
     with open( nsis_run_path,"w" ) as nsi_file:
         with open( nsis_tpl_path ) as fp:

@@ -15,7 +15,7 @@
 !define REG_ROOT "HKCU"
 !define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
 !define UNINSTALL_PATH "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
-!define INPUT_DIR_NAME "stage"
+!define INPUT_DIR_PATH "../stage"
 
 ######################################################################
 
@@ -35,7 +35,7 @@ OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
 InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
-InstallDir "C:\$PROGRAMFILES\${COMP_NAME}\${APP_NAME}"
+InstallDir "$PROGRAMFILES\${COMP_NAME}\${APP_NAME}"
 
 ######################################################################
 
@@ -88,7 +88,7 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
-File /r ".\*"
+File /r "${INPUT_DIR_NAME}\*"
 Var /GLOBAL double_slash_instdir
 ${StrRep} $double_slash_instdir $INSTDIR '\' '\\'
 SectionEnd
