@@ -14,7 +14,7 @@ if __name__ == "__main__":
     access_token = sys.argv[1]
     
     exe_path  = path.realpath( __file__ )
-    proj_dir  = path.realpath( path.join( path.dirname( exe_path ), "..\.." ))
+    proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
 
     build_dir = path.join( proj_dir, "build" )
     stage_dir = path.join( proj_dir, "stage" )
