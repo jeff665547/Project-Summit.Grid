@@ -22,7 +22,7 @@ if __name__ == "__main__":
     #cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
     grid_ver = sp.run([ bin_path, "--version" ], capture_output=True, text=True, shell=True )
-    version  = grid_ver.stdout
+    version  = grid_ver.stdout.rstrip()
 
     print( "\n=== post a tag " + version + " ===\n", flush=True )
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         with open( nsis_tpl_path ) as fp:
 
             content = fp.read()
-            content = content.replace( "<%{}%>".format( "version" ), version )
+            content = content.replace( "<%{}%>".format( "version" ), ( version + ".0" ))
 
         nsi_file.write( content )
 
