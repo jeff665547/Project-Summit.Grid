@@ -85,7 +85,7 @@ Package_CI:
         - copy ..\bundle\icon.ico ..\stage\
         - python -m venv deploy
         - deploy\Scripts\pip install requests
-        - deploy\Scripts\python bundle\bundle.py %PERSONAL_ACCESS_TOKEN%
+        - deploy\Scripts\python ..\bundle\bundle.py %PERSONAL_ACCESS_TOKEN%
     only:
         - web
     tags:
