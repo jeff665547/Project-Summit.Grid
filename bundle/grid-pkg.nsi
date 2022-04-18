@@ -35,7 +35,7 @@ OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
 InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
-InstallDir "$PROGRAMFILES\${COMP_NAME}\${APP_NAME}"
+InstallDir "$PROGRAMFILES64\${COMP_NAME}\${APP_NAME}"
 
 ######################################################################
 
@@ -92,6 +92,18 @@ File /r "${INPUT_DIR_PATH}\*"
 Var /GLOBAL double_slash_instdir
 ${StrRep} $double_slash_instdir $INSTDIR '\' '\\'
 SectionEnd
+
+######################################################################
+
+# Section -SetPATH
+# nsExec::Exec 'echo %PATH% | find "$INSTDIR"'
+# Pop $0
+# 
+# ${If} $0 = 0
+#     nsExec::Exec 'setx PATH=%PATH%;$INSTDIR\bin\summit-app-grid.exe'
+# ${EndIf}
+# 
+# SectionEnd
 
 ######################################################################
 
