@@ -95,15 +95,15 @@ SectionEnd
 
 ######################################################################
 
-# Section -SetPATH
-# nsExec::Exec 'echo %PATH% | find "$INSTDIR"'
-# Pop $0
-# 
-# ${If} $0 = 0
-#     nsExec::Exec 'setx PATH=%PATH%;$INSTDIR\bin\summit-app-grid.exe'
-# ${EndIf}
-# 
-# SectionEnd
+Section -SetPATH
+nsExec::Exec 'echo %PATH% | find "$INSTDIR"'
+Pop $0
+
+${If} $0 = 0
+    nsExec::Exec 'setx /M PATH "%PATH%;$INSTDIR\bin;"'
+${EndIf}
+
+SectionEnd
 
 ######################################################################
 
@@ -137,6 +137,7 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 !endif
 
 RmDir "$INSTDIR"
+nsExec::Exec 'setx /M PATH "%PATH:$INSTDIR\bin;=%"'
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
