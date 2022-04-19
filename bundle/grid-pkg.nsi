@@ -14,7 +14,7 @@
 !define INSTALL_TYPE "SetShellVarContext current"
 !define REG_ROOT "HKCU"
 !define REG_HKLM "HKLM"
-!define REG_ENV_PATH "SYSTEM\CurrentControlSet\Control\Session Manager\Environment\"
+!define REG_ENV_PATH "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 !define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
 !define UNINSTALL_PATH "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 !define INPUT_DIR_PATH "..\stage"
@@ -98,8 +98,8 @@ SectionEnd
 ######################################################################
 
 Section -SetPATH
-ReadRegStr $Path "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-MessageBox MB_OK ${Path}
+ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
+MessageBox MB_OK $0
 
 # nsExec::Exec 'echo %PATH% | find "$INSTDIR"'
 # Pop $0
