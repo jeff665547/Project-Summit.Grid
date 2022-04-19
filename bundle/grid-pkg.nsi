@@ -149,9 +149,14 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 !endif
 
 RmDir "$INSTDIR"
-MessageBox MB_OK "$INSTDIR\bin;"
 
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
+
+MessageBox MB_OK $0
+MessageBox MB_OK $INSTDIR
+
+StrCpy $0 "$0${ENV_PATH_BIN}"
+MessageBox MB_OK $0
 
 ${If} $INSTDIR = "${INSTALL_DIR}"
     StrCpy $0 "$0${ENV_PATH_BIN}"
