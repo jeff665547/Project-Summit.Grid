@@ -106,20 +106,13 @@ ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 MessageBox MB_OK $INSTDIR
 MessageBox MB_OK "${INSTALL_DIR}"
 
-${If} $INSTDIR = "${INSTALL_DIR}"
+${If} $INSTDIR == "${INSTALL_DIR}"
     MessageBox MB_OK "AA"
     MessageBox MB_OK "$0${ENV_PATH_BIN}"
 ${Else}
     MessageBox MB_OK "BB"
     MessageBox MB_OK "$0$INSTDIR\bin;"
 ${EndIf}
-
-# nsExec::Exec 'echo %PATH% | find "$INSTDIR"'
-# Pop $0
-# 
-# ${If} $0 = 0
-#     nsExec::Exec 'setx /M PATH "%PATH%;$INSTDIR\bin;"'
-# ${EndIf}
 
 SectionEnd
 
@@ -158,7 +151,7 @@ RmDir "$INSTDIR"
 
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 
-${If} $INSTDIR = "${INSTALL_DIR}"
+${If} $INSTDIR == "${INSTALL_DIR}"
     MessageBox MB_OK "AA"
     StrCpy $0 "$0${ENV_PATH_BIN}"
     MessageBox MB_OK $0
