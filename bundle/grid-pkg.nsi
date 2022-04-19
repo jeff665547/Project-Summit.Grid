@@ -18,8 +18,8 @@
 !define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
 !define UNINSTALL_PATH "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 !define INPUT_DIR_PATH "..\stage"
-!define Install_Dir "$PROGRAMFILES64\${COMP_NAME}\${APP_NAME}"
-!define Env_Path_Bin "%ProgramFiles%\${COMP_NAME}\${APP_NAME}\bin;"
+!define INSTALL_DIR "$PROGRAMFILES64\${COMP_NAME}\${APP_NAME}"
+!define ENV_PATH_BIN "%ProgramFiles%\${COMP_NAME}\${APP_NAME}\bin;"
 
 ######################################################################
 
@@ -39,7 +39,7 @@ OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
 InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
-InstallDir "${Install_Dir}"
+InstallDir "${INSTALL_DIR}"
 
 ######################################################################
 
@@ -89,40 +89,39 @@ FunctionEnd
 ######################################################################
 
 Function StrStrip
-    Exch $R0 #string
-    Exch
-    Exch $R1 #in string
-    Push $R2
-    Push $R3
-    Push $R4
-    Push $R5
-        StrLen $R5 $R0
-        StrCpy $R2 -1
-        IntOp $R2 $R2 + 1
-        StrCpy $R3 $R1 $R5 $R2
-        StrCmp $R3 "" +9
-        StrCmp $R3 $R0 0 -3
-            StrCpy $R3 $R1 $R2
-            IntOp $R2 $R2 + $R5
-            StrCpy $R4 $R1 "" $R2
-            StrCpy $R1 $R3$R4
-            IntOp $R2 $R2 - $R5
-            IntOp $R2 $R2 - 1
-            Goto -10
-            StrCpy $R0 $R1
-    Pop $R5
-    Pop $R4
-    Pop $R3
-    Pop $R2
-    Pop $R1
-    Exch $R0
+Exch $R0 #string
+Exch
+Exch $R1 #in string
+Push $R2
+Push $R3
+Push $R4
+Push $R5
+ StrLen $R5 $R0
+ StrCpy $R2 -1
+ IntOp $R2 $R2 + 1
+ StrCpy $R3 $R1 $R5 $R2
+ StrCmp $R3 "" +9
+ StrCmp $R3 $R0 0 -3
+  StrCpy $R3 $R1 $R2
+  IntOp $R2 $R2 + $R5
+  StrCpy $R4 $R1 "" $R2
+  StrCpy $R1 $R3$R4
+  IntOp $R2 $R2 - $R5
+  IntOp $R2 $R2 - 1
+  Goto -10
+  StrCpy $R0 $R1
+Pop $R5
+Pop $R4
+Pop $R3
+Pop $R2
+Pop $R1
+Exch $R0
 FunctionEnd
-
 !macro StrStrip Str InStr OutVar
-    Push '${InStr}'
-    Push '${Str}'
-    Call StrStrip
-    Pop '${OutVar}'
+ Push '${InStr}'
+ Push '${Str}'
+  Call StrStrip
+ Pop '${OutVar}'
 !macroend
 !define StrStrip '!insertmacro StrStrip'
 
@@ -142,8 +141,8 @@ SectionEnd
 Section -SetPATH
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 
-${If} $INSTDIR = "${Install_Dir}"
-    MessageBox MB_OK "$0$Env_Path_Bin"
+${If} $INSTDIR = "${INSTALL_DIR}"
+    MessageBox MB_OK "$0${ENV_PATH_BIN}"
 ${Else}
     MessageBox MB_OK "$0$INSTDIR\bin;"
 ${EndIf}
@@ -193,8 +192,8 @@ MessageBox MB_OK "$INSTDIR\bin;"
 
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 
-${If} $INSTDIR = "${Install_Dir}"
-    ${StrStrip}  $Env_Path_Bin $0 $R0
+${If} $INSTDIR = "${INSTALL_DIR}"
+    ${StrStrip}  ${ENV_PATH_BIN} $0 $R0
     MessageBox MB_OK $R0
 ${Else}
     ${StrStrip}  "$INSTDIR\bin;" $0 $R0
