@@ -47,8 +47,6 @@ InstallDir "${INSTALL_DIR}"
 !include "MUI.nsh"
 !include "nsDialogs.nsh"
 !include "StrFunc.nsh"
-${StrRep}
-${un.StrRep}
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
@@ -155,11 +153,11 @@ ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 
 ${If} $INSTDIR = "${INSTALL_DIR}"
     StrCpy $0 "$0${ENV_PATH_BIN}"
-    ${un.StrRep} $1 $0 ${ENV_PATH_BIN} ""
+    ${UnStrRep} $1 $0 ${ENV_PATH_BIN} ""
     MessageBox MB_OK $1
 ${Else}
     StrCpy $0 "$0$INSTDIR\bin;"
-    ${un.StrRep} $1 $0 "$INSTDIR\bin;" ""
+    ${UnStrRep} $1 $0 "$INSTDIR\bin;" ""
     MessageBox MB_OK $1
 ${EndIf}
 
