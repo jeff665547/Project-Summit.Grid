@@ -99,7 +99,7 @@ SectionEnd
 
 Section -SetPATH
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-MessageBox MB_OK $0
+MessageBox MB_OK "$0$INSTDIR\bin;"
 
 # nsExec::Exec 'echo %PATH% | find "$INSTDIR"'
 # Pop $0
@@ -142,7 +142,7 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 !endif
 
 RmDir "$INSTDIR"
-MessageBox MB_OK $INSTDIR
+MessageBox MB_OK "$INSTDIR\bin;"
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
