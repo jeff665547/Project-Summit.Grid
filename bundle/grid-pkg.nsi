@@ -103,13 +103,10 @@ SectionEnd
 Section -SetPATH
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 
-MessageBox MB_OK $INSTDIR
-MessageBox MB_OK "${INSTALL_DIR}"
-
 ${If} $INSTDIR == "${INSTALL_DIR}"
-    WriteRegDWORD "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0${ENV_PATH_BIN}"
+    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0${ENV_PATH_BIN}"
 ${Else}
-    WriteRegDWORD "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
+    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
 ${EndIf}
 
 SectionEnd
@@ -151,10 +148,10 @@ ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 
 ${If} $INSTDIR == "${INSTALL_DIR}"
     ${UnStrRep} $1 $0 ${ENV_PATH_BIN} ""
-    WriteRegDWORD "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
+    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
 ${Else}
     ${UnStrRep} $1 $0 "$INSTDIR\bin;" ""
-    WriteRegDWORD "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
+    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
 ${EndIf}
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
