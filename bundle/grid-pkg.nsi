@@ -158,6 +158,9 @@ MessageBox MB_OK $INSTDIR
 StrCpy $0 "$0${ENV_PATH_BIN}"
 MessageBox MB_OK $0
 
+!searchreplace $1 $0 ${ENV_PATH_BIN} ""
+MessageBox MB_OK $1
+
 ${If} $INSTDIR = "${INSTALL_DIR}"
     StrCpy $0 "$0${ENV_PATH_BIN}"
     !searchreplace $1 $0 ${ENV_PATH_BIN} ""
