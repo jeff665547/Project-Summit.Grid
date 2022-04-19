@@ -18,6 +18,8 @@
 !define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
 !define UNINSTALL_PATH "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 !define INPUT_DIR_PATH "..\stage"
+!define Install_Dir "$PROGRAMFILES64\${COMP_NAME}\${APP_NAME}"
+!define Env_Path_Bin "%ProgramFiles%\${COMP_NAME}\${APP_NAME}\bin;"
 
 ######################################################################
 
@@ -37,7 +39,7 @@ OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
 InstallDirRegKey "${REG_ROOT}" "${REG_APP_PATH}" ""
-InstallDir "$PROGRAMFILES64\${COMP_NAME}\${APP_NAME}"
+InstallDir "${Install_Dir}"
 
 ######################################################################
 
@@ -99,7 +101,12 @@ SectionEnd
 
 Section -SetPATH
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-MessageBox MB_OK "$0$INSTDIR\bin;"
+
+${If} $INSTDIR = "${Install_Dir}"
+    MessageBox MB_OK "$0$Env_Path_Bin"
+${Else}
+    MessageBox MB_OK "$0$INSTDIR\bin;"
+${EndIf}
 
 # nsExec::Exec 'echo %PATH% | find "$INSTDIR"'
 # Pop $0
@@ -143,6 +150,16 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 
 RmDir "$INSTDIR"
 MessageBox MB_OK "$INSTDIR\bin;"
+
+ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
+
+${If} $INSTDIR = "${Install_Dir}"
+    ${StrStrip}  $Env_Path_Bin $0 $R0
+    MessageBox MB_OK $R0
+${Else}
+    ${StrStrip}  "$INSTDIR\bin;" $0 $R0
+    MessageBox MB_OK $R0
+${EndIf}
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
