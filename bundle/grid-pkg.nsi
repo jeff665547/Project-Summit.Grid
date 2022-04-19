@@ -154,11 +154,13 @@ MessageBox MB_OK "$INSTDIR\bin;"
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 
 ${If} $INSTDIR = "${INSTALL_DIR}"
+    StrCpy $0 "$0${ENV_PATH_BIN}"
     !searchreplace $1 $0 ${ENV_PATH_BIN} ""
-    MessageBox MB_OK $R0
+    MessageBox MB_OK $1
 ${Else}
+    StrCpy $0 "$0$INSTDIR\bin;"
     !searchreplace $1 $0 "$INSTDIR\bin;" ""
-    MessageBox MB_OK $R0
+    MessageBox MB_OK $1
 ${EndIf}
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
