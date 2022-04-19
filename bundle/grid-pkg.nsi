@@ -100,19 +100,6 @@ SectionEnd
 
 ######################################################################
 
-Section -SetPATH
-ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-
-${If} $INSTDIR == "${INSTALL_DIR}"
-    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0${ENV_PATH_BIN}"
-${Else}
-    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
-${EndIf}
-
-SectionEnd
-
-######################################################################
-
 Var SERVER_ICON_PATH 
 Section -Icons_Reg
 StrCpy $SERVER_ICON_PATH "$INSTDIR\icon.ico"
@@ -129,6 +116,22 @@ WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
 !ifdef WEB_SITE
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "URLInfoAbout" "${WEB_SITE}"
 !endif
+SectionEnd
+
+######################################################################
+
+Section -SetPATH
+ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
+
+${If} $INSTDIR == "${INSTALL_DIR}"
+    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0${ENV_PATH_BIN}"
+${Else}
+    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
+${EndIf}
+
+MessageBox MB_YESNO|MB_ICONQUESTION "Do you wish to reboot to apply settings?" IDNO +2
+Reboot
+
 SectionEnd
 
 ######################################################################
