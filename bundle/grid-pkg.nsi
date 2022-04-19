@@ -47,6 +47,7 @@ InstallDir "${INSTALL_DIR}"
 !include "MUI.nsh"
 !include "nsDialogs.nsh"
 !include "StrFunc.nsh"
+${StrRep}
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
