@@ -121,8 +121,8 @@ SectionEnd
 ######################################################################
 
 Section -SetPATH
-ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0;$INSTDIR\bin;"
+ReadRegStr $0 ${REG_HKLM} "${REG_ENV_PATH}" "Path"
+WriteRegSTR ${REG_HKLM} "${REG_ENV_PATH}" "Path" "$0;$INSTDIR\bin;"
 nsExec::Exec 'setx /m summit-app-grid="$INSTDIR\bin\summit-app-grid.exe"'
 MessageBox MB_YESNO|MB_ICONQUESTION "Do you wish to reboot to apply settings?" IDNO +2
 Reboot
@@ -141,12 +141,13 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 
 RmDir "$INSTDIR"
 
-ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
+ReadRegStr $0 ${REG_HKLM} "${REG_ENV_PATH}" "Path"
 ${UnStrRep} $1 $0 ";$INSTDIR\bin;" ""
-WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
+WriteRegSTR ${REG_HKLM} "${REG_ENV_PATH}" "Path" $1
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
+DeleteRegKey ${REG_HKLM} "${REG_ENV_PATH}\summit-app-grid"
 SectionEnd
 
 ######################################################################
