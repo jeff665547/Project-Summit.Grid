@@ -123,7 +123,8 @@ SectionEnd
 Section -SetPATH
 ReadRegStr $0 ${REG_HKLM} "${REG_ENV_PATH}" "Path"
 WriteRegSTR ${REG_HKLM} "${REG_ENV_PATH}" "Path" "$0;$INSTDIR\bin;"
-nsExec::Exec 'setx /m summit-app-grid="$INSTDIR\bin\summit-app-grid.exe"'
+WriteRegSTR ${REG_HKLM} "${REG_ENV_PATH}" "GRID" '"$INSTDIR\bin\summit-app-grid.exe"'
+nsExec::Exec 'setx /m GRID_CHECK 0'
 SectionEnd
 
 ######################################################################
@@ -142,10 +143,13 @@ RmDir "$INSTDIR"
 ReadRegStr $0 ${REG_HKLM} "${REG_ENV_PATH}" "Path"
 ${UnStrRep} $1 $0 ";$INSTDIR\bin;" ""
 WriteRegSTR ${REG_HKLM} "${REG_ENV_PATH}" "Path" $1
-DeleteRegValue ${REG_HKLM} "${REG_ENV_PATH}" "summit-app-grid"
+
+DeleteRegValue ${REG_HKLM} "${REG_ENV_PATH}" "GRID"
+nsExec::Exec 'setx /m GRID_CHECK 1'
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
+DeleteRegValue ${REG_HKLM} "${REG_ENV_PATH}" "GRID_CHECK"
 SectionEnd
 
 ######################################################################
