@@ -19,7 +19,6 @@ if __name__ == "__main__":
     build_dir = path.join( proj_dir, "build" )
     stage_dir = path.join( proj_dir, "stage" )
     bin_path  = path.join( stage_dir, "bin\summit-app-grid.exe" )
-    #cpack_path = gb.glob( path.join( build_dir, "SummitGrid*.exe" ), recursive=True )[0]
 
     grid_ver = sp.run([ bin_path, "--version" ], capture_output=True, text=True, shell=True )
     version  = grid_ver.stdout.rstrip()
@@ -57,7 +56,9 @@ if __name__ == "__main__":
     print( "\n=== deploy package ===\n", flush=True )
 
     # temp_share = "\\\\192.168.200.200\\smtdata\\Joye"
-    temp_share = "\\\\192.168.2.21\\temp_share"
+    temp_share  = "\\\\192.168.2.21\\temp_share"
+    nsis_path   = path.join( build_dir, "summit-grid-setup.exe" )
+    nsis_deploy = path.join( temp_share, "summit-grid_" + version + ".exe" )
     
     if not path.isdir( temp_share ):
         print( "connect to " + temp_share, flush=True )
@@ -69,4 +70,4 @@ if __name__ == "__main__":
             raise RuntimeError( "can't find: {}".format( temp_share ))
 
     print( "copy to " + temp_share, flush=True )
-    # sh.copyfile( nsis_path, path.join( temp_share, nsis_name ))
+    sh.copyfile( nsis_path, nsis_deploy )
