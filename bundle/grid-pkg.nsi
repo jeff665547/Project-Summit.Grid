@@ -123,6 +123,7 @@ SectionEnd
 Section -SetPATH
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
 WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
+nsExec::Exec 'setx /m summit-app-grid="$INSTDIR\bin\summit-app-grid.exe"'
 MessageBox MB_YESNO|MB_ICONQUESTION "Do you wish to reboot to apply settings?" IDNO +2
 Reboot
 SectionEnd
