@@ -122,7 +122,7 @@ SectionEnd
 
 Section -SetPATH
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
+WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0;$INSTDIR\bin;"
 MessageBox MB_YESNO|MB_ICONQUESTION "Do you wish to reboot to apply settings?" IDNO +2
 Reboot
 SectionEnd
@@ -141,7 +141,7 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 RmDir "$INSTDIR"
 
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-${UnStrRep} $1 $0 "$INSTDIR\bin;" ""
+${UnStrRep} $1 $0 ";$INSTDIR\bin;" ""
 WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
