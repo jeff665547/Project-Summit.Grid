@@ -123,7 +123,10 @@ SectionEnd
 Section -SetPATH
 ReadRegStr $0 ${REG_HKLM} "${REG_ENV_PATH}" "Path"
 WriteRegSTR ${REG_HKLM} "${REG_ENV_PATH}" "Path" "$0;$INSTDIR\bin;"
-nsExec::Exec 'setx /M GRID "$INSTDIR\bin\summit-app-grid.exe"'
+
+Var GRID_EXE
+StrCpy $GRID_EXE '"$INSTDIR\bin\summit-app-grid.exe"'
+nsExec::Exec "setx /M GRID '$GRID_EXE'"
 SectionEnd
 
 ######################################################################
