@@ -19,7 +19,7 @@
 !define UNINSTALL_PATH "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 !define INPUT_DIR_PATH "..\stage"
 !define INSTALL_DIR "$PROGRAMFILES64\${COMP_NAME}\${APP_NAME}"
-!define ENV_PATH_BIN "%ProgramFiles%\${COMP_NAME}\${APP_NAME}\bin;"
+!define ENV_PATH_BIN "${INSTALL_DIR}\bin;"
 
 ######################################################################
 
@@ -68,7 +68,6 @@ ${UnStrRep}
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "${APP_NAME}"
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "${REG_ROOT}"
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${UNINSTALL_PATH}"
-!define MUI_FINISHPAGE_RUN ReBoot
 !endif
 
 !insertmacro MUI_PAGE_INSTFILES
@@ -77,15 +76,6 @@ ${UnStrRep}
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 !insertmacro MUI_LANGUAGE "English"
-
-######################################################################
-
-Function ReBoot
-
-MessageBox MB_YESNO|MB_ICONQUESTION "Do you wish to reboot to apply settings?" IDNO +2
-Reboot
-
-FunctionEnd
 
 ######################################################################
 
@@ -132,12 +122,9 @@ SectionEnd
 
 Section -SetPATH
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-
-${If} $INSTDIR == "${INSTALL_DIR}"
-    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0${ENV_PATH_BIN}"
-${Else}
-    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
-${EndIf}
+WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
+MessageBox MB_YESNO|MB_ICONQUESTION "Do you wish to reboot to apply settings?" IDNO +2
+Reboot
 SectionEnd
 
 ######################################################################
@@ -154,14 +141,8 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 RmDir "$INSTDIR"
 
 ReadRegStr $0 "${REG_HKLM}" "${REG_ENV_PATH}" "Path"
-
-${If} $INSTDIR == "${INSTALL_DIR}"
-    ${UnStrRep} $1 $0 ${ENV_PATH_BIN} ""
-    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
-${Else}
-    ${UnStrRep} $1 $0 "$INSTDIR\bin;" ""
-    WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
-${EndIf}
+${UnStrRep} $1 $0 "$INSTDIR\bin;" ""
+WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" $1
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
