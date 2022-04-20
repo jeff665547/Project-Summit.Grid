@@ -68,6 +68,7 @@ ${UnStrRep}
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "${APP_NAME}"
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "${REG_ROOT}"
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${UNINSTALL_PATH}"
+!define MUI_FINISHPAGE_RUN ReBoot
 !endif
 
 !insertmacro MUI_PAGE_INSTFILES
@@ -76,6 +77,15 @@ ${UnStrRep}
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 !insertmacro MUI_LANGUAGE "English"
+
+######################################################################
+
+Function ReBoot
+
+MessageBox MB_YESNO|MB_ICONQUESTION "Do you wish to reboot to apply settings?" IDNO +2
+Reboot
+
+FunctionEnd
 
 ######################################################################
 
@@ -128,10 +138,6 @@ ${If} $INSTDIR == "${INSTALL_DIR}"
 ${Else}
     WriteRegSTR "${REG_HKLM}" "${REG_ENV_PATH}" "Path" "$0$INSTDIR\bin;"
 ${EndIf}
-
-MessageBox MB_YESNO|MB_ICONQUESTION "Do you wish to reboot to apply settings?" IDNO +2
-Reboot
-
 SectionEnd
 
 ######################################################################
