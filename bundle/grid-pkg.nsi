@@ -142,10 +142,10 @@ RmDir "$INSTDIR"
 ReadRegStr $0 ${REG_HKLM} "${REG_ENV_PATH}" "Path"
 ${UnStrRep} $1 $0 ";$INSTDIR\bin;" ""
 WriteRegSTR ${REG_HKLM} "${REG_ENV_PATH}" "Path" $1
+DeleteRegValue ${REG_HKLM} "${REG_ENV_PATH}" "summit-app-grid"
 
 DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
 DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
-DeleteRegKey ${REG_HKLM} "${REG_ENV_PATH}\summit-app-grid"
 SectionEnd
 
 ######################################################################
