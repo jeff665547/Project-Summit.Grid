@@ -102,33 +102,35 @@ SectionEnd
 
 ######################################################################
 
-Var SERVER_ICON_PATH 
+Var ICON_PATH 
 Section -Icons_Reg
-StrCpy $SERVER_ICON_PATH "$INSTDIR\icon.ico"
+StrCpy $ICON_PATH "$INSTDIR\icon.ico"
 SetOutPath "$INSTDIR"
 WriteUninstaller "$INSTDIR\uninstall.exe"
 
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
-CreateShortCut "$SMPROGRAMS\$SM_Folder\uninstall_summit-grid.lnk" "$INSTDIR\uninstall.exe" "" "" 0
+CreateShortCut "$SMPROGRAMS\$SM_Folder\summit-grid.lnk" "C:\Windows\System32\cmd.exe" "/C echo 'User Summit-Grid start with %GRID%' & %GRID%" "$ICON_PATH" 0
+CreateShortCut "$SMPROGRAMS\$SM_Folder\uninstall_summit-grid.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 !insertmacro MUI_STARTMENU_WRITE_END
 !endif
 
 !ifndef REG_START_MENU
 CreateDirectory "$SMPROGRAMS\${COMP_NAME}"
-CreateShortCut "$SMPROGRAMS\${COMP_NAME}\uninstall_summit-grid.lnk" "$INSTDIR\uninstall.exe" "" "" 0
+CreateShortCut "$SMPROGRAMS\${COMP_NAME}\summit-grid.lnk" "C:\Windows\System32\cmd.exe" "/C echo 'User Summit-Grid start with %GRID%' & %GRID%" "$ICON_PATH" 0
+CreateShortCut "$SMPROGRAMS\${COMP_NAME}\uninstall_summit-grid.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 !endif
 
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
-WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayName" "${APP_NAME}"
-WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "UninstallString" "$INSTDIR\uninstall.exe"
-WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayIcon" "$INSTDIR\icon.ico"
-WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayVersion" "${VERSION}"
-WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "Publisher" "${COMP_NAME}"
+WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "DisplayName" "${APP_NAME}"
+WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "UninstallString" "$INSTDIR\uninstall.exe"
+WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "DisplayIcon" "$ICON_PATH"
+WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "DisplayVersion" "${VERSION}"
+WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "Publisher" "${COMP_NAME}"
 
 !ifdef WEB_SITE
-WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "URLInfoAbout" "${WEB_SITE}"
+WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "URLInfoAbout" "${WEB_SITE}"
 !endif
 SectionEnd
 
@@ -145,22 +147,20 @@ SectionEnd
 
 Section Uninstall
 ${INSTALL_TYPE}
-RMDir /r /REBOOTOK "$INSTDIR"
- 
-Delete "$INSTDIR\uninstall.exe"
-!ifdef WEB_SITE
-Delete "$INSTDIR\${APP_NAME} website.url"
-!endif
 
+RMDir /r /REBOOTOK "$INSTDIR"
+Delete "$INSTDIR\uninstall.exe"
 RmDir "$INSTDIR"
 
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder
+Delete "$SMPROGRAMS\$SM_Folder\summit-grid.lnk"
 Delete "$SMPROGRAMS\$SM_Folder\uninstall_summit-grid.lnk"
 RmDir "$SMPROGRAMS\$SM_Folder"
 !endif
 
 !ifndef REG_START_MENU
+Delete "$SMPROGRAMS\${COMP_NAME}\summit-grid.lnk"
 Delete "$SMPROGRAMS\${COMP_NAME}\uninstall_summit-grid.lnk"
 RmDir "$SMPROGRAMS\${COMP_NAME}"
 !endif
