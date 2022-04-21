@@ -111,13 +111,13 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
-CreateShortCut "$SMPROGRAMS\$SM_Folder\summit-grid.lnk" "C:\Windows\System32\cmd.exe" "/K echo 'User Summit-Grid start with %GRID%' & %GRID%" "$ICON_PATH" 0
+CreateShortCut "$SMPROGRAMS\$SM_Folder\summit-grid.lnk" "C:\Windows\System32\cmd.exe" "/K summit-app-grid" "$ICON_PATH" 0
 !insertmacro MUI_STARTMENU_WRITE_END
 !endif
 
 !ifndef REG_START_MENU
 CreateDirectory "$SMPROGRAMS\${COMP_NAME}"
-CreateShortCut "$SMPROGRAMS\${COMP_NAME}\summit-grid.lnk" "C:\Windows\System32\cmd.exe" "/K echo 'User Summit-Grid start with %GRID%' & %GRID%" "$ICON_PATH" 0
+CreateShortCut "$SMPROGRAMS\${COMP_NAME}\summit-grid.lnk" "C:\Windows\System32\cmd.exe" "/K summit-app-grid" "$ICON_PATH" 0
 !endif
 
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
