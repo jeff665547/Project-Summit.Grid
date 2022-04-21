@@ -68,6 +68,8 @@ ${UnStrRep}
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "${APP_NAME}"
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "${REG_ROOT}"
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${UNINSTALL_PATH}"
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "${REG_START_MENU}"
+!insertmacro MUI_PAGE_STARTMENU Application $SM_Folder
 !endif
 
 !insertmacro MUI_PAGE_INSTFILES
@@ -106,6 +108,18 @@ StrCpy $SERVER_ICON_PATH "$INSTDIR\icon.ico"
 SetOutPath "$INSTDIR"
 WriteUninstaller "$INSTDIR\uninstall.exe"
 
+!ifdef REG_START_MENU
+!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+CreateDirectory "$SMPROGRAMS\$SM_Folder"
+CreateShortCut "$SMPROGRAMS\$SM_Folder\uninstall_summit-grid.lnk" "$INSTDIR\uninstall.exe" "" "" 0
+!insertmacro MUI_STARTMENU_WRITE_END
+!endif
+
+!ifndef REG_START_MENU
+CreateDirectory "$SMPROGRAMS\${COMP_NAME}"
+CreateShortCut "$SMPROGRAMS\${COMP_NAME}\uninstall_summit-grid.lnk" "$INSTDIR\uninstall.exe" "" "" 0
+!endif
+
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "DisplayName" "${APP_NAME}"
 WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}"  "UninstallString" "$INSTDIR\uninstall.exe"
@@ -139,6 +153,17 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 !endif
 
 RmDir "$INSTDIR"
+
+!ifdef REG_START_MENU
+!insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder
+Delete "$SMPROGRAMS\$SM_Folder\uninstall_summit-grid.lnk"
+RmDir "$SMPROGRAMS\$SM_Folder"
+!endif
+
+!ifndef REG_START_MENU
+Delete "$SMPROGRAMS\${COMP_NAME}\uninstall_summit-grid.lnk"
+RmDir "$SMPROGRAMS\${COMP_NAME}"
+!endif
 
 ReadRegStr $0 ${REG_HKLM} "${REG_ENV_PATH}" "Path"
 ${UnStrRep} $1 $0 ";$INSTDIR\bin;" ""
