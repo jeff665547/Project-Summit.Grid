@@ -16,7 +16,7 @@ if __name__ == "__main__":
     exe_path  = path.realpath( __file__ )
     proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
 
-    build_dir = path.join( proj_dir, "build" )
+    bundle_dir = path.join( proj_dir, "bundle" )
     stage_dir = path.join( proj_dir, "stage" )
     bin_path  = path.join( stage_dir, "bin\summit-app-grid.exe" )
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     # temp_share = "\\\\192.168.200.200\\smtdata\\Joye"
     temp_share  = "\\\\192.168.2.21\\temp_share"
-    nsis_path   = path.join( build_dir, "summit-grid-setup.exe" )
+    nsis_path   = path.join( bundle_dir, "summit-grid-setup.exe" )
     nsis_deploy = path.join( temp_share, "Summit-Grid_" + version + ".exe" )
     
     if not path.isdir( temp_share ):
