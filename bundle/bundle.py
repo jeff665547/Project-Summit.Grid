@@ -37,17 +37,8 @@ if __name__ == "__main__":
     print( "\n=== bundle package ===\n", flush=True )
 
     nsis_tpl_path  = path.join( proj_dir, "bundle\grid-pkg.nsi" )
-    nsis_run_path  = path.join( proj_dir, "build\grid-pkg-run.nsi" )
 
-    with open( nsis_run_path,"w" ) as nsi_file:
-        with open( nsis_tpl_path ) as fp:
-
-            content = fp.read()
-            content = content.replace( "<%{}%>".format( "version" ), ( version + ".0" ))
-
-        nsi_file.write( content )
-
-    child = sp.Popen([ "makensis", nsis_run_path ], cwd=proj_dir, universal_newlines=False, shell=True )
+    child = sp.Popen([ "makensis", "/DVERSION=" + version, nsis_tpl_path ], cwd=proj_dir, universal_newlines=False, shell=True )
     child.wait()
 
     if child.returncode != 0: 

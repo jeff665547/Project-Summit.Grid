@@ -6,7 +6,6 @@
 !define APP_NAME "Summit-Grid"
 !define COMP_NAME "Centrilliontech"
 !define WEB_SITE "www.centrilliontech.com.tw"
-!define VERSION "<%version%>"
 !define COPYRIGHT "Centrillion"
 !define DESCRIPTION "Application"
 !define INSTALLER_NAME "summit-grid-setup.exe"
@@ -20,15 +19,6 @@
 !define INPUT_DIR_PATH "..\stage"
 !define INSTALL_DIR "$PROGRAMFILES64\${COMP_NAME}\${APP_NAME}"
 !define ENV_PATH_BIN "${INSTALL_DIR}\bin;"
-
-######################################################################
-
-VIProductVersion  "${VERSION}"
-VIAddVersionKey "ProductName"  "${APP_NAME}"
-VIAddVersionKey "CompanyName"  "${COMP_NAME}"
-VIAddVersionKey "LegalCopyright"  "${COPYRIGHT}"
-VIAddVersionKey "FileDescription"  "${DESCRIPTION}"
-VIAddVersionKey "FileVersion"  "${VERSION}"
 
 ######################################################################
 
