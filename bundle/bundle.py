@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # temp_share = "\\\\192.168.200.200\\smtdata\\Joye"
     temp_share  = "\\\\192.168.2.21\\temp_share"
     nsis_path   = path.join( build_dir, "summit-grid-setup.exe" )
-    nsis_deploy = path.join( temp_share, "summit-grid_" + version + ".exe" )
+    nsis_deploy = path.join( temp_share, "Summit-Grid_" + version + ".exe" )
     
     if not path.isdir( temp_share ):
         print( "connect to " + temp_share, flush=True )
