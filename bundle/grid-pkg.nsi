@@ -3,10 +3,10 @@
 #               Entirely Edited with NullSoft Scriptable Installation System                
 #              by Vlasis K. Barkas aka Red Wine red_wine@freemail.gr Sep 2006               
 ############################################################################################
-!define APP_NAME "Summit-Grid"
-!define COMP_NAME "Centrilliontech"
+!define APP_NAME "Summit Grid"
+!define COMP_NAME "CentrillionTech"
 !define WEB_SITE "www.centrilliontech.com.tw"
-!define COPYRIGHT "Centrillion"
+!define COPYRIGHT "CentrillionTech"
 !define DESCRIPTION "Application"
 !define INSTALLER_NAME "summit-grid-setup.exe"
 !define MAIN_APP_EXE "summit-app-grid.exe"
