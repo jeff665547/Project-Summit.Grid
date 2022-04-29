@@ -10,7 +10,7 @@
 !define DESCRIPTION "Application"
 !define INSTALLER_NAME "summit-grid-setup.exe"
 !define MAIN_APP_EXE "summit-app-grid.exe"
-!define INSTALL_TYPE "SetShellVarContext current"
+!define INSTALL_TYPE "SetShellVarContext all"
 !define REG_ROOT "HKCU"
 !define REG_HKLM "HKLM"
 !define REG_ENV_PATH "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
@@ -88,6 +88,7 @@ SetOutPath "$INSTDIR"
 File /r "${INPUT_DIR_PATH}\*"
 Var /GLOBAL double_slash_instdir
 ${StrRep} $double_slash_instdir $INSTDIR '\' '\\'
+AccessControl::GrantOnFile "$INSTDIR" "(BU)" "FullAccess"
 SectionEnd
 
 ######################################################################
