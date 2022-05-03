@@ -1,5 +1,8 @@
-import sys
+from datetime import datetime
 import requests
+
+import sys
+import platform
 
 import os
 import os.path as path
@@ -11,17 +14,21 @@ import subprocess as sp
 
 if __name__ == "__main__":
 
+    now = datetime.now()
     access_token = sys.argv[1]
+    time_suffix  = now.strftime( "-%m%d%H%M%W" )
     
     exe_path  = path.realpath( __file__ )
     proj_dir  = path.realpath( path.join( path.dirname( exe_path ), ".." ))
 
-    build_dir = path.join( proj_dir, "build" )
+    bundle_dir = path.join( proj_dir, "bundle" )
     stage_dir = path.join( proj_dir, "stage" )
     bin_path  = path.join( stage_dir, "bin\summit-app-grid.exe" )
 
     grid_ver = sp.run([ bin_path, "--version" ], capture_output=True, text=True, shell=True )
     version  = grid_ver.stdout.rstrip()
+
+    version_time = version + time_suffix
 
     print( "\n=== post a tag " + version + " ===\n", flush=True )
 
@@ -34,40 +41,36 @@ if __name__ == "__main__":
     r = requests.post( tag_uri, headers=tag_head )
     print( r.content )
 
-    print( "\n=== bundle package ===\n", flush=True )
+    if platform.system() == "Windows":
 
-    nsis_tpl_path  = path.join( proj_dir, "bundle\grid-pkg.nsi" )
-    nsis_run_path  = path.join( proj_dir, "build\grid-pkg-run.nsi" )
+        print( "\n=== bundle package ===\n", flush=True )
 
-    with open( nsis_run_path,"w" ) as nsi_file:
-        with open( nsis_tpl_path ) as fp:
+        nsis_tpl_path  = path.join( proj_dir, "bundle\grid-pkg.nsi" )
 
-            content = fp.read()
-            content = content.replace( "<%{}%>".format( "version" ), ( version + ".0" ))
+        child = sp.Popen([ "makensis", "/DVERSION=" + version, nsis_tpl_path ], cwd=proj_dir, universal_newlines=False, shell=True )
+        child.wait()
 
-        nsi_file.write( content )
+        if child.returncode != 0: 
+            raise RuntimeError( "makensis failed" )
 
-    child = sp.Popen([ "makensis", nsis_run_path ], cwd=proj_dir, universal_newlines=False, shell=True )
-    child.wait()
+        print( "\n=== deploy package ===\n", flush=True )
 
-    if child.returncode != 0: 
-        raise RuntimeError( "makensis failed" )
-
-    print( "\n=== deploy package ===\n", flush=True )
-
-    # temp_share = "\\\\192.168.200.200\\smtdata\\Joye"
-    temp_share  = "\\\\192.168.2.21\\temp_share"
-    nsis_path   = path.join( build_dir, "summit-grid-setup.exe" )
-    nsis_deploy = path.join( temp_share, "summit-grid_" + version + ".exe" )
-    
-    if not path.isdir( temp_share ):
-        print( "connect to " + temp_share, flush=True )
-
-        mount_cmd = "net use /user:{} {} {}".format( "smt", temp_share, "xyz@cen" )
-        os.system( mount_cmd )
+        # temp_share = "\\\\192.168.200.200\\smtdata\\Joye"
+        temp_share  = "\\\\192.168.2.21\\temp_share"
+        nsis_path   = path.join( bundle_dir, "summit-grid-setup.exe" )
+        nsis_deploy = path.join( temp_share, "Summit-Grid_{}.exe".format( version_time ))
 
         if not path.isdir( temp_share ):
-            raise RuntimeError( "can't find: {}".format( temp_share ))
+            print( "connect to " + temp_share, flush=True )
 
-    print( "copy to " + temp_share, flush=True )
-    sh.copyfile( nsis_path, nsis_deploy )
+            mount_cmd = "net use /user:{} {} {}".format( "smt", temp_share, "xyz@cen" )
+            os.system( mount_cmd )
+
+            if not path.isdir( temp_share ):
+                raise RuntimeError( "can't find: {}".format( temp_share ))
+
+        print( "copy to " + temp_share, flush=True )
+        sh.copyfile( nsis_path, nsis_deploy )
+
+    else:
+        raise RuntimeError( "currently only support windows bundle" )

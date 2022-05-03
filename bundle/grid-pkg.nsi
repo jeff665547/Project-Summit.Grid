@@ -3,15 +3,14 @@
 #               Entirely Edited with NullSoft Scriptable Installation System                
 #              by Vlasis K. Barkas aka Red Wine red_wine@freemail.gr Sep 2006               
 ############################################################################################
-!define APP_NAME "Summit-Grid"
-!define COMP_NAME "Centrilliontech"
+!define APP_NAME "Summit Grid"
+!define COMP_NAME "CentrillionTech"
 !define WEB_SITE "www.centrilliontech.com.tw"
-!define VERSION "<%version%>"
-!define COPYRIGHT "Centrillion"
+!define COPYRIGHT "CentrillionTech"
 !define DESCRIPTION "Application"
 !define INSTALLER_NAME "summit-grid-setup.exe"
 !define MAIN_APP_EXE "summit-app-grid.exe"
-!define INSTALL_TYPE "SetShellVarContext current"
+!define INSTALL_TYPE "SetShellVarContext all"
 !define REG_ROOT "HKCU"
 !define REG_HKLM "HKLM"
 !define REG_ENV_PATH "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
@@ -20,15 +19,6 @@
 !define INPUT_DIR_PATH "..\stage"
 !define INSTALL_DIR "$PROGRAMFILES64\${COMP_NAME}\${APP_NAME}"
 !define ENV_PATH_BIN "${INSTALL_DIR}\bin;"
-
-######################################################################
-
-VIProductVersion  "${VERSION}"
-VIAddVersionKey "ProductName"  "${APP_NAME}"
-VIAddVersionKey "CompanyName"  "${COMP_NAME}"
-VIAddVersionKey "LegalCopyright"  "${COPYRIGHT}"
-VIAddVersionKey "FileDescription"  "${DESCRIPTION}"
-VIAddVersionKey "FileVersion"  "${VERSION}"
 
 ######################################################################
 
@@ -98,6 +88,7 @@ SetOutPath "$INSTDIR"
 File /r "${INPUT_DIR_PATH}\*"
 Var /GLOBAL double_slash_instdir
 ${StrRep} $double_slash_instdir $INSTDIR '\' '\\'
+AccessControl::GrantOnFile "$INSTDIR" "(BU)" "FullAccess"
 SectionEnd
 
 ######################################################################
@@ -111,13 +102,13 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
-CreateShortCut "$SMPROGRAMS\$SM_Folder\summit-grid.lnk" "C:\Windows\System32\cmd.exe" "/K summit-app-grid" "$ICON_PATH" 0
+CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "C:\Windows\System32\cmd.exe" "/K summit-app-grid" "$ICON_PATH" 0
 !insertmacro MUI_STARTMENU_WRITE_END
 !endif
 
 !ifndef REG_START_MENU
 CreateDirectory "$SMPROGRAMS\${COMP_NAME}"
-CreateShortCut "$SMPROGRAMS\${COMP_NAME}\summit-grid.lnk" "C:\Windows\System32\cmd.exe" "/K summit-app-grid" "$ICON_PATH" 0
+CreateShortCut "$SMPROGRAMS\${COMP_NAME}\${APP_NAME}.lnk" "C:\Windows\System32\cmd.exe" "/K summit-app-grid" "$ICON_PATH" 0
 !endif
 
 WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
@@ -152,12 +143,12 @@ RmDir "$INSTDIR"
 
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder
-Delete "$SMPROGRAMS\$SM_Folder\summit-grid.lnk"
+Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk"
 RmDir "$SMPROGRAMS\$SM_Folder"
 !endif
 
 !ifndef REG_START_MENU
-Delete "$SMPROGRAMS\${COMP_NAME}\summit-grid.lnk"
+Delete "$SMPROGRAMS\${COMP_NAME}\${APP_NAME}.lnk"
 RmDir "$SMPROGRAMS\${COMP_NAME}"
 !endif
 
