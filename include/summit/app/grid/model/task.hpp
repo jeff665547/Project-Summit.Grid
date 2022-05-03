@@ -158,7 +158,59 @@ struct Task {
 
         for(auto&& ch : *channel_log_) {
             warn_ = warn_ || ch.at("warning").get<bool>();
+            (*qc_log_)["warning"] = warn_;
+            move_key(ch, *qc_log_, "low_correlation");
+            move_key(ch, *qc_log_, "sharpness");
         }
+    }
+    void move_key(
+        nlohmann::json& ch, 
+        nlohmann::json& qc, 
+        const std::string& key
+    ) {
+        if(ch.find(key) != ch.end()) {
+            if(qc.find(key) != qc.end()) {
+                qc[key].push_back(ch[key][0]);
+            } else {
+                qc[key] = ch[key];
+            }
+            ch.erase(key);
+        }
+    }
+    void write_gridding_results_log() {
+        std::string filename = "log4gridding.log";
+        std::stringstream headers;
+        std::stringstream content;
+
+        char sep = '\t';
+        int datewidth       = 0;
+        int dirwidth        = 0;        
+        int warningwidth    = 0;
+        int FOVctwidth      = 0;
+        int sharpnesswidth  = 0;
+
+        Utils::table_writer(headers,                "Time", sep, datewidth     );
+        Utils::table_writer(headers,      "Chip_Directory", sep, dirwidth      );
+        Utils::table_writer(headers,             "Warning", sep, warningwidth  );
+        Utils::table_writer(headers, "Unclear_Marker_FOVs", sep, FOVctwidth    );
+        Utils::table_writer(headers,           "Sharpness", sep, sharpnesswidth);
+        for(size_t i = 0; i < (*qc_log_)["sharpness"].size() - 2; i++){
+            headers << sep;
+        }
+
+        Utils::table_writer(content, grid_log_["date"].get<std::string>(), sep, datewidth    );
+        Utils::table_writer(content,                   chip_dir_.string(), sep, dirwidth     );
+        Utils::table_writer(content,            (warn_ ? "true": "false"), sep, warningwidth );
+        Utils::table_writer(content,  (*qc_log_)["unclear_marker"].size(), sep, FOVctwidth   );
+        for(auto&& ch : (*qc_log_)["sharpness"]) {
+            for(auto&& [ch_name, val]: ch.items()) {
+                Utils::table_writer(content, round(val["marker_append"].get<float>()), sep, 0);
+            }
+        }
+
+        std::vector<std::string> log = {headers.str(), content.str()};
+
+        Utils::append_grid_info(filename, log);
     }
     void write_log() {
         grid_log_["proc_time"] = proc_time_;
@@ -212,6 +264,56 @@ struct Task {
     bool support_aruco() const {
         return origin_infer_algo_ == "aruco_detection";
     }
+    void collect_fovs_marker_unclear_ct(Utils::FOVMap<int>& fovs_marker_unclear_ct) {
+        auto& log = (*qc_log_)["unclear_marker"];
+        log = nlohmann::json::array();
+        for(auto&& [fov_id, count]: fovs_marker_unclear_ct) {
+            if(count){
+                nlohmann::json fov_qc_log;
+                fov_qc_log["fov_id"] = nlohmann::json::array();
+                fov_qc_log["fov_id"][0] = fov_id.x;
+                fov_qc_log["fov_id"][1] = fov_id.y;
+                fov_qc_log["count"] = count;
+                log.push_back(fov_qc_log);
+            }
+        }
+        if(log.empty()){
+            qc_log_->erase("unclear_marker");
+        }
+    }
+    void collect_fovs_mk_append_correlation(
+        const Utils::FOVMap<float>& fov_mk_append_correlation,
+        const cv::Point&            benchmark_fov_id,
+        const std::string&          ch_name,
+        nlohmann::json&             qc_log 
+    ) const {
+        auto& log_correlation = qc_log["low_correlation"];
+        log_correlation = nlohmann::json::array();
+        nlohmann::json channel_correlation;
+        auto& log = channel_correlation[ch_name];
+        auto& fov_log = log["fovs"];
+        fov_log = nlohmann::json::array();
+        for(auto&& [fov_id, score]: fov_mk_append_correlation) {
+            if(score){
+                nlohmann::json fov_qc_log;
+                fov_qc_log["id"] = nlohmann::json::array();
+                fov_qc_log["id"][0] = fov_id.x;
+                fov_qc_log["id"][1] = fov_id.y;
+                fov_qc_log["score"] = score;
+                fov_log.push_back(fov_qc_log);
+            }
+        }
+        if(fov_log.empty()){
+            log.erase("fovs");
+        }
+        log["benchmark_id"] = nlohmann::json::array();
+        log["benchmark_id"][0] = benchmark_fov_id.x;
+        log["benchmark_id"][1] = benchmark_fov_id.y;
+        // log["channel"] = ch_name;
+
+        log_correlation.push_back(channel_correlation);
+        // qc_log["low_correlation"] = log;
+    }
     void collect_fovs_warnings(Utils::FOVMap<bool>& fovs_warnings, bool& warn) {
         bool flag = false;
         for(auto&& [fov_id, warning] : fovs_warnings) {
@@ -232,19 +334,34 @@ struct Task {
     }
     void check_fovs_mk_append(
         Utils::FOVMap<cv::Mat>& fov_mk_append_dn, 
+        Utils::FOVMap<float>&   fov_mk_append_correlation,
+        cv::Point&              benchmark_fov_id,               
         const double& thresh,
         bool& warn
-        ) const {
-        auto& bm_mk_a_dn = fov_mk_append_dn.at(cv::Point(fov_rows()/2, fov_cols()/2));
+    ) const {
+        auto& bm_mk_a_dn = fov_mk_append_dn.at(benchmark_fov_id);
         auto  bads       = Utils::count_bad_fov_mk_append(
-            fov_mk_append_dn, bm_mk_a_dn,
-            fov_rows(),       fov_cols(),
-            thresh
+            fov_mk_append_dn, fov_mk_append_correlation,
+            bm_mk_a_dn,       fov_rows(),       
+            fov_cols(),       thresh
         );
         warn = warn || bads;
         // if(bads){
         //     create_warning_file();
         // }
+    }
+    void get_fovs_mk_append_statistics(Utils::FOVMap<cv::Mat>& fov_mk_append) {
+        auto wh_mk_append_mat = Utils::make_fovs_mk_append(
+            fov_mk_append, 
+            fov_rows(), fov_cols(),
+            [](auto&& mat){ return mat; }
+        );
+        auto sharpness = Utils::compute_sharpness(wh_mk_append_mat);
+        auto& log_sharpness = (*qc_log_)["sharpness"];
+        log_sharpness = nlohmann::json::array();
+        nlohmann::json channel_sharpness;
+        channel_sharpness["white"]["marker_append"] = sharpness;
+        log_sharpness.push_back(channel_sharpness);
     }
     boost::filesystem::path debug_img(
         const std::string& ch_name, 
@@ -346,6 +463,7 @@ struct Task {
     VAR_GET(Utils::FOVImages<std::uint16_t>,probe_channel_imgs  )
     VAR_GET(double,                         wh_mk_append_eval   )
     VAR_GET(double,                         pb_mk_append_eval   )
+    VAR_GET(double,                         compute_sharpness   )
     VAR_GET(std::int32_t,                   pyramid_level       )
     VAR_GET(std::int32_t,                   border_bits         )
     VAR_GET(std::int32_t,                   fringe_bits         )
@@ -421,6 +539,7 @@ struct Task {
     VAR_PTR_GET(ChipSpecMarkerBase,         marker_patterns     )
 
     VAR_LOCAL_PTR_GET(nlohmann::json,       channel_log         )
+    VAR_LOCAL_PTR_GET(nlohmann::json,       qc_log              )
 
     VAR_GET(ChnMap<OptMTMat>,               multi_tiled_mat     )
     VAR_GET(ChnMap<GLRawImg>,               stitched_img        )
@@ -459,6 +578,7 @@ private:
     
     void set_chip_dir(const boost::filesystem::path& path) {
         grid_log_["channels"] = nlohmann::json::array();
+        qc_log_ = &grid_log_["qc_info"];
         channel_log_ = &grid_log_["channels"];
         chip_dir_ = path;
         {
@@ -637,6 +757,12 @@ private:
         // float thresh     = 0.98;  // for BF images
         // 0.95 for good fluor images
         // 0.85, 0.8 for bad fluo images.
+
+        // Provide QC information in grid_log.json.
+        compute_sharpness_ = false;
+        if(model().debug() >= 4){
+            compute_sharpness_ = true;
+        }
 
         // Initialize the indicator for the source of the referenced image.
         ref_from_white_ch_ = false;

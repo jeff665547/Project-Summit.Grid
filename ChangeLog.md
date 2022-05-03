@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 1.3.18 - 2022.5.3
+
+- Feature: Add "qc_info" field in the grid_log.json to help debug if warning file is generated.
+- Feature: Collect the gridding results and append the results to the existing summary file (or create that summary file if it is not exists).
+
 ## 1.3.17 - 2022.3.3
 
 - Feature: Support intensity extraction automatically fixing some unexpected value caused from other preprocessing programs and algorithms.

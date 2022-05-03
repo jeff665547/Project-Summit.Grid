@@ -178,7 +178,7 @@ public:
                                                        ->default_value(""),                    "The output path."
             )
             ("debug,d"          ,       po::value<int>()->required()
-                                                        ->default_value(0),                    "Verbose levels, can be [0,6] and if the level >= 2, the program will generate debug image."
+                                                        ->default_value(0),                    "Verbose levels, can be [0,6] and if the level >= 5, the program will generate debug image."
             )
             ("enable_log,g"     ,       "Show program log file (summit-grid.log).")
             ("no_bgp,b"         ,       "No background process.")

@@ -851,7 +851,8 @@ struct Utils{
         return data;
     }
     static auto count_bad_fov_mk_append(
-        Utils::FOVMap<cv::Mat>& fov_mk_append, 
+        Utils::FOVMap<cv::Mat>& fov_mk_append,
+        Utils::FOVMap<float>& fov_mk_append_correlation,
         cv::Mat& benchmark_img,
         const int& fov_rows,
         const int& fov_cols,
@@ -863,12 +864,58 @@ struct Utils{
                 cv::Point fov_id(x, y);
                 auto& mk_a_dn = fov_mk_append.at(fov_id);
                 cv::Mat1f PCC = chipimgproc::match_template(mk_a_dn, benchmark_img, cv::TM_CCOEFF_NORMED);
-                int bad = PCC(0, 0) < bad_threshold;
+                float R = PCC(0, 0);
+                int bad = R < bad_threshold;
                 bads += bad;
-                // bad.convertTo(bad, bads.type());
+                if(bad) {
+                    fov_mk_append_correlation.at(fov_id) = R;
+                }
             }
         }
         return bads;
+    }
+    static auto compute_sharpness(
+        const cv::Mat& img
+    ) {
+        cv::Mat tmp;
+        cv::Mat dst;
+        img.convertTo(tmp, CV_32F);
+        cv::GaussianBlur(tmp, dst, cv::Size(5, 5), 1, 1, cv::BORDER_REFLECT_101);
+        tmp.release();
+        cv::Laplacian(dst, tmp, CV_32F);
+        return cv::norm(tmp, cv::NORM_L1);
+    }
+    static auto append_grid_info(
+        const std::string& filepath,
+        const std::vector<std::string>& oneline_content
+    ) {
+        std::fstream log4gridding;
+        boost::filesystem::path dst(filepath);
+
+        if(!boost::filesystem::exists(dst)) {
+            summit::grid::log.info("Create {} for collecting info from gridding program for each chip.", filepath);
+            log4gridding.open(filepath, std::fstream::in | std::fstream::out | std::fstream::trunc);
+            log4gridding << oneline_content[0] << std::endl;
+        } else {
+            log4gridding.open(filepath, std::fstream::in | std::fstream::out | std::fstream::app);
+            summit::grid::log.info("{} found. Append the info to the {}.", filepath, filepath);
+        }
+
+        log4gridding << oneline_content[1] << std::endl;
+        log4gridding.close();
+    }
+    template<typename Type>
+    static auto table_writer(
+        std::stringstream& table,
+        Type               content,
+        const char&        sep,
+        const int&         width,
+        const bool&        newline = false
+    ) {
+        table << std::left << std::setw(width) << content << sep;
+        if(newline) {
+            table << std::endl;
+        }
     }
 };
 

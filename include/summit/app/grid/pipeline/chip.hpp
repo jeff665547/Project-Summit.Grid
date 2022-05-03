@@ -118,9 +118,11 @@ struct Chip {
         
         auto& fov_marker_num = task.fov_marker_num();
         Utils::FOVMarkerRegionMap                 fov_marker_regs;
+        Utils::FOVMap<int>                        fov_marker_unclear_ct;
         Utils::FOVMap<bool>                       fov_wh_warnings;
         Utils::FOVMap<bool>                       fov_wh_successes;
         Utils::FOVMap<float>                      fov_rot_degs;
+        Utils::FOVMap<float>                      fov_mk_append_correlation;
         Utils::FOVMap<cv::Point2d>                fov_scales;
         Utils::FOVMap<cv::Mat>                    fov_mk_append;
         Utils::FOVMap<cv::Mat>                    fov_mk_append_dn;
@@ -133,10 +135,12 @@ struct Chip {
         
         auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
+            fov_marker_unclear_ct[fov_id] = {};
             fov_marker_regs[fov_id] = {};
             fov_wh_warnings[fov_id] = {};
             fov_wh_successes[fov_id] = {};
             fov_rot_degs[fov_id] = {};
+            fov_mk_append_correlation[fov_id] = {};
             fov_scales[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
             fov_mk_append_dn[fov_id] = cv::Mat();
@@ -201,7 +205,9 @@ struct Chip {
                 if(!mk_num_match_spec) {
                     fov_wh_warnings.at(fov_id) = true;
                     // task.create_warning_file();
-                    if(mk_pos_px.size() <= 1) {
+                    auto recognized_count = mk_pos_px.size();
+                    fov_marker_unclear_ct.at(fov_id) = mk_num.x * mk_num.y - recognized_count;
+                    if(recognized_count <= 1) {
                         throw std::runtime_error("Recognized markers are not enough!");
                     }
                 }
@@ -433,13 +439,26 @@ struct Chip {
         task.set_fov_mk_pos_spec(std::move(fov_mk_pos_spec));
         task.set_fov_mk_regs(std::move(fov_marker_regs));
         task.collect_fovs_warnings(fov_wh_warnings, task.warn());
+        task.collect_fovs_marker_unclear_ct(fov_marker_unclear_ct);
         if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
+            cv::Point center_id(task.fov_rows()/2, task.fov_cols()/2);
             task.check_fovs_mk_append(
-                fov_mk_append_dn, 
+                fov_mk_append_dn,
+                fov_mk_append_correlation,
+                center_id,
                 task.wh_mk_append_eval(),
                 task.warn()
             );
+            task.collect_fovs_mk_append_correlation(
+                fov_mk_append_correlation, 
+                center_id,
+                wh_ch_name,
+                task.qc_log()
+            );
+            if(task.compute_sharpness()) {
+                task.get_fovs_mk_append_statistics(fov_mk_append);
+            }
         }
         auto stitched_img = chipimgproc::stitch::add(
             fov_rum_imgs, task.stitched_points_rum()
@@ -475,6 +494,7 @@ struct Chip {
         Utils::FOVMap<bool>                      fov_wh_warnings;
         Utils::FOVMap<bool>                      fov_wh_successes;
         Utils::FOVMap<float>                     fov_rot_degs;
+        Utils::FOVMap<float>                     fov_mk_append_correlation;
         Utils::FOVMap<cv::Point2d>               fov_scales;
         Utils::FOVMap<cv::Mat>                   fov_mk_append;
         Utils::FOVMap<cv::Mat>                   fov_mk_append_dn;
@@ -489,6 +509,7 @@ struct Chip {
             fov_wh_warnings[fov_id] = {};
             fov_wh_successes[fov_id] = {};
             fov_rot_degs[fov_id] = {};
+            fov_mk_append_correlation[fov_id] = {};
             fov_scales[fov_id] = {};
             fov_mk_append[fov_id] = cv::Mat();
             fov_mk_append_dn[fov_id] = cv::Mat();
@@ -624,11 +645,23 @@ struct Chip {
         task.collect_fovs_warnings(fov_wh_warnings, task.warn());
         if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
+            cv::Point center_id(task.fov_rows()/2, task.fov_cols()/2);
             task.check_fovs_mk_append(
                 fov_mk_append_dn,
+                fov_mk_append_correlation,
+                center_id,
                 task.wh_mk_append_eval(),
                 task.warn()
             );
+            task.collect_fovs_mk_append_correlation(
+                fov_mk_append_correlation, 
+                center_id,
+                wh_ch_name,
+                task.qc_log()
+            );
+            if(task.compute_sharpness()) {
+                task.get_fovs_mk_append_statistics(fov_mk_append);
+            }            
         }
         model::GLRawImg stitched_grid_img(
             stitched_img, task.gl_x_rum(), task.gl_y_rum()
@@ -1186,6 +1219,9 @@ struct Chip {
             summit::grid::log.error("grid failed with reason: {}", e.what());
             task.set_grid_done(false);
             task.grid_log()["grid_fail_reason"] = e.what();
+        }
+        if(task.model().debug() >= 4) {
+            task.write_gridding_results_log();
         }
         task.write_log();
         task.copy_chip_log();

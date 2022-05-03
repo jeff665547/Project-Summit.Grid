@@ -40,6 +40,7 @@ struct Channel {
         sh_mk_pats_ = task_->get_marker_patterns_by_marker_type(
             jch.at("marker_type")
         );
+        fov_mk_append_correlation_ = {};
     }
     auto heatmap_writer() {
         return [this](const MWMat& mw_mat){
@@ -205,6 +206,14 @@ struct Channel {
         }
         grid_log_["grid_bad"] = flag;
     }
+    void compute_mk_append_statistics() {
+        auto sharpness = Utils::compute_sharpness(mk_append_mat());
+        auto& log_sharpness = grid_log_["sharpness"];
+        log_sharpness = nlohmann::json::array();
+        nlohmann::json channel_sharpness;
+        channel_sharpness[ch_name_]["marker_append"] = sharpness;
+        log_sharpness.push_back(channel_sharpness);
+    }
     void set_grid_failed(const std::string& reason) {
         grid_log_["grid_done"] = false;
         grid_log_["grid_bad"] = true;
@@ -217,13 +226,14 @@ struct Channel {
         return task_->channel_in_grid_log(id_);
     }
     
-    VAR_GET(std::string,                            ch_name             )
-    VAR_GET(double,                                 ch_theor_max_val    )
-    VAR_GET(std::vector<const MKPat*>,              sh_mk_pats          )
-    VAR_IO(cv::Mat,                                 mk_append_mat       )
-    VAR_IO(Utils::FOVMap<cv::Mat>,                  fov_mk_append_dn    )
-    VAR_IO(nlohmann::json,                          grid_log            )
-    VAR_IO(bool,                                    warn                )
+    VAR_GET(std::string,                            ch_name                     )
+    VAR_GET(double,                                 ch_theor_max_val            )
+    VAR_GET(std::vector<const MKPat*>,              sh_mk_pats                  )
+    VAR_IO(cv::Mat,                                 mk_append_mat               )
+    VAR_IO(Utils::FOVMap<cv::Mat>,                  fov_mk_append_dn            )
+    VAR_IO(Utils::FOVMap<float>,                    fov_mk_append_correlation   )
+    VAR_IO(nlohmann::json,                          grid_log                    )
+    VAR_IO(bool,                                    warn                        )
 
     VAR_PTR_GET(Task,                               task)
     VAR_PTR_GET(nlohmann::json,                     json)

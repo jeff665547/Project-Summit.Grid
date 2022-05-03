@@ -230,12 +230,25 @@ constexpr struct Channel {
             // tmp_timer = std::chrono::steady_clock::now();
             if(model.marker_append()) {
                 channel.mk_append_view()(channel.mk_append_mat());
-                if(task.ref_from_probe_ch()) 
+                if(task.ref_from_probe_ch()) {
+                    cv::Point center_id(task.fov_rows()/2, task.fov_cols()/2);
                     task.check_fovs_mk_append(
                         channel.fov_mk_append_dn(),
+                        channel.fov_mk_append_correlation(),
+                        center_id,
                         task.pb_mk_append_eval(),
                         channel.warn()
                     );
+                    task.collect_fovs_mk_append_correlation(
+                        channel.fov_mk_append_correlation(), 
+                        center_id,
+                        channel.ch_name(),
+                        channel.grid_log()
+                    );
+                }
+                if(task.compute_sharpness()) {
+                    channel.compute_mk_append_statistics();
+                }
             }
             // d = std::chrono::steady_clock::now() - tmp_timer;
             // std::cout << "white marker_append: " << d.count() << " ms\n";
