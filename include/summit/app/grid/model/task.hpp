@@ -178,6 +178,7 @@ struct Task {
         }
     }
     void write_gridding_results_log() {
+        auto filedir = summit::install_path() / "bin";
         std::string filename = "log4gridding.log";
         std::stringstream headers;
         std::stringstream content;
@@ -188,29 +189,34 @@ struct Task {
         int warningwidth    = 0;
         int FOVctwidth      = 0;
         int sharpnesswidth  = 0;
+        bool sharpness_exist = qc_log_->contains("sharpness");
 
         Utils::table_writer(headers,                "Time", sep, datewidth     );
         Utils::table_writer(headers,      "Chip_Directory", sep, dirwidth      );
         Utils::table_writer(headers,             "Warning", sep, warningwidth  );
         Utils::table_writer(headers, "Unclear_Marker_FOVs", sep, FOVctwidth    );
-        Utils::table_writer(headers,           "Sharpness", sep, sharpnesswidth);
-        for(size_t i = 0; i < (*qc_log_)["sharpness"].size() - 2; i++){
-            headers << sep;
+        if(sharpness_exist) {
+            Utils::table_writer(headers,       "Sharpness", sep, sharpnesswidth);
+            for(size_t i = 0; i < (*qc_log_)["sharpness"].size() - 2; i++){
+                headers << sep;
+            }
         }
 
-        Utils::table_writer(content, grid_log_["date"].get<std::string>(), sep, datewidth    );
-        Utils::table_writer(content,                   chip_dir_.string(), sep, dirwidth     );
-        Utils::table_writer(content,            (warn_ ? "true": "false"), sep, warningwidth );
-        Utils::table_writer(content,  (*qc_log_)["unclear_marker"].size(), sep, FOVctwidth   );
-        for(auto&& ch : (*qc_log_)["sharpness"]) {
-            for(auto&& [ch_name, val]: ch.items()) {
-                Utils::table_writer(content, round(val["marker_append"].get<float>()), sep, 0);
+        Utils::table_writer(content, grid_log_.value<std::string>("date", "Error"), sep, datewidth    );
+        Utils::table_writer(content,                            chip_dir_.string(), sep, dirwidth     );
+        Utils::table_writer(content,                     (warn_ ? "true": "false"), sep, warningwidth );
+        Utils::table_writer(content,           (*qc_log_)["unclear_marker"].size(), sep, FOVctwidth   );
+        if(sharpness_exist) {
+            for(auto&& ch : (*qc_log_)["sharpness"]) {
+                for(auto&& [ch_name, val]: ch.items()) {
+                    Utils::table_writer(content, round(val.value<float>("marker_append", 0.0)), sep, 0);
+                }
             }
         }
 
         std::vector<std::string> log = {headers.str(), content.str()};
 
-        Utils::append_grid_info(filename, log);
+        Utils::append_grid_info(filedir / filename, log);
     }
     void write_log() {
         grid_log_["proc_time"] = proc_time_;

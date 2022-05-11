@@ -886,19 +886,18 @@ struct Utils{
         return cv::norm(tmp, cv::NORM_L1);
     }
     static auto append_grid_info(
-        const std::string& filepath,
+        const boost::filesystem::path&  dst,
         const std::vector<std::string>& oneline_content
     ) {
         std::fstream log4gridding;
-        boost::filesystem::path dst(filepath);
 
         if(!boost::filesystem::exists(dst)) {
-            summit::grid::log.info("Create {} for collecting info from gridding program for each chip.", filepath);
-            log4gridding.open(filepath, std::fstream::in | std::fstream::out | std::fstream::trunc);
+            summit::grid::log.info("Create {} for collecting info from gridding program for each chip.", dst.string());
+            log4gridding.open(dst.string(), std::fstream::in | std::fstream::out | std::fstream::trunc);
             log4gridding << oneline_content[0] << std::endl;
         } else {
-            log4gridding.open(filepath, std::fstream::in | std::fstream::out | std::fstream::app);
-            summit::grid::log.info("{} found. Append the info to the {}.", filepath, filepath);
+            log4gridding.open(dst.string(), std::fstream::in | std::fstream::out | std::fstream::app);
+            summit::grid::log.info("{} found. Append the info to the {}.", dst.string(), dst.string());
         }
 
         log4gridding << oneline_content[1] << std::endl;
