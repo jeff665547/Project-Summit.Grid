@@ -204,7 +204,7 @@ struct Task {
 
         Utils::table_writer(content, grid_log_.value<std::string>("date", "Error"), sep, datewidth    );
         Utils::table_writer(content,                            chip_dir_.string(), sep, dirwidth     );
-        Utils::table_writer(content,     ((warn_ || grid_done_) ? "true": "false"), sep, warningwidth );
+        Utils::table_writer(content,    ((warn_ || !grid_done_) ? "true": "false"), sep, warningwidth );
         Utils::table_writer(content,           (*qc_log_)["unclear_marker"].size(), sep, FOVctwidth   );
         if(sharpness_exist) {
             for(auto&& ch : (*qc_log_)["sharpness"]) {
