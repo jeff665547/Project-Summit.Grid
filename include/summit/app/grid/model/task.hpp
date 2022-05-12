@@ -189,6 +189,8 @@ struct Task {
         int warningwidth    = 0;
         int FOVctwidth      = 0;
         int sharpnesswidth  = 0;
+
+        bool unclear_marker_fov_exist = qc_log_->contains("unclear_marker");
         bool sharpness_exist = qc_log_->contains("sharpness");
 
         Utils::table_writer(headers,                "Time", sep, datewidth     );
@@ -197,7 +199,7 @@ struct Task {
         Utils::table_writer(headers, "Unclear_Marker_FOVs", sep, FOVctwidth    );
         Utils::table_writer(headers,           "Sharpness", sep, sharpnesswidth);
         if(sharpness_exist) {
-            for(size_t i = 0; i < (*qc_log_)["sharpness"].size() - 2; i++){
+            for(int i = 0; i < static_cast<int>((*qc_log_)["sharpness"].size()) - 2; i++){
                 headers << sep;
             }
         }
@@ -205,7 +207,10 @@ struct Task {
         Utils::table_writer(content, grid_log_.value<std::string>("date", "Error"), sep, datewidth    );
         Utils::table_writer(content,                            chip_dir_.string(), sep, dirwidth     );
         Utils::table_writer(content,    ((warn_ || !grid_done_) ? "true": "false"), sep, warningwidth );
-        Utils::table_writer(content,           (*qc_log_)["unclear_marker"].size(), sep, FOVctwidth   );
+        // Utils::table_writer(content,           (*qc_log_)["unclear_marker"].size(), sep, FOVctwidth   );
+        if(unclear_marker_fov_exist) {
+            Utils::table_writer(content,       (*qc_log_)["unclear_marker"].size(), sep, FOVctwidth   );
+        }
         if(sharpness_exist) {
             for(auto&& ch : (*qc_log_)["sharpness"]) {
                 for(auto&& [ch_name, val]: ch.items()) {
