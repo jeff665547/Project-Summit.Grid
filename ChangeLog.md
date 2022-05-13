@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.19 - 2022.5.13
+
+- Bugfix: Fix for wrong ArUco counts for each FOV.
+
 ## 1.3.18 - 2022.5.3
 
 - Feature: Add "qc_info" field in the grid_log.json to help debug if warning file is generated.
