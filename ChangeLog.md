@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 1.3.20 - 2022.05.27
+
+- Feature: SML chip (S3B) support.
+
 ## 1.3.19 - 2022.5.13
 
 - Bugfix: Fix for wrong ArUco counts for each FOV.
