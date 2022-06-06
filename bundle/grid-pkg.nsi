@@ -35,6 +35,7 @@ InstallDir "${INSTALL_DIR}"
 
 !include "x64.nsh"
 !include "MUI.nsh"
+!include "MUI2.nsh"
 !include "nsDialogs.nsh"
 !include "StrFunc.nsh"
 ${StrRep}
@@ -50,6 +51,7 @@ ${UnStrRep}
 !endif
 
 !insertmacro MUI_PAGE_DIRECTORY
+!define MUI_ICON "package.ico"
 
 # Page custom magpieConfigPage magpieConfigLeave
 
