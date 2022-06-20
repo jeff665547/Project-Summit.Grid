@@ -684,7 +684,7 @@ private:
             tm_margin_      = aruco_marker_->at("margin");
  
             // detection parameters
-            nms_count_      = (fov_w_ / mk_w_cl_ + 1) * (fov_h_ / mk_h_cl_ + 1);
+            nms_count_      = (fov_w_ / mk_wd_cl_ + 1) * (fov_h_ / mk_hd_cl_ + 1);
             nms_radius_     = aruco_marker_->at("nms_radius");
             nms_tolerance_  = aruco_marker_->at("nms_tolerance");
             ext_width_      = aruco_marker_->at("ext_width");
