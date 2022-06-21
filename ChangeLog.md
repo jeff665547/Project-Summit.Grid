@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 1.3.21 - 2022
+
+- Feature: Find more candidate markers (ArUco) to improve the recognition rate of the ArUco markers.
+- Bugfix: Fix for wrong ArUco counts for each FOV.
+
 ## 1.3.20 - 2022.05.27
 
 - Feature: SML chip (S3B) support.

@@ -7,6 +7,7 @@
 #include "channel.hpp"
 #include <summit/app/grid/model.hpp>
 #include <summit/app/grid/aruco_setter.hpp>
+#include <summit/app/grid/custom_aruco_setter.hpp>
 #include <summit/app/grid/probe_ch_proc_setter.hpp>
 #include <summit/app/grid/general_marker_proc_setter.hpp>
 #include <summit/app/grid/mk_detector_rescuer.hpp>
@@ -132,6 +133,14 @@ struct Chip {
         std::vector<cv::Mat>                      fov_rum_imgs(task.white_channel_imgs().size());
 
         chipimgproc::aruco::MarkerMap mk_map(task.id_map());
+
+        auto [templ, mask] = chipimgproc::aruco::create_location_marker(
+            task.tm_outer_width(), // task.tm_outer_width() - 2, // for erosion.
+            task.tm_inner_width(), // task.tm_inner_width() + 2, // for erosion.
+            task.tm_padding(),
+            task.tm_margin(), 
+            task.um2px_r()
+        );
         
         auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
@@ -165,7 +174,7 @@ struct Chip {
             }
             mk_regs.swap(tmp);
             summit::grid::log.debug("marker # = {}", mk_regs.size());
-            return mk_regs;
+            return std::make_tuple(mk_regs, tmp);
         };
 
         auto& st_pts_cl = task.stitched_points_cl();
@@ -184,7 +193,7 @@ struct Chip {
             try {
                 auto& mk_num = fov_marker_num.at(fov_id);
                 /* detect marker regions */
-                auto mk_pos_des = aruco_mk_det(mat, fov_id);
+                auto [mk_pos_des, raw_findings] = aruco_mk_det(mat, fov_id);
                 std::vector<cv::Point2d>    mk_pos_px       ;
                 std::vector<cv::Point2d>    mk_pos_rum      ;
                 auto& st_p_cl = st_pts_cl.at(fov_id);
@@ -203,12 +212,47 @@ struct Chip {
                 }
                 auto mk_num_match_spec = mk_pos_px.size() == mk_num.x * mk_num.y;
                 if(!mk_num_match_spec) {
-                    fov_wh_warnings.at(fov_id) = true;
-                    // task.create_warning_file();
                     auto recognized_count = mk_pos_px.size();
-                    fov_marker_unclear_ct.at(fov_id) = mk_num.x * mk_num.y - recognized_count;
-                    if(recognized_count <= 1) {
-                        throw std::runtime_error("Recognized markers are not enough!");
+                    int remaining_marker_ct = mk_num.x * mk_num.y - recognized_count;
+                    std::vector<cv::Point2d>  init_mk_pos_px;
+                    for(auto mk : mk_pos_des) {
+                        auto& pos_px = std::get<2>(mk);
+                        init_mk_pos_px.push_back(pos_px);
+                    }
+                    summit::grid::log.debug("Start second-round recognition.");
+                    // std::cout << "New recognized process" << std::endl;
+                    auto remaining_mk_detector = custom_aruco_setter(task, remaining_marker_ct);
+                    auto img = custom_aruco_setter.draw_mk_pos(mat, templ, init_mk_pos_px);
+                    try {
+                        mk_pos_des = remaining_mk_detector(img, mk_map.get_marker_indices());
+                        size_t ct = 0;
+                        for(auto& [aid, score, pos] : mk_pos_des) {
+                            if(aid < 0) continue;
+                            auto mkpid   = mk_map.get_sub(aid);
+                            auto mk_lt_x = (mkpid.x * task.mk_wd_rum()) + task.xi_rum() - st_p.x;
+                            auto mk_lt_y = (mkpid.y * task.mk_hd_rum()) + task.yi_rum() - st_p.y;
+                            auto mk_x    = mk_lt_x + (task.mk_w_rum() / 2);
+                            auto mk_y    = mk_lt_y + (task.mk_h_rum() / 2);
+                            summit::grid::log.debug("Second-round mk_pos_rum : ({}, {})", mk_x,  mk_y );
+                            // summit::grid::log.debug("Second-round mk_pos_px  : ({}, {})", pos.x, pos.y);
+                            mk_pos_px.push_back(pos);
+                            mk_pos_rum.emplace_back(mk_x, mk_y);
+                            ct++;
+                        }
+                        summit::grid::log.debug("Second-round recognized marker # = {}", ct);
+                        summit::grid::log.debug("Second-round recognition finish.");
+                    } catch (...) {
+                        summit::grid::log.debug("Second-round recognition failed.");
+                    }
+                    mk_num_match_spec = mk_pos_px.size() == mk_num.x * mk_num.y;
+                    if(!mk_num_match_spec){
+                        recognized_count = mk_pos_px.size();
+                        remaining_marker_ct = mk_num.x * mk_num.y - recognized_count;
+                        fov_wh_warnings.at(fov_id) = true;
+                        fov_marker_unclear_ct.at(fov_id) = remaining_marker_ct;
+                        if(recognized_count <= 1) {
+                            throw std::runtime_error("Recognized markers are not enough!");
+                        }
                     }
                 }
                 auto aruco_ch_mk_seg_view = task.aruco_ch_mk_seg_view(fov_id.y, fov_id.x);
@@ -337,13 +381,6 @@ struct Chip {
                                  std::max((translate - translate_min).x, (translate - translate_min).y));
             
             auto  ref_warp_mat = chipimgproc::warp_mat::create_warp(rot_deg, scale.x, scale.y, translate.x, translate.y);
-            auto [templ, mask] = chipimgproc::aruco::create_location_marker(
-                task.tm_outer_width(), // task.tm_outer_width() - 2, // for erosion.
-                task.tm_inner_width(), // task.tm_inner_width() + 2, // for erosion.
-                task.tm_padding(),
-                task.tm_margin(), 
-                task.um2px_r()
-            );
 
             double cover      = std::max(3.0 * max_dev, 350.0); // pixels
             double cover_r    = cover / templ.cols; // ratio
