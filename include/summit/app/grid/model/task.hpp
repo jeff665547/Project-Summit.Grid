@@ -160,7 +160,8 @@ struct Task {
             warn_ = warn_ || ch.at("warning").get<bool>();
             (*qc_log_)["warning"] = warn_;
             move_key(ch, *qc_log_, "low_correlation");
-            move_key(ch, *qc_log_, "sharpness");
+            move_key(ch, *qc_log_, "zero_value"     );
+            move_key(ch, *qc_log_, "sharpness"      );
         }
     }
     void move_key(
@@ -186,16 +187,17 @@ struct Task {
         char sep = '\t';
         int datewidth       = 0;
         int dirwidth        = 0;        
-        int warningwidth    = 0;
-        int FOVctwidth      = 0;
+        int boolwidth       = 0;
+        int ctwidth         = 0;
         int sharpnesswidth  = 0;
 
         bool sharpness_exist = qc_log_->contains("sharpness");
 
         Utils::table_writer(headers,                "Time", sep, datewidth     );
         Utils::table_writer(headers,      "Chip_Directory", sep, dirwidth      );
-        Utils::table_writer(headers,             "Warning", sep, warningwidth  );
-        Utils::table_writer(headers, "Unclear_Marker_FOVs", sep, FOVctwidth    );
+        Utils::table_writer(headers,             "Warning", sep, boolwidth     );
+        Utils::table_writer(headers,          "Zero_Value", sep, boolwidth     );
+        Utils::table_writer(headers, "Unclear_Marker_FOVs", sep, ctwidth       );
         Utils::table_writer(headers,           "Sharpness", sep, sharpnesswidth);
         if(sharpness_exist) {
             for(int i = 0; i < static_cast<int>((*qc_log_)["sharpness"].size()) - 2; i++){
@@ -203,10 +205,11 @@ struct Task {
             }
         }
 
-        Utils::table_writer(content, grid_log_.value<std::string>("date", "Error"), sep, datewidth    );
-        Utils::table_writer(content,                            chip_dir_.string(), sep, dirwidth     );
-        Utils::table_writer(content,    ((warn_ || !grid_done_) ? "true": "false"), sep, warningwidth );
-        Utils::table_writer(content,           (*qc_log_)["unclear_marker"].size(), sep, FOVctwidth   );
+        Utils::table_writer(content,       grid_log_.value<std::string>("date", "Error"), sep, datewidth    );
+        Utils::table_writer(content,                                  chip_dir_.string(), sep, dirwidth     );
+        Utils::table_writer(content,          ((warn_ || !grid_done_) ? "true": "false"), sep, boolwidth    );
+        Utils::table_writer(content, ((*qc_log_)["zero_value"].size() ? "true": "false"), sep, boolwidth    );
+        Utils::table_writer(content,                 (*qc_log_)["unclear_marker"].size(), sep, ctwidth      );
         if(sharpness_exist) {
             for(auto&& ch : (*qc_log_)["sharpness"]) {
                 for(auto&& [ch_name, val]: ch.items()) {
@@ -286,6 +289,33 @@ struct Task {
         }
         if(log.empty()){
             qc_log_->erase("unclear_marker");
+        }
+    }
+    void collect_fovs_zero_value_ct(
+        Utils::FOVMap<int>&  fovs_zero_value_ct,
+        const std::string&   ch_name,
+        nlohmann::json&      qc_log,
+        bool&                warn
+    ) const {
+        auto& log_zero_value = qc_log["zero_value"];
+        log_zero_value = nlohmann::json::array();
+        nlohmann::json channel_zero_value;
+        auto& log = channel_zero_value[ch_name];
+        for(auto&& [fov_id, count]: fovs_zero_value_ct) {
+            if(count){
+                warn = warn || count;
+                nlohmann::json fov_qc_log;
+                fov_qc_log["fov_id"] = nlohmann::json::array();
+                fov_qc_log["fov_id"][0] = fov_id.x;
+                fov_qc_log["fov_id"][1] = fov_id.y;
+                fov_qc_log["count"] = count;
+                log.push_back(fov_qc_log);
+            }
+        }
+        if(!log.empty()){
+            log_zero_value.push_back(channel_zero_value);
+        } else {
+            qc_log.erase("zero_value");
         }
     }
     void collect_fovs_mk_append_correlation(

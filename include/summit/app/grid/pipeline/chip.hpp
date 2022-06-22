@@ -119,6 +119,7 @@ struct Chip {
         
         auto& fov_marker_num = task.fov_marker_num();
         Utils::FOVMarkerRegionMap                 fov_marker_regs;
+        Utils::FOVMap<int>                        fov_zero_val_ct;
         Utils::FOVMap<int>                        fov_marker_unclear_ct;
         Utils::FOVMap<bool>                       fov_wh_warnings;
         Utils::FOVMap<bool>                       fov_wh_successes;
@@ -144,6 +145,7 @@ struct Chip {
         
         auto fov_mk_rel = fov_mkid_rel(task.chipspec(), task.fov());
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
+            fov_zero_val_ct[fov_id] = {};
             fov_marker_unclear_ct[fov_id] = {};
             fov_marker_regs[fov_id] = {};
             fov_wh_warnings[fov_id] = {};
@@ -191,6 +193,7 @@ struct Chip {
             cv::Mat mat         = std::get<1>(fov_id_mat.second);
             summit::grid::log.debug("white channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
             try {
+                fov_zero_val_ct.at(fov_id) = Utils::zero_val_ct(mat);
                 auto& mk_num = fov_marker_num.at(fov_id);
                 /* detect marker regions */
                 auto [mk_pos_des, raw_findings] = aruco_mk_det(mat, fov_id);
@@ -477,6 +480,12 @@ struct Chip {
         task.set_fov_mk_regs(std::move(fov_marker_regs));
         task.collect_fovs_warnings(fov_wh_warnings, task.warn());
         task.collect_fovs_marker_unclear_ct(fov_marker_unclear_ct);
+        task.collect_fovs_zero_value_ct(
+            fov_zero_val_ct,
+            wh_ch_name,
+            task.qc_log(),
+            task.warn()
+        );
         if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
             cv::Point center_id(task.fov_rows()/2, task.fov_cols()/2);
@@ -528,6 +537,7 @@ struct Chip {
 
         auto& fov_marker_num  = task.fov_marker_num();
         Utils::FOVMarkerRegionMap                fov_marker_regs;
+        Utils::FOVMap<int>                       fov_zero_val_ct;
         Utils::FOVMap<bool>                      fov_wh_warnings;
         Utils::FOVMap<bool>                      fov_wh_successes;
         Utils::FOVMap<float>                     fov_rot_degs;
@@ -542,6 +552,7 @@ struct Chip {
         
         // Initialization
         for(auto&& [fov_id, mat] : task.white_channel_imgs()) {
+            fov_zero_val_ct[fov_id] = {};
             fov_marker_regs[fov_id] = {};
             fov_wh_warnings[fov_id] = {};
             fov_wh_successes[fov_id] = {};
@@ -575,6 +586,7 @@ struct Chip {
             cv::Mat mat      = std::get<1>(fov_id_mat.second);
             summit::grid::log.debug("white channel, fov id:({}, {}) start process", fov_id.x, fov_id.y);
             try {
+                fov_zero_val_ct.at(fov_id) = Utils::zero_val_ct(mat);
                 auto& mk_num = fov_marker_num.at(fov_id);
                 /* Detect general markers position */
                 auto mk_pos_des = gen_mk_det(mat);
@@ -680,6 +692,12 @@ struct Chip {
         task.set_rot_degree(rot_deg);
         task.set_fov_mk_regs(std::move(fov_marker_regs));
         task.collect_fovs_warnings(fov_wh_warnings, task.warn());
+        task.collect_fovs_zero_value_ct(
+            fov_zero_val_ct,
+            wh_ch_name,
+            task.qc_log(),
+            task.warn()
+        );
         if(model.marker_append()) {
             task.collect_fovs_mk_append(fov_mk_append);
             cv::Point center_id(task.fov_rows()/2, task.fov_cols()/2);

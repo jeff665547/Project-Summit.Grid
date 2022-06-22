@@ -42,6 +42,7 @@ struct FOV {
             task.is_img_enc(), 
             model
         );
+        zero_val_ct_ = Utils::zero_val_ct(img);
         src_path_ = std::move(img_path);
         src_ = img;
         fov_id_ = _fov_id;
@@ -99,6 +100,7 @@ struct FOV {
     VAR_GET(cv::Mat_<std::uint16_t>,            src                     );
     VAR_GET(cv::Point,                          fov_id                  );
     VAR_GET(double,                             theor_max_val           );
+    VAR_GET(int,                                zero_val_ct             );
 
     VAR_IO(chipimgproc::marker::Layout,         mk_layout               );
     VAR_IO(bool,                                proc_bad                );

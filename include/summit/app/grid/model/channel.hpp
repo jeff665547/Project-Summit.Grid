@@ -41,6 +41,7 @@ struct Channel {
             jch.at("marker_type")
         );
         fov_mk_append_correlation_ = {};
+        fov_zero_val_ct_ = {};
     }
     auto heatmap_writer() {
         return [this](const MWMat& mw_mat){
@@ -145,6 +146,12 @@ struct Channel {
             }
         }
     }
+    template<class FOVMod>
+    void collect_zero_val_ct(Utils::FOVMap<FOVMod>& fov_mods) {
+        for(auto&& [fov_id, mod] : fov_mods) {
+            fov_zero_val_ct_[fov_id] = mod.zero_val_ct();
+        }
+    }
     // template<class FOVMod>
     // void collect_fovs(Utils::FOVMap<FOVMod>& fov_mods) {
     //     nucleona::remove_const(*task_).set_multi_tiled_mat(ch_name_, make_multi_tiled_mat(fov_mods, *task_));
@@ -159,6 +166,7 @@ struct Channel {
         );
         // d = std::chrono::steady_clock::now() - timer;
         // std::cout << "make_multi_warped_mat: " << d.count() << " ms\n";
+        collect_zero_val_ct(fov_mods);
 
         // timer = std::chrono::steady_clock::now();
         collect_fovs_mk_append(fov_mods);
@@ -232,6 +240,7 @@ struct Channel {
     VAR_IO(cv::Mat,                                 mk_append_mat               )
     VAR_IO(Utils::FOVMap<cv::Mat>,                  fov_mk_append_dn            )
     VAR_IO(Utils::FOVMap<float>,                    fov_mk_append_correlation   )
+    VAR_IO(Utils::FOVMap<int>,                      fov_zero_val_ct             )
     VAR_IO(nlohmann::json,                          grid_log                    )
     VAR_IO(bool,                                    warn                        )
 

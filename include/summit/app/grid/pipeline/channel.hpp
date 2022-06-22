@@ -228,6 +228,12 @@ constexpr struct Channel {
 
             // marker append
             // tmp_timer = std::chrono::steady_clock::now();
+            task.collect_fovs_zero_value_ct(
+                channel.fov_zero_val_ct(),
+                channel.ch_name(),
+                channel.grid_log(),
+                channel.warn()
+            );
             if(model.marker_append()) {
                 channel.mk_append_view()(channel.mk_append_mat());
                 if(task.ref_from_probe_ch()) {

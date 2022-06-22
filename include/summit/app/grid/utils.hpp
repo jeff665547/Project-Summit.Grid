@@ -683,6 +683,12 @@ struct Utils{
         // chipimgproc::info(std::cout, img);
         return nucleona::make_tuple(std::move(img), std::move(img_path));
     }
+    static auto zero_val_ct(
+        const cv::Mat& img
+    ) {
+        int total_pxs = img.rows * img.cols;
+        return total_pxs - cv::countNonZero(img);
+    }
     template<class Int>
     static auto read_imgs(
         const boost::filesystem::path& src_path,
