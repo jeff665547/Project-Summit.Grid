@@ -2,6 +2,7 @@
 
 ## 1.3.21 - 2022.06.22
 
+- Feature: Add the autorunning server to automatically perform the gridding process in the background service.
 - Feature: Compute the amount of pixels that are zero-valued.
 - Feature: Find more candidate markers (ArUco) to improve the recognition rate of the ArUco markers.
 - Bugfix: Fix for wrong ArUco counts for each FOV.

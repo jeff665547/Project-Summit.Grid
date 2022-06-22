@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel='stylesheet' type='text/css' href='log.css'>
+  <link href="jsonTree.css" rel="stylesheet" />
+  <script src="log.js"></script>
+  <script src="jsonTree.js"></script>
+
+</head>
+
+<body>
+
+  <div id='App'>
+
+    <div id='navi-bar'>
+      <label class='menu'  data-checked data-ref='view_log' title="Display logs in real time (continuously updated)">
+         LOG MONITOR 
+      </label>
+      <label class='menu' onclick="getReport()" data-ref='view_report' title='Click to display the current folder status report (not constantly updated)'>
+         SYNC FOLDER REPORT 
+      </label>
+      <label class='menu' onclick="getAllPassTree()" data-ref='view_tree' title='Click to display the chip tree available for the image viewer (not constantly updated)'>
+         IMAGE VIEWER TREE 
+      </label>
+    </div>
+
+
+
+    <div id='jumbotron'>
+      <div class='jumbotron-area' id='view_log'>
+        <pre id="log"></pre>
+        <div><input type="checkbox" id="auto" checked> Scroll to below</div>
+      </div>
+      <div class='jumbotron-area' id='view_report'>
+        <div id="wrapper"></div>
+      </div>
+      <div class='jumbotron-area' id='view_tree'>
+        <div id="show_tree"></div>
+      </div>      
+    </div>
+
+
+
+
+    <div id='contents'>
+      <div class='contents-area'>
+
+        <div id='run-state'>
+          <div class='summary_state' id="nothing" data-checked>Idling</div>
+          <div class='summary_state' id="gridding" >Gridding</div>
+          <div class='summary_state' id="clipping" >Clipping</div>
+        </div>
+        <div id="table-scroll">
+          <table>
+            <tbody id='tbody_summary'>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+
+
+</body>
+
+</html>
