@@ -20,7 +20,6 @@ public:
         for(auto mk: marker_center_pos) {
             cv::circle(image, mk, mark_radius, cv::Scalar(0), -1);
         }
-        cv::imwrite("C:/grid_res/tmp.tiff", image);
         return image;
     }
     auto operator()(const model::Task& task, const int& remaining_mk_ct) const {
