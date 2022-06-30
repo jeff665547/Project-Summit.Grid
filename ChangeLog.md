@@ -1,6 +1,6 @@
 # ChangeLog
 
-## 1.3.21 - 2022.06.22
+## 1.3.21 - 2022.06.30
 
 - Feature: Add the autorunning server to automatically perform the gridding process in the background service.
 - Feature: Compute the amount of pixels that are zero-valued.
