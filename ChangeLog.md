@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 1.3.22 - 2022.11.16
+- Update: Update the Nucleona library API.
+
 ## 1.3.21 - 2022.06.30
 
 - Feature: Add the autorunning server to automatically perform the gridding process in the background service.
