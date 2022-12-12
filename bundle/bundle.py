@@ -58,7 +58,6 @@ if __name__ == "__main__":
         # temp_share = "\\\\192.168.200.200\\smtdata\\Joye"
         temp_share  = "\\\\192.168.2.21\\temp_share"
         nsis_path   = path.join( bundle_dir, "summit-grid-setup.exe" )
-        nsis_deploy = path.join( temp_share, "Summit-Grid_{}.exe".format( version_time ))
 
         if not path.isdir( temp_share ):
             print( "connect to " + temp_share, flush=True )
@@ -70,7 +69,8 @@ if __name__ == "__main__":
                 raise RuntimeError( "can't find: {}".format( temp_share ))
 
         print( "copy to " + temp_share, flush=True )
-        sh.copyfile( nsis_path, nsis_deploy )
+        sh.copyfile( nsis_path, path.join( proj_dir,   "Summit-Grid_{}.exe".format( version_time )))
+        sh.copyfile( nsis_path, path.join( temp_share, "Summit-Grid_{}.exe".format( version_time )))
 
     else:
         raise RuntimeError( "currently only support windows bundle" )

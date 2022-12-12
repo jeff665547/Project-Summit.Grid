@@ -90,6 +90,10 @@ Package_CI:
         - python -m venv deploy
         - deploy\Scripts\pip install requests
         - deploy\Scripts\python ..\bundle\bundle.py %PERSONAL_ACCESS_TOKEN%
+    artifacts:
+        name: "Summit-Grid"
+        paths:
+            - ./Summit-Grid_*.exe
     only:
         - web
     tags:
